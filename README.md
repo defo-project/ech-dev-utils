@@ -1,4 +1,4 @@
-# Ancilliary ECH developer content
+# Ancillary ECH developer content
 
 Stephen Farrell, stephen.farrell@cs.tcd.ie, 20231121-ish
 
@@ -8,7 +8,7 @@ The current development branch of our Encrypted ClientHello (ECH) enabled fork
 of OpenSSL is
 [ECH-draft-13c](https://github.com/sftcd/openssl/tree/ECH-draft-13c). That
 branch also contains this material, but when we turn that branch into a PR for
-upstream OpenSSL, this stuff will no longer belong there, so we've moving it
+upstream OpenSSL, this stuff will no longer belong there, so we've moved it
 here.
 
 The content includes scripts for doing ECH things, sample configurations and
@@ -26,16 +26,18 @@ get those pathnames wrong, so bear with us as we fix that.
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
-- [echcli.sh](echcli.sh) a relatively comprehensive wrapper for ``openssl s_client``
-that allows one to play with lots of ECH options
-- [echsvr.sh](echsvr.sh) a relatively comprehensive wrapper for ``openssl s_server``
-that allows one to play with lots of ECH options
-- [make-example-ca.sh](make-example-ca.sh) creates fake x.509 certs so we can
-use the above for localhost tests
+- [echcli.sh](echcli.sh) a relatively comprehensive wrapper for ``openssl
+  s_client`` that allows one to play with lots of ECH options
+- [echsvr.sh](echsvr.sh) a relatively comprehensive wrapper for ``openssl
+  s_server`` that allows one to play with lots of ECH options
+- [make-example-ca.sh](make-example-ca.sh) creates fake x.509 certs for
+  example.com and the likes of foo.example.com so we can use the scripts
+  and configs here for localhost tests - you have to have gotten that to
+  work before those scripts/configs will work for localhost tests
 
 ## Pure test scripts
 
-- [agiletest.sh](agiletest.sh) tests the ECH with ``openssl s_client`` and
+- [agiletest.sh](agiletest.sh) tests ECH with ``openssl s_client`` and
   ``openssl s_server`` with the various algorithm combinations that are
   supported in ECHConfig values
 - [smoke_ech.sh](smoke_ech.sh) runs through a list of sites known to support
