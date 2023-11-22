@@ -6,20 +6,14 @@
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 # to pick up the relevant configuration
-: ${CFGTOP:=$HOME/code/openssl}
+: ${CFGTOP:=`/bin/pwd`}
 
-: ${ECHKEYFILE:="$CFGTOP/esnistuff/echconfig.pem"}
-ECH10KEYFILE="$CFGTOP/esnistuff/echconfig-10.pem"
-# prefer the draft-10 file if it's there
-if [ -f $ECH10KEYFILE ]
-then
-    ECHKEYFILE="$CFGTOP/esnistuff/echconfig-10.pem"
-fi 
+: ${ECHKEYFILE:="$CFGTOP/echconfig.pem"}
 
 HIDDEN="foo.example.com"
 HIDDEN2="bar.example.com"
 CLEAR_SNI="example.com"
-ECHDIR="$CFGTOP/esnistuff/echkeydir"
+ECHDIR="$CFGTOP/echkeydir"
 
 SSLCFG="/etc/ssl/openssl.cnf"
 
@@ -38,7 +32,7 @@ SUPPLIEDKEYFILE=""
 SUPPLIEDHIDDEN=""
 SUPPLIEDCLEAR_SNI=""
 SUPPLIEDDIR=""
-CAPATH="$CFGTOP/esnistuff/cadir/"
+CAPATH="$CFGTOP/cadir/"
 EARLY_DATA="no"
 NREQS=""
 
@@ -169,12 +163,12 @@ then
     nreq_cmd=" -naccept $NREQS "
 fi
 
-KEYFILE1=$CFGTOP/esnistuff/cadir/$clear_sni.priv
-CERTFILE1=$CFGTOP/esnistuff/cadir/$clear_sni.crt
-KEYFILE2=$CFGTOP/esnistuff/cadir/$hidden.priv
-CERTFILE2=$CFGTOP/esnistuff/cadir/$hidden.crt
-KEYFILE3=$CFGTOP/esnistuff/cadir/$HIDDEN2.priv
-CERTFILE3=$CFGTOP/esnistuff/cadir/$HIDDEN2.crt
+KEYFILE1=$CFGTOP/cadir/$clear_sni.priv
+CERTFILE1=$CFGTOP/cadir/$clear_sni.crt
+KEYFILE2=$CFGTOP/cadir/$hidden.priv
+CERTFILE2=$CFGTOP/cadir/$hidden.crt
+KEYFILE3=$CFGTOP/cadir/$HIDDEN2.priv
+CERTFILE3=$CFGTOP/cadir/$HIDDEN2.crt
 
 if [[ "$KEYGEN" == "yes" ]]
 then

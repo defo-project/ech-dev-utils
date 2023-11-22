@@ -34,6 +34,8 @@ get those pathnames wrong, so bear with us as we fix that.
   example.com and the likes of foo.example.com so we can use the scripts
   and configs here for localhost tests - you have to have gotten that to
   work before those scripts/configs will work for localhost tests
+- [localhost-tests.md](localhost-tests.md) is a HOWTO for getting
+  started with the above
 
 ## Pure test scripts
 

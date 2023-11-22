@@ -5,9 +5,9 @@
 # Make key pairs for a fake local CA and a few example.com 
 # names with the latter's certs also covering *.example.com
 
-: ${TOP:=$HOME/code/openssl}
-: ${LD_LIBRARY_PATH:=$TOP}
-: ${OBIN:=$TOP/apps/openssl}
+: ${CODETOP:=$HOME/code/openssl}
+: ${LD_LIBRARY_PATH:=$CODETOP}
+: ${OBIN:=$CODETOP/apps/openssl}
 export LD_LIBRARY_PATH
 
 #set -x
@@ -60,9 +60,9 @@ then
     if [ -f ../openssl.cnf ]
     then
         cp ../openssl.cnf .
-    elif [ -f $TOP/apps/openssl.cnf ]
+    elif [ -f $CODETOP/apps/openssl.cnf ]
     then
-        cp $TOP/apps/openssl.cnf .
+        cp $CODETOP/apps/openssl.cnf .
     else
         cp /etc/ssl/openssl.cnf .
     fi
