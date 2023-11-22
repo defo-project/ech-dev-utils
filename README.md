@@ -1,4 +1,4 @@
-# Ancialliary ECH developer content
+# Ancilliary ECH developer content
 
 Stephen Farrell, stephen.farrell@cs.tcd.ie, 20231121-ish
 
@@ -35,19 +35,22 @@ use the above for localhost tests
 
 ## Pure test scripts
 
-- [agiletest.sh](agiletest.sh) tests the ECH client with the various algorithm
-combinagtions that are supported in ECHConfig values
+- [agiletest.sh](agiletest.sh) tests the ECH with ``openssl s_client`` and
+  ``openssl s_server`` with the various algorithm combinations that are
+  supported in ECHConfig values
 - [smoke_ech.sh](smoke_ech.sh) runs through a list of sites known to support
-ECH and reports on status
+  ECH and reports on status
 
 ## Scripts to play with ECHConfig values (what gets put in the DNS)
 
 - [mergepems.sh](mergepems.sh) merge the ECHConfigList values from two ECH PEM
   files
 - [pem2rr.sh](pem2rr.sh) encode the ECHConfigList from an ECH PEM file into a
-  validly (ascii-hex) encoded HTTPS resource record value splitechconfiglist.sh
-- [makecatexts.sh](makecatexts.sh) allows one to create an ECHConfig with a cat
-  picture as an extension
+  validly (ascii-hex) encoded HTTPS resource record value
+- [splitechconfiglist.sh](splitechconfiglist.sh) splits a base64 encoded
+  ECHConfigList with multiple ECHConfig entries into constituent parts
+- [makecatexts.sh](makecatexts.sh) allows one to create a file with a cat
+  picture suited for use as the set of extensions for an ECHConfigList
 
 ## Web server build HOWTOs, configs and test scripts
 
@@ -103,13 +106,13 @@ have multiple config files for that but we do.
 
 - [cat.ext](cat.ext) is a cat picture encoded as an ECHConfig extension (suited
   for inclusion in an ECHConfigList)
-- [extsfile](extsfile) contains two ECHConfig extensions (suited for inlusion
+- [extsfile](extsfile) contains two ECHConfig extensions (suited for inclusion
   in an ECHConfigList), the first being of zero length, the second being a very
   small picture (I forget of what;-)
 - [d13.pem](d13.pem) is an ECH PEM file (public name: example.com) used by some
-  test scripts
+  test scripts (github may nag you as this contains a sample private key)
 - [echconfig.pem](echconfig.pem) is an ECH PEM file (public name: bar.ie) used
-  by some test scripts
+  by some test scripts (github may nag you as this contains a sample private key)
 - [ed_file](ed_file) is a file usable as early data in tests
 
 ## Misc. scripts
