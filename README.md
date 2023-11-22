@@ -124,15 +124,17 @@ have multiple config files for that but we do.
 
 ## Misc. config files
 
-- [cat.ext](cat.ext) is a cat picture encoded as an ECHConfig extension (suited
-  for inclusion in an ECHConfigList)
+- [cat.ext](cat.ext) is a cat picture encoded as an ECHConfig extension suited
+  for inclusion in an ECHConfigList - for the cat lovers out there, the
+  original image is [cat.jpg](cat.jpg), downsized to [scat.png](scat.png)
 - [extsfile](extsfile) contains two ECHConfig extensions (suited for inclusion
   in an ECHConfigList), the first being of zero length, the second being a very
   small picture (I forget of what;-)
 - [d13.pem](d13.pem) is an ECH PEM file (public name: example.com) used by some
   test scripts (github may nag you as this contains a sample private key)
 - [echconfig.pem](echconfig.pem) is an ECH PEM file (public name: bar.ie) used
-  by some test scripts (github may nag you as this contains a sample private key)
+  by some test scripts (github may nag you as this contains a sample private
+  key)
 - [ed_file](ed_file) is a file usable as early data in tests
 
 ## Misc. scripts

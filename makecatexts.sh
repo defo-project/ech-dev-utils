@@ -68,3 +68,14 @@ do
         cat $file >>$OUTFILE
     fi
 done
+
+# check size of $OUTFILE - we limit extensions to 512 octets max for now, see
+# include/openssl/ech.h for the defnition of OSSL_ECH_MAX_ECHCONFIGEXT_LEN
+if [ -f $OUTFILE ]
+then
+    fs=`stat -c %s $OUTFILE`
+    if ((fs > 512))
+    then
+        echo "Warning: extensions file too big ($fs > 512) that won't work"
+    fi
+fi
