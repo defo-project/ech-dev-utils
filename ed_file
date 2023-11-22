@@ -1,0 +1,5 @@
+GET / HTTP/1.1
+Connection: close
+Host: foo.example.com
+X-Header: earlier
+
