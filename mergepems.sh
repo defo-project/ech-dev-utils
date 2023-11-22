@@ -83,32 +83,29 @@ fi
 
 if ((incount == 1))
 then
-    echo "Just one - Copying input to output"
-    cat $PEMFILES >$OUTFILE
-    exit 0
+    # echo "Just one - Copying public part of input to output"
+    b64str=`cat $PEMFILES | tail -2 | head -1`
+else
+    ah_overall=""
+    overall_len=0
+    for file in $PEMFILES
+    do
+        if [ ! -f $file ]
+        then
+            continue
+        fi
+        ah_ech=`cat $file | tail -2 | head -1 | base64 -d | xxd -ps -c 200 | tr -d '\n'`  
+        ah_ech_no_len=${ah_ech:4}
+        ah_overall="$ah_overall$ah_ech_no_len"
+        ah_ech_len=${#ah_ech}
+        ech_len=$((ah_ech_len/2-2))
+        overall_len=$((overall_len+ech_len))
+        # echo "$file $ech_len $overall_len"
+    done
+    ah_overall="`printf  "%04x" $((overall_len))`$ah_overall"
+    # echo "ah_overall: $ah_overall"
+    b64str=`echo "$ah_overall" | xxd -p -r | base64 -w 0` 
 fi
-
-ah_overall=""
-overall_len=0
-for file in $PEMFILES
-do
-    if [ ! -f $file ]
-    then
-        continue
-    fi
-    ah_ech=`cat $file | tail -2 | head -1 | base64 -d | xxd -ps -c 200 | tr -d '\n'`  
-    ah_ech_no_len=${ah_ech:4}
-    ah_overall="$ah_overall$ah_ech_no_len"
-    ah_ech_len=${#ah_ech}
-    ech_len=$((ah_ech_len/2-2))
-    overall_len=$((overall_len+ech_len))
-    # echo "$file $ech_len $overall_len"
-done
-
-ah_overall="`printf  "%04x" $((overall_len))`$ah_overall"
-
-# echo "ah_overall: $ah_overall"
-b64str=`echo "$ah_overall" | xxd -p -r | base64 -w 0` 
 
 echo "-----BEGIN ECHCONFIG-----" >$OUTFILE
 echo "$b64str" >>$OUTFILE

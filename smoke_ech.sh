@@ -35,7 +35,7 @@ export LD_LIBRARY_PATH=$CODETOP
 : ${bad_dir:="$HOME/logs/smoke_ech_baddies"}
 
 # time to wait for a remote access to work, 10 seconds
-: ${tout:="10s"}
+: ${tout:="5s"}
 
 : ${DOMAIL:="no"}
 
@@ -156,19 +156,15 @@ then
         then
             qname="_$port._https.$host"
         fi
+        echo "Checking $host:$port/$path and $wkurl"
         echo "Checking $host:$port/$path and $wkurl" >>$logfile
-        # get wkurl
-        if [[ "$host" != "crypto.cloudflare.com" && "$host" != "tls-ech.dev" ]]
+        # get wkurl, if it exists
+        timeout $tout curl -o $host.$port.json -s $wkurl
+        cres=$?
+        if [[ "$cres" == "124" ]] 
         then
-            timeout $tout curl -o $host.$port.json -s $wkurl
-            cres=$?
-            if [[ "$cres" == "124" ]] 
-            then
-                allgood="no"
-                echo "Timeout getting $wkurl" >>$logfile
-            fi
-        else
-            echo "{ \"No .well-known for $host \"}" >$host.$port.json
+            allgood="no"
+            echo "Timeout getting $wkurl" >>$logfile
         fi
         # grab DNS
         $digcmd $qname >$host.$port.dig 2>&1

@@ -14,52 +14,63 @@ here.
 The content includes scripts for doing ECH things, sample configurations and
 HOWTOs for building ECH-enabled things.
 
-These have been used in an ubuntu development environment and likely assume
-that you have other code repos installed and built in e.g.
+These have been used in an ubuntu development environment and as a default
+assume that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. Some of those pathnames are
 likely still too hardcoded in scripts and configs but we'll fix things as we
-go.  Feel free to submit PRs if you make things better. As we're in the process
-of moving this from our OpenSSL fork source tree, some of the scripts might
-e.g.  get those pathnames wrong, so bear with us as we fix that. (We've
-gotten as far as the ``smoke_ech.sh`` script, but the ones below that have
-yet to be tested when run from here.)
+go.  Feel free to submit PRs if you make things better, or bear with us as we
+fix that. (We've gotten as far as the ``makecatexts.sh`` script, but the ones
+below that have yet to be tested when run from here.)
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
-- [echcli.sh](echcli.sh) a relatively comprehensive wrapper for ``openssl
+- [echcli.sh](echcli.sh) is a relatively comprehensive wrapper for ``openssl
   s_client`` that allows one to play with lots of ECH options
-- [echsvr.sh](echsvr.sh) a relatively comprehensive wrapper for ``openssl
+- [echsvr.sh](echsvr.sh) is a relatively comprehensive wrapper for ``openssl
   s_server`` that allows one to play with lots of ECH options
 - [make-example-ca.sh](make-example-ca.sh) creates fake x.509 certs for
-  example.com and the likes of foo.example.com so we can use the scripts
-  and configs here for localhost tests - you have to have gotten that to
-  work before those scripts/configs will work for localhost tests
-- [localhost-tests.md](localhost-tests.md) is a HOWTO for getting
-  started with the above
+  example.com and the likes of foo.example.com so we can use the scripts and
+  configs here for localhost tests - you have to have gotten that to work before
+  ``echsvr.sh`` can be used for localhost tests
+- [localhost-tests.md](localhost-tests.md) is a HOWTO for getting started with
+  the above
 
 ## Pure test scripts
 
-Once you have an openssl build in ``$HOME/code/openssl`` you can just
-run these, but note that they're deliberately slow.
+Once you have an OpenSSL build in ``$HOME/code/openssl`` you can just
+run these. Note these are deliberately sedate, but that's ok.
 
-- [agiletest.sh](agiletest.sh) tests ECH with ``openssl s_client`` and
+- [agiletest.sh](agiletest.sh) tests ECH using ``openssl s_client`` and
   ``openssl s_server`` with the various algorithm combinations that are
-  supported in ECHConfig values - this isn't used so much any more as 
+  supported for ECHConfig values - this isn't used so much any more as 
   the ``make test`` target in the OpenSSL build now does the equivalent
-  and is much quicker.
+  and is much quicker
 - [smoke_ech.sh](smoke_ech.sh) runs through a list of sites known to support
   ECH and reports on status
 
-## Scripts to play with ECHConfig values (what gets put in the DNS)
+## Scripts to play with ECHConfig values (that may get put in the DNS)
+
+We defined a new PEM file format for ECH key pairs, specified in
+[draft-farrell-tls-pemesni/](https://datatracker.ietf.org/doc/draft-farrell-tls-pemesni/).
+(That's an individual Internet-draft and doesn't currently have any standing in
+terms of IETF process, but it works and our code uses it.) 
+Some of the scripts below depend on that.
 
 - [mergepems.sh](mergepems.sh) merge the ECHConfigList values from two ECH PEM
   files
 - [pem2rr.sh](pem2rr.sh) encode the ECHConfigList from an ECH PEM file into a
   validly (ascii-hex) encoded HTTPS resource record value
-- [splitechconfiglist.sh](splitechconfiglist.sh) splits a base64 encoded
-  ECHConfigList with multiple ECHConfig entries into constituent parts
-- [makecatexts.sh](makecatexts.sh) allows one to create a file with a cat
-  picture suited for use as the set of extensions for an ECHConfigList
+- [splitechconfiglist.sh](splitechconfiglist.sh) splits the ECHConfigList found
+  in a PEM file into constituent parts (if that has more than one ECHConfig) -
+  the output for each is a base64 encoded ECHConfigList with one ECHConfig entry
+  (i.e., one public name/key)
+- [makecatexts.sh](makecatexts.sh) allows one to create a file with a set of cat
+  pictures suited for use as the set of extensions for an ECHConfigList
+  that can be added to a PEM file via the ``openssl ech`` command - those
+  need to be *very* small cat pictures though if you want the resulting 
+  HTTPS RR to be usable in the DNS - note that as nobody yet has any real use
+  for ECHConfig extensions (and they're a bad idea anyway;-) this is really
+  just use to try, but hopefully fail, to break things
 
 ## Web server build HOWTOs, configs and test scripts
 
