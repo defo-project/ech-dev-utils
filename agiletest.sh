@@ -5,6 +5,8 @@
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
+# to pick up correct wrapper scripts
+: ${EDTOP:=$HOME/code/ech-dev-utils}
 # to pick up the relevant configuration
 : ${CFGTOP:=$HOME/code/openssl}
 # in case you want to re-use a tmp directory
@@ -183,11 +185,9 @@ then
     if [[ "$verbose" == "yes" ]]
     then
         echo "Making keys/fake CA etc."
-        #OBIN=$obin $CODETOP/esnistuff/make-example-ca.sh
-        TOP=$CODETOP $CODETOP/esnistuff/make-example-ca.sh
+        CODETOP=$CODETOP $EDTOP/make-example-ca.sh
     else
-        #OBIN=$obin $CODETOP/esnistuff/make-example-ca.sh >/dev/null 2>&1
-        TOP=$CODETOP $CODETOP/esnistuff/make-example-ca.sh >/dev/null 2>&1
+        CODETOP=$CODETOP $EDTOP/make-example-ca.sh >/dev/null 2>&1
     fi
 fi
 
@@ -238,7 +238,7 @@ then
         "yes-yes")
             echo "s_client/s_server base test with ECH, vs. ECH server"
             server_params=" -w -k $scratchdir/$file $vparm "
-            client_params=" -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
+            client_params=" -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
             ;;
         "no-yes")
             echo "s_client/s_server base test with no ECH, vs. ECH server"
@@ -248,7 +248,7 @@ then
         "yes-no")
             echo "s_client/s_server base test with ECH, vs. no-ECH server"
             server_params=" -w $vparm "
-            client_params=" -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
+            client_params=" -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
             ;;
         "no-no")
             echo "s_client/s_server base test with no ECH, vs. no-ECH server"
@@ -268,20 +268,20 @@ then
         "ignore-yes")
             echo "s_client/s_server base test with client random ID ECH vs. ECH server"
             server_params=" -w -k $scratchdir/$file $vparm "
-            client_params=" -I -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
+            client_params=" -I -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
             ;;
         "ignore-trial")
             echo "s_client/s_server base test with client random ID ECH vs. ECH server with trial decrypt"
             server_params=" -T -w -k $scratchdir/$file $vparm "
-            client_params=" -I -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
+            client_params=" -I -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html"
             ;;
     esac
     # start server
     if [[ "$verbose" == "yes" ]]
     then
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh $server_params &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh $server_params &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh $server_params >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh $server_params >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -297,9 +297,9 @@ then
     sleep $sleepb4
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh $client_params
+        $EDTOP/echcli.sh $client_params
     else
-        $CODETOP/esnistuff/echcli.sh $client_params >/dev/null 2>&1
+        $EDTOP/echcli.sh $client_params >/dev/null 2>&1
     fi
     cret=$?
     # kill server
@@ -369,9 +369,9 @@ do
     # start server
     if [[ "$verbose" == "yes" ]]
     then
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -387,9 +387,9 @@ do
     sleep $sleepb4
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
     fi
     cret=$?
     # kill server
@@ -440,9 +440,9 @@ do
     # start server
     if [[ "$verbose" == "yes" ]]
     then
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -460,9 +460,9 @@ do
     sleep $sleepb4
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
     fi
     cret=$?
     if [[ "$cret" != "0" ]]
@@ -476,9 +476,9 @@ do
     # this time the RR value is supplied base64 encoded, so just give the file
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P $file -s localhost -p 8443 -H foo.example.com $vparm -f index.html
+        $EDTOP/echcli.sh -P $file -s localhost -p 8443 -H foo.example.com $vparm -f index.html
     else
-        $CODETOP/esnistuff/echcli.sh -P $file -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
+        $EDTOP/echcli.sh -P $file -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
     fi
     cret=$?
     if [[ "$cret" != "0" ]]
@@ -553,9 +553,9 @@ do
     # start server
     if [[ "$verbose" == "yes" ]]
     then
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -571,9 +571,9 @@ do
     sleep $sleepb4
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $badfile` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $badfile` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $badfile` -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $badfile` -s localhost -p 8443 -H foo.example.com $vparm -f index.html >/dev/null 2>&1
     fi
     cret=$?
     # kill server
@@ -627,9 +627,9 @@ do
     # start server
     if [[ "$verbose" == "yes" ]]
     then
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -651,9 +651,9 @@ do
     # first go 'round, acquire the session
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
     fi
     cret=$?
     if [ ! -f $sessfile ]
@@ -669,9 +669,9 @@ do
     # second go 'round, re-use the session
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
     fi
     cret=$?
     if [ ! -f $sessfile ]
@@ -729,9 +729,9 @@ do
     # start server
     if [[ "$verbose" == "yes" ]]
     then
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -R -w -k $scratchdir/$file $vparm &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -R -w -k $scratchdir/$file $vparm &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -R -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -R -w -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -745,9 +745,9 @@ do
     # Try client...
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html  >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html  >/dev/null 2>&1
     fi
     cret=$?
     if [[ "$cret" != "0" ]]
@@ -805,9 +805,9 @@ do
     if [[ "$verbose" == "yes" ]]
     then
         # took vparm out here - if it's there, something times out before tickets acquired
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -e -k $scratchdir/$file &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -e -k $scratchdir/$file &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -e -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -e -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -822,9 +822,9 @@ do
     # first go 'round, acquire the session
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
     fi
     cret=$?
     if [ ! -f $sessfile ]
@@ -840,9 +840,9 @@ do
     # second go 'round, re-use the session
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e >/dev/null 2>&1
     fi
     cret=$?
     if [[ "$cret" != "0" ]]
@@ -900,9 +900,9 @@ do
     if [[ "$verbose" == "yes" ]]
     then
         # took vparm out here - if it's there, something times out before tickets acquired
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -R -e -k $scratchdir/$file &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -R -e -k $scratchdir/$file &
     else
-        CFGTOP=$scratchdir $CODETOP/esnistuff/echsvr.sh -R -e -k $scratchdir/$file $vparm >/dev/null 2>&1 &
+        CFGTOP=$scratchdir $EDTOP/echsvr.sh -R -e -k $scratchdir/$file $vparm >/dev/null 2>&1 &
     fi
     # wait a bit
     sleep $sleepb4
@@ -917,9 +917,9 @@ do
     # first go 'round, acquire the session
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile >/dev/null 2>&1
     fi
     cret=$?
     if [ ! -f $sessfile ]
@@ -935,9 +935,9 @@ do
     # second go 'round, re-use the session
     if [[ "$verbose" == "yes" ]]
     then
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e
     else
-        $CODETOP/esnistuff/echcli.sh -P `$CODETOP/esnistuff/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e >/dev/null 2>&1
+        $EDTOP/echcli.sh -P `$EDTOP/pem2rr.sh -p $file` -s localhost -p 8443 -H foo.example.com $vparm -f index.html -S $sessfile -e >/dev/null 2>&1
     fi
     cret=$?
     if [[ "$cret" != "0" ]]

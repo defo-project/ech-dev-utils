@@ -18,11 +18,11 @@ These have been used in an ubuntu development environment and likely assume
 that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. Some of those pathnames are
 likely still too hardcoded in scripts and configs but we'll fix things as we
-go. 
-
-Feel free to submit PRs if you make things better. As we're in the process of
-moving this from our OpenSSL fork source tree, some of the scripts might e.g.
-get those pathnames wrong, so bear with us as we fix that.
+go.  Feel free to submit PRs if you make things better. As we're in the process
+of moving this from our OpenSSL fork source tree, some of the scripts might
+e.g.  get those pathnames wrong, so bear with us as we fix that. (We've
+gotten as far as the ``smoke_ech.sh`` script, but the ones below that have
+yet to be tested when run from here.)
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
@@ -39,9 +39,14 @@ get those pathnames wrong, so bear with us as we fix that.
 
 ## Pure test scripts
 
+Once you have an openssl build in ``$HOME/code/openssl`` you can just
+run these, but note that they're deliberately slow.
+
 - [agiletest.sh](agiletest.sh) tests ECH with ``openssl s_client`` and
   ``openssl s_server`` with the various algorithm combinations that are
-  supported in ECHConfig values
+  supported in ECHConfig values - this isn't used so much any more as 
+  the ``make test`` target in the OpenSSL build now does the equivalent
+  and is much quicker.
 - [smoke_ech.sh](smoke_ech.sh) runs through a list of sites known to support
   ECH and reports on status
 

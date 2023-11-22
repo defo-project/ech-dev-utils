@@ -25,15 +25,23 @@ declare -A targets=(
     [hidden.hoba.ie]=""
 )
 
+# to pick up correct executables and .so's
+: ${CODETOP:=$HOME/code/openssl}
+export LD_LIBRARY_PATH=$CODETOP
+# to pick up correct wrapper scripts
+: ${EDTOP:=$HOME/code/ech-dev-utils}
+
 # place to stash outputs when things go wrong
 : ${bad_dir:="$HOME/logs/smoke_ech_baddies"}
 
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="10s"}
 
-: ${OSSL:="$HOME/code/openssl"}
-
 : ${DOMAIL:="no"}
+
+# if ports other than 443 are blocked we don't want
+# to timeout loads of times, just once
+have_portsblocked="no"
 
 DEFPORT=443
 
@@ -80,21 +88,41 @@ echo "Running $0 at $NOW"  >>$logfile
 echo "Running $0 at $NOW"
 
 # check we have binaries
-if [ ! -d $OSSL ] 
+if [ ! -d $CODETOP ] 
 then
     allgood="no"
-    echo "Can't see $OSSL - exiting" >>$logfile
+    echo "Can't see $CODETOP - exiting" >>$logfile
 fi
-echcli=$OSSL/esnistuff/echcli.sh
+echcli=$EDTOP/echcli.sh
 if [ ! -f $echcli ]
 then
     allgood="no"
-    echo "Can't see $OSSL/esnistuff/echcli.sh - exiting" >>$logfile
+    echo "Can't see $EDTOP/echcli.sh - exiting" >>$logfile
 fi
-if [ ! -f $OSSL/apps/openssl ]
+if [ ! -f $CODETOP/apps/openssl ]
 then
     allgood="no"
-    echo "Can't see $OSSL/apps/openssl - exiting" >>$logfile
+    echo "Can't see $CODETOP/apps/openssl - exiting" >>$logfile
+fi
+havecurl=`which curl`
+if [[ "$havecurl" == "" ]]
+then
+    allgood="no"
+    echo "Can't see a curl binary - exiting" >>$logfile
+fi
+
+# Check if ports other than 443 are blocked from this
+# vantage point (I run tests in a n/w where that's
+# sadly true sometimes;-)
+# echo "Checking if ports other than 443 are maybe blocked"
+not443testurl="https://draft-13.esni.defo.ie:9413/"
+timeout $tout curl $not443testurl >/dev/null 2>&1
+eres=$?
+if [[ "$eres" == "124" ]] 
+then
+    echo "Timeout running curl for $not443testurl" >>$logfile
+    echo "Timeout running curl for $not443testurl"
+    have_portsblocked="yes"
 fi
 
 # check if dig knows https or not
@@ -111,6 +139,11 @@ then
     do
         host=$(hostport2host $targ)
         port=$(hostport2port $targ)
+        if [[ "$port" != "443" && "$have_portsblocked" == "yes" ]]
+        then
+            echo "Skipping $targ as ports != 443 seem blocked"
+            continue
+        fi
         path=${targets[$targ]}
         pathstr=""
         if [[ "$path" != "" ]]
