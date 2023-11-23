@@ -57,9 +57,9 @@ We defined a new PEM file format for ECH key pairs, specified in
 terms of IETF process, but it works and our code uses it.) 
 Some of the scripts below depend on that.
 
-- [mergepems.sh](mergepems.sh) merge the ECHConfigList values from two ECH PEM
+- [mergepems.sh](mergepems.sh) merges the ECHConfigList values from two ECH PEM
   files
-- [pem2rr.sh](pem2rr.sh) encode the ECHConfigList from an ECH PEM file into a
+- [pem2rr.sh](pem2rr.sh) encodes the ECHConfigList from an ECH PEM file into a
   validly (ascii-hex) encoded HTTPS resource record value
 - [splitechconfiglist.sh](splitechconfiglist.sh) splits the ECHConfigList found
   in a PEM file into constituent parts (if that has more than one ECHConfig) -
@@ -80,6 +80,9 @@ code changes. The config files are minimal files for a localhost test with the
 relevant server, but of course include our new ECH config stanzas. The scripts
 are used to run the server-side of localhost tests, generally the HOWTO has a
 way to use ``echcli.sh`` for the client side.
+
+(For the pedantic amongst you, yes haproxy isn't really a web server but
+just a super-fast proxy, but... meh:-)
 
 ### Server configs preface - key rotation and slightly different file names
 
@@ -109,8 +112,9 @@ called ``*.ech`` rather than the more obvious ``*.pem``.
 
 For these configs and test scripts then, and assuming you've already gotten the
 [localhost test](localhost-tests.md) described above working and are using the
-same directory you setup before, you should do the following (or similar) before
-trying to run the various server-specific tests:
+same directory you setup before, (with the fake x.50 CA ``cadir`` etc.), you
+should do the following (or similar) before trying to run the various
+server-specific tests:
 
 ```bash
     cd $HOME/lt
@@ -118,7 +122,7 @@ trying to run the various server-specific tests:
     cp echconfig,pem echkeydir/echconfig.pem.ech
 ```
 
-That's a bit convoluted, sorry;-) I'm also not entirely sure it's done
+That's a bit convoluted, sorry;-) I'm also not entirely sure it's done fully
 consistently for all servers, but if not, I'll fix it as I get the stuff below
 working.
 
