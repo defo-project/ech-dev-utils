@@ -6,7 +6,7 @@
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 # to pick up correct wrapper scripts
-: ${EDTOP:=$HOME/code/ech-dev-utils}
+: ${EDTOP:=$HOME/code/ech-dev-utils/scripts}
 # to pick up the relevant configuration
 : ${CFGTOP:=$HOME/code/openssl}
 # in case you want to re-use a tmp directory

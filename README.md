@@ -25,15 +25,15 @@ from here.)
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
-- [echcli.sh](echcli.sh) is a relatively comprehensive wrapper for ``openssl
+- [echcli.sh](scripts/echcli.sh) is a relatively comprehensive wrapper for ``openssl
   s_client`` that allows one to play with lots of ECH options
-- [echsvr.sh](echsvr.sh) is a relatively comprehensive wrapper for ``openssl
+- [echsvr.sh](scripts/echsvr.sh) is a relatively comprehensive wrapper for ``openssl
   s_server`` that allows one to play with lots of ECH options
-- [make-example-ca.sh](make-example-ca.sh) creates fake x.509 certs for
+- [make-example-ca.sh](mscripts/ake-example-ca.sh) creates fake x.509 certs for
   example.com and the likes of foo.example.com so we can use the scripts and
   configs here for localhost tests - you have to have gotten that to work before
   ``echsvr.sh`` can be used for localhost tests
-- [localhost-tests.md](localhost-tests.md) is a HOWTO for getting started with
+- [localhost-tests.md](howtos/localhost-tests.md) is a HOWTO for getting started with
   the above
 
 ## Pure test scripts
@@ -41,12 +41,12 @@ from here.)
 Once you have an OpenSSL build in ``$HOME/code/openssl`` you can just
 run these. Note these are deliberately sedate, but that's ok.
 
-- [agiletest.sh](agiletest.sh) tests ECH using ``openssl s_client`` and
+- [agiletest.sh](scripts/agiletest.sh) tests ECH using ``openssl s_client`` and
   ``openssl s_server`` with the various algorithm combinations that are
   supported for ECHConfig values - this isn't used so much any more as 
   the ``make test`` target in the OpenSSL build now does the equivalent
   and is much quicker
-- [smoke_ech.sh](smoke_ech.sh) runs through a list of sites known to support
+- [smoke_ech.sh](scripts/smoke_ech.sh) runs through a list of sites known to support
   ECH and reports on status
 
 ## Scripts to play with ECHConfig values (that may get put in the DNS)
@@ -57,15 +57,15 @@ We defined a new PEM file format for ECH key pairs, specified in
 terms of IETF process, but it works and our code uses it.) 
 Some of the scripts below depend on that.
 
-- [mergepems.sh](mergepems.sh) merges the ECHConfigList values from two ECH PEM
+- [mergepems.sh](scripts/mergepems.sh) merges the ECHConfigList values from two ECH PEM
   files
-- [pem2rr.sh](pem2rr.sh) encodes the ECHConfigList from an ECH PEM file into a
+- [pem2rr.sh](scripts/pem2rr.sh) encodes the ECHConfigList from an ECH PEM file into a
   validly (ascii-hex) encoded HTTPS resource record value
-- [splitechconfiglist.sh](splitechconfiglist.sh) splits the ECHConfigList found
+- [splitechconfiglist.sh](scripts/splitechconfiglist.sh) splits the ECHConfigList found
   in a PEM file into constituent parts (if that has more than one ECHConfig) -
   the output for each is a base64 encoded ECHConfigList with one ECHConfig entry
   (i.e., one public name/key)
-- [makecatexts.sh](makecatexts.sh) allows one to create a file with a set of cat
+- [makecatexts.sh](scripts/makecatexts.sh) allows one to create a file with a set of cat
   pictures suited for use as the set of extensions for an ECHConfigList
   that can be added to a PEM file via the ``openssl ech`` command - those
   need to be *very* small cat pictures though if you want the resulting 
@@ -111,7 +111,7 @@ servers will attempt to load/parse all files from the named directory that are
 called ``*.ech`` rather than the more obvious ``*.pem``.
 
 For these configs and test scripts then, and assuming you've already gotten the
-[localhost test](localhost-tests.md) described above working and are using the
+[localhost test](howtos/localhost-tests.md) described above working and are using the
 same directory you setup before, (with the fake x.50 CA ``cadir`` etc.), you
 should do the following (or similar) before trying to run the various
 server-specific tests:
@@ -128,75 +128,67 @@ working.
 
 ### Apache
 
-- HOWTO: [apache2.md](apache2.md)
-- config: [apachemin-draft-13.conf](apachemin-draft-13.conf)
-- test script: [testapache-draft-13.sh](testapache-draft-13.sh)
-- to run apache in gdb: [apachegdb.sh](apachegdb.sh)
+- HOWTO: [apache2.md](howtos/apache2.md)
+- config: [apachemin-draft-13.conf](configs/apachemin-draft-13.conf)
+- test script: [testapache-draft-13.sh](scripts/testapache-draft-13.sh)
+- to run apache in gdb: [apachegdb.sh](scripts/apachegdb.sh)
 
 ### Haproxy
 
 Haproxy needs a real web server behind it, or two if we're
 using split mode.
 
-- HOWTO: [haproxy.md](haproxy.md)
-- config: [haproxymin.conf](haproxymin.conf)
-- test script: [testhaproxy.sh](testhaproxy.sh)
-- split mode config: [haproxy-split.conf](haproxy-split.conf)
-- split mode script: [testhaproxy-split.sh](testhaproxy-split.sh)
+- HOWTO: [haproxy.md](howtos/haproxy.md)
+- config: [haproxymin.conf](configs/haproxymin.conf)
+- test script: [testhaproxy.sh](scripts/testhaproxy.sh)
+- split mode config: [haproxy-split.conf](configs/haproxy-split.conf)
+- split mode script: [testhaproxy-split.sh](scripts/testhaproxy-split.sh)
 
 ### Lighttpd
 
 Lighttpd is what we use as a split mode backend. I forget why we
 have multiple config files for that but we do.
 
-- HOWTO: [lighttpd.md](lighttpd.md)
-- config: [lighttpdmin.conf](lighttpdmin.conf)
-- test script: [testlighttpd.sh](testlighttpd.sh)
-- split mode config: [lighttpd4haproxymin.conf](lighttpd4haproxymin.conf)
-- split mode config: [lighttpd4haproxy-split.conf](lighttpd4haproxy-split.conf)
-- split mode config: [lighttpd4nginx-split.conf](lighttpd4nginx-split.conf)
+- HOWTO: [lighttpd.md](howtos/lighttpd.md)
+- config: [lighttpdmin.conf](configs/lighttpdmin.conf)
+- test script: [testlighttpd.sh](scripts/testlighttpd.sh)
+- split mode config: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
+- split mode config: [lighttpd4haproxy-split.conf](configs/lighttpd4haproxy-split.conf)
+- split mode config: [lighttpd4nginx-split.conf](configs/lighttpd4nginx-split.conf)
 
 ### Nginx
 
-- HOWTO: [nginx.md](nginx.md)
-- config: [nginxmin-draft-13.conf](nginxmin-draft-13.conf)
-- test script: [testnginx-draft-13.sh](testnginx-draft-13.sh)
-- split mode config: [nginx-split.conf](nginx-split.conf)
-- split mode script: [testnginx-split.sh](testnginx-split.sh)
+- HOWTO: [nginx.md](howtos/nginx.md)
+- config: [nginxmin-draft-13.conf](configs/nginxmin-draft-13.conf)
+- test script: [testnginx-draft-13.sh](scripts/testnginx-draft-13.sh)
+- split mode config: [nginx-split.conf](configs/nginx-split.conf)
+- split mode script: [testnginx-split.sh](scripts/testnginx-split.sh)
 
 ## Client HOWTOs (sorta)
 
 - the HOWTO for [curl](https://github.com/sftcd/curl/blob/ECH-experimental/docs/ECH.md)
   is no longer in this repo but is now part of a curl PR branch
-- [wget.md](wget.md) describes a bit about how ECH-enabling wget is non-trivial
+- [wget.md](howtos/wget.md) describes a bit about how ECH-enabling wget is non-trivial
 
 ## Misc. files
 
-- [cat.ext](cat.ext) is a cat picture encoded as an ECHConfig extension suited
+- [cat.ext](misc/cat.ext) is a cat picture encoded as an ECHConfig extension suited
   for inclusion in an ECHConfigList - for the cat lovers out there, the
-  original image is [cat.jpg](cat.jpg), downsized to [scat.png](scat.png)
-- [extsfile](extsfile) contains two ECHConfig extensions (suited for inclusion
+  original image is [cat.jpg](misc/cat.jpg), downsized to [scat.png](misc/scat.png)
+- [extsfile](misc/extsfile) contains two ECHConfig extensions (suited for inclusion
   in an ECHConfigList), the first being of zero length, the second being a very
   small picture (I forget of what;-)
-- [d13.pem](d13.pem) is an ECH PEM file (public name: example.com) used by some
-  test scripts (github may nag you as this contains a sample private key)
-- [echconfig.pem](echconfig.pem) is an ECH PEM file (public name: bar.ie) used
-  by some test scripts (github may nag you as this contains a sample private
-  key)
-- [ed_file](ed_file) is a file usable as early data in tests - that can be
-  used from ``echcli.sh`` or ``bssl-oss-test.sh`` if you provide the right
-  command line arguments
 
 ## Misc. scripts
 
 A few bits'n'pieces that've been useful along the way, but mostly haven't been
 used in some time:
 
-- [nssdoech.sh](nssdoech.sh) tests ECH using an NSS client build (mostly helped
+- [nssdoech.sh](scripts/nssdoech.sh) tests ECH using an NSS client build (mostly helped
   with interop)
-- [bssl-oss-test.sh](bssl-oss-test.sh) tests ECH using a boringssl client build
+- [bssl-oss-test.sh](scripts/bssl-oss-test.sh) tests ECH using a boringssl client build
   (mostly helped with interop)
-- [dnsname.sh](dnsname.sh) decodes a DNS wire format encoding of a DNS name
+- [dnsname.sh](scripts/dnsname.sh) decodes a DNS wire format encoding of a DNS name
   (just a useful snippet, not so much for using in anger)
-- [scanem.sh](scanem.sh) compares two OpenSSL source trees and reports on which
+- [scanem.sh](scripts/scanem.sh) compares two OpenSSL source trees and reports on which
   files differ

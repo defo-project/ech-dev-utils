@@ -29,7 +29,7 @@ declare -A targets=(
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 # to pick up correct wrapper scripts
-: ${EDTOP:=$HOME/code/ech-dev-utils}
+: ${EDTOP:=$HOME/code/ech-dev-utils/scripts}
 
 # place to stash outputs when things go wrong
 : ${bad_dir:="$HOME/logs/smoke_ech_baddies"}
