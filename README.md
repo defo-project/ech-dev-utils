@@ -19,8 +19,9 @@ assume that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. Some of those pathnames are
 likely still too hardcoded in scripts and configs but we'll fix things as we
 go.  Feel free to submit PRs if you make things better, or bear with us as we
-fix that. (We've gotten as far as the ``makecatexts.sh`` script, but the ones
-below that have yet to be tested when run from here.)
+fix that. (We've gotten as far as just before verifying the apache stuff, so
+all before that should work, but all below that has yet to be tested when run
+from here.)
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
@@ -70,13 +71,56 @@ Some of the scripts below depend on that.
   need to be *very* small cat pictures though if you want the resulting 
   HTTPS RR to be usable in the DNS - note that as nobody yet has any real use
   for ECHConfig extensions (and they're a bad idea anyway;-) this is really
-  just use to try, but hopefully fail, to break things
+  just used to try, but hopefully fail, to break things
 
 ## Web server build HOWTOs, configs and test scripts
 
 The HOWTO files here have build instructions mostly, but also some notes about
-code changes. The config files are minimal, but include new ECH config stanzas
-and the scripts are used for localhost tests.
+code changes. The config files are minimal files for a localhost test with the
+relevant server, but of course include our new ECH config stanzas. The scripts
+are used to run the server-side of localhost tests, generally the HOWTO has a
+way to use ``echcli.sh`` for the client side.
+
+### Server configs preface - key rotation and slightly different file names
+
+Most of the server configs below allow one to name a directory from which all
+ECH PEM files will be loaded into the server. That allows for sensible ECH key
+rotation, e.g., to publish the most recent one in DNS, but to also allow some
+previously, but no longer, published ECH key(s) to still be usable, by clients
+with stale DNS caches or where some DNS TTL fun has been experienced. You can
+then reload the server config without having to change the config file which
+seems like a reasonably good thing.
+
+The model I use in test servers is to publish new ECH keys hourly, but for the
+most recent three keys to still be usable for ECH decryption in the server.
+That's done via a cron job that handles all the key rotation stuff with a bit
+of orchestration between the key generator, ECH-enabled TLS server and DNS
+"zone factory." (If you're interested in details, there's a [TLS working group
+draft](https://datatracker.ietf.org/doc/html/draft-ietf-tls-wkech) that
+describes a way to do all that, and a [bash script
+implementation](https://github.com/sftcd/wkesni/blob/master/wkech-04.sh) that's
+what I use as the cron job for my test servers.)
+
+The upshot of all that is that servers want to load all the ECH PEM files from
+a named directory, but it's also possible that other PEM files may exist in the
+same place that contain x.509 rather than ECH keys, so to avoid problems, the
+servers will attempt to load/parse all files from the named directory that are
+called ``*.ech`` rather than the more obvious ``*.pem``.
+
+For these configs and test scripts then, and assuming you've already gotten the
+[localhost test](localhost-tests.md) described above working and are using the
+same directory you setup before, you should do the following (or similar) before
+trying to run the various server-specific tests:
+
+```bash
+    cd $HOME/lt
+    mkdir echkeydir
+    cp echconfig,pem echkeydir/echconfig.pem.ech
+```
+
+That's a bit convoluted, sorry;-) I'm also not entirely sure it's done
+consistently for all servers, but if not, I'll fix it as I get the stuff below
+working.
 
 ### Apache
 
@@ -122,7 +166,7 @@ have multiple config files for that but we do.
   is no longer in this repo but is now part of a curl PR branch
 - [wget.md](wget.md) describes a bit about how ECH-enabling wget is non-trivial
 
-## Misc. config files
+## Misc. files
 
 - [cat.ext](cat.ext) is a cat picture encoded as an ECHConfig extension suited
   for inclusion in an ECHConfigList - for the cat lovers out there, the
@@ -135,7 +179,9 @@ have multiple config files for that but we do.
 - [echconfig.pem](echconfig.pem) is an ECH PEM file (public name: bar.ie) used
   by some test scripts (github may nag you as this contains a sample private
   key)
-- [ed_file](ed_file) is a file usable as early data in tests
+- [ed_file](ed_file) is a file usable as early data in tests - that can be
+  used from ``echcli.sh`` or ``bssl-oss-test.sh`` if you provide the right
+  command line arguments
 
 ## Misc. scripts
 
