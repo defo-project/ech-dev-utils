@@ -2,22 +2,26 @@
 
 # set -x
 
-# Pointer to your build trees...
-OSSL="$HOME/code/openssl"
+# to pick up correct executables and .so's
+: ${CODETOP:=$HOME/code/openssl}
+export LD_LIBRARY_PATH=$CODETOP
+: ${EDTOP:=$HOME/code/ech-dev-utils}
 # Note that the value for this has to match that for ATOP
 # in apachemin-draft-13.conf, so if you change this on the
 # command line, you'll need to edit the conf file
-: ${APA:=$HOME/code/httpd}
+: ${ATOP:=$HOME/code/httpd}
+# where we have/want test files
+: ${RUNTOP:=`/bin/pwd`}
 
 # make directories for lighttpd stuff if needed
-mkdir -p $OSSL/esnistuff/apache/logs
-mkdir -p $OSSL/esnistuff/apache/www
-mkdir -p $OSSL/esnistuff/apache/foo
+mkdir -p $RUNTOP/apache/logs
+mkdir -p $RUNTOP/apache/www
+mkdir -p $RUNTOP/apache/foo
 
 # check for/make a home page for example.com and other virtual hosts
-if [ ! -f $OSSL/esnistuff/apache/www/index.html ]
+if [ ! -f $RUNTOP/apache/www/index.html ]
 then
-    cat >$OSSL/esnistuff/apache/www/index.html <<EOF
+    cat >$RUNTOP/apache/www/index.html <<EOF
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -38,9 +42,9 @@ EOF
 fi
 
 # check for/make a slightly different home page for foo.example.com
-if [ ! -f $OSSL/esnistuff/apache/foo/index.html ]
+if [ ! -f $RUNTOP/apache/foo/index.html ]
 then
-    cat >$OSSL/esnistuff/apache/foo/index.html <<EOF
+    cat >$RUNTOP/apache/foo/index.html <<EOF
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -60,17 +64,15 @@ vlink="#000080" alink="#FF0000">
 EOF
 fi
 
-export LD_LIBRARY_PATH=$OSSL
-
 # if we want to reload config then that's "graceful restart"
 if [[ "$1" == "graceful" ]]
 then
     echo "Telling apache to do the graceful thing"
-    $APA/httpd -d $OSSL/esnistuff -f $OSSL/esnistuff/apachemin-draft-13.conf -k graceful
+    $ATOP/httpd -d $RUNTOP -f $EDTOP/configs/apachemin.conf -k graceful
     exit $?
 fi
 
-PIDFILE=$OSSL/esnistuff/apache/httpd.pid
+PIDFILE=$RUNTOP/apache/httpd.pid
 # Kill off old processes from the last test
 if [ -f $PIDFILE ]
 then
@@ -97,17 +99,15 @@ sleep 2
 
 # set to use valgrind, unset to not
 # VALGRIND="valgrind --leak-check=full --show-leak-kinds=all"
-# VALGRIND="valgrind --leak-check=full "
-#VALGRIND="valgrind "
 VALGRIND=""
 
 # Set/unset to detach or run in foreground
 FGROUND=""
 # FGROUND="-DFOREGROUND "
 
-echo "Executing: $VALGRIND $APA/httpd -f $OSSL/esnistuff/apachemin-draft-13.conf"
+echo "Executing: $VALGRIND $ATOP/httpd -d $RUNTOP -f $EDTOP/configs/apachemin.conf $FGROUND"
 # move over there to run code, so config file can have relative paths
-cd $OSSL/esnistuff
-$VALGRIND $APA/httpd -d $OSSL/esnistuff -f $OSSL/esnistuff/apachemin-draft-13.conf $FGROUND
+cd $RUNTOP
+$VALGRIND $ATOP/httpd -d $RUNTOP -f $EDTOP/configs/apachemin.conf $FGROUND
 cd - 
 

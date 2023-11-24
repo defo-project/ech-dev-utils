@@ -129,8 +129,8 @@ working.
 ### Apache
 
 - HOWTO: [apache2.md](howtos/apache2.md)
-- config: [apachemin-draft-13.conf](configs/apachemin-draft-13.conf)
-- test script: [testapache-draft-13.sh](scripts/testapache-draft-13.sh)
+- config: [apachemin.conf](configs/apachemin.conf)
+- test script: [testapache.sh](scripts/testapache.sh)
 - to run apache in gdb: [apachegdb.sh](scripts/apachegdb.sh)
 
 ### Haproxy

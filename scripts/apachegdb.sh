@@ -3,18 +3,17 @@
 # set -x
 
 # Fire up gdb with LD_LIBRARY_PATH setup for apache
-# If you're following the setup I used (*) then this
+# If you're following the setup I used then this
 # should help if you wanna use gdb for apache
-# (*) https://github.com/sftcd/openssl/blob/master/esnistuff/apache2.md
 
 # where our builds are...
-OSSL_TOP=$HOME/code/openssl-draft-10
-AP_TOP=$HOME/code/httpd-draft-10
+OSSL_TOP=$HOME/code/openssl
+AP_TOP=$HOME/code/httpd
+RUNTOP=$HOME/lt
 
 # name of apache config we're using - used to decide what processes to
 # kill off before starting gdb, and when starting gdb as well
-#AP_CFGNAME=apachemin-11410.conf
-AP_CFGNAME=/home/defo/code/defo-project/web/apache-11410.conf
+AP_CFGNAME=$HOME/ech-dev-utils/configs/apachemin.conf
 
 OSSL_LP=$OSSL_TOP
 HTTPD_LP=$AP_TOP/.libs
@@ -37,7 +36,7 @@ done
 sleep 2
 
 # go to the right place and fire up gdb, as needed
-cd $OSSL_TOP/esnistuff
+cd $RUNTOP
 # we take one argument that can be a breakpoint
 if [[ "$1" != "" ]]
 then
