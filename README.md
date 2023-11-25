@@ -126,6 +126,13 @@ That's a bit convoluted, sorry;-) I'm also not entirely sure it's done fully
 consistently for all servers, but if not, I'll fix it as I get the stuff below
 working.
 
+### ECH for browsers is currently unreliable for ports other than 443
+
+As of 2023-11-24, ECH works unreliably with chromium and doesn't work with
+Firefox for ports other then 443.  It doesn't work at all for Firefox, and
+only sometimes for chromium, probably based on complex in-browser DNS caching.
+``curl`` and ``echcli.sh`` do however work reliably for other ports.
+
 ### Apache
 
 - HOWTO: [apache2.md](howtos/apache2.md)

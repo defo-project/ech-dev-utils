@@ -37,20 +37,34 @@ And off we go with configure and make ...
     ... lotsa lotsa stuff ...
 ```
 
-An earlier build required an additional ``sudo apt install libxml2-dev`` and
-adding ``--with-libxml2`` to the configure command line above and adding and
-include path to CFLAGS to get that to work. Not sure if that's still needed.
+At some point I made myself a note that I needed an additional ``sudo apt
+install libxml2-dev`` and to add ``--with-libxml2`` to the configure command
+above, and to also add the related include path to CFLAGS to get things to
+work.  Not sure if that's useful but I guess it might be. (I wrote that note
+before the pandemic, so presumably thought it might save my future self enough
+time to be worth preserving the note:-)
+
+## Configuration
+
+There's one new server-wide ``SSLECHKeyDir`` directive needed for ECH that
+names the directory where ECH key pair files (names ``*.ech``) are stored.
+There's an example in [apachemin.conf](../configs/apachemin.conf). 
 
 ## Test
 
-Our [testapache.sh](../scrtpts/testapache.sh) script starts an ECH-enabled
-apache server listening on port 9443 - see
-[apachemin.conf](../configs/apachemin.conf) for configuration details.
+The [testapache.sh](../scrtpts/testapache.sh) script starts an ECH-enabled
+apache server listening on port 9443 using the config in
+[apachemin.conf](../configs/apachemin.conf). That script will also create some
+basic web content for ``example.com`` (the ECH ``public_name`) and for
+``foo.example.com`` which can be the SNI in the inner ClientHello.
+
+You should run that from the directory we used before for
+[localhosts-tests](../howtos/localhost-tests.md).
 
 ```bash
     $ cd $HOME/lt
     $ $HOME/code/ech-dev-utils/scripts/testapache.sh
-    Can't find /home/user/lt/apache/httpd.pid - tring killall httpd
+    Can't find /home/user/lt/apache/httpd.pid - trying killall httpd
     httpd: no process found
     Executing:  /home/user/code/httpd/httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf 
     /home/user/lt
@@ -68,8 +82,8 @@ The "success" above is what you're looking for.
 
 ## Logs
 
-The log files for the test will be in ``$HOME/lt/apache/logs`` and
-after running the above ``error.log`` should contain a line like:
+The log files for the test above will be in ``$HOME/lt/apache/logs`` and after
+running the above ``error.log`` should contain a line like:
 
 ```bash
 [Fri Nov 24 16:41:57.863004 2023] [ssl:info] [pid 158960:tid 140277178160832] [client 127.0.0.1:53180] AH10240: ECH success outer_sni: example.com inner_sni: foo.example.com
@@ -81,13 +95,81 @@ And ``access.log`` should contain something like:
 127.0.0.1 - - [24/Nov/2023:16:41:57 +0000] foo.example.com "GET /index.html HTTP/1.1" 200 "-" "-"
 ```
 
-## Configuration
+## PHP variables
 
-There's one new server-wide ``SSLECHKeyDir`` directive needed for ECH that
-names the directory where ECH key pair files are stored. We load those keys
-using a ``load_echkeys()`` function in ``ssl_module_init.c``.  That seems to
-load keys ok. There's an example in
-[apachemin.conf](../configs/apachemin.conf). 
+The following variables that are now visible to PHP code:
+
+- ``SSL_ECH_STATUS`` - ``success`` means that others also mean what they say
+- ``SSL_ECH_INNER_SNI`` - has value that was encrypted in ECH (or ``NONE``)
+- ``SSL_ECH_OUTER_SNI`` - has value that was seen in plaintext SNI (or ``NONE``)
+
+I setup PHP for my apache deployment on
+[https://draft-13.esni.defo.ie:9443](https://draft-13.esni.defo.ie:9443).
+That's not part of the localhost test setup, and there were a couple of other 
+things to do:
+
+    - If needed, install fast-cgi: ``sudo apt install php8.1-cgi``
+
+    - Edit ``/etc/php/8.1/fpm/pool.d/www.conf`` to use localhost:9000, added
+      ``proxy_module`` and ``proxy_fcgi_module`` to the global apache config
+      and turn on PHP and added the following to the apache config for the
+      VirtualHost using ECH: 
+
+```bash
+    <FilesMatch "\.php$">
+        SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
+    Options +ExecCGI
+```
+
+As PHP gets updated, the PHP version numbers in the above also change of course.
+
+## Code changes
+
+- All code changes are within ``modules/ssl`` and are protected via ``#ifdef
+  HAVE_OPENSSL_ECH``.  That's defined in ``ssl_private.h`` if the included
+``ssl.h`` defines ``SSL_OP_ECH_GREASE``.
+
+- There're a bunch of changes to add the new ``SSLECHKeyDir`` direcive that
+  are mosly obvious.
+
+- We load the keys from ``SSLECHKeyDir`` using the ``load_echkeys()`` function in
+  ``ssl_engine_init.c``. That also ECH-enables the ``SSL_CTX`` when keys are
+  loaded, which triggers ECH decryption as needed.
+
+- We add a callback to ``SSL_CTX_ech_set_callback`` also in ``ssl_engine_init.c``.
+
+- We add calls to set the ``SSL_ECH_STATUS`` etc. variables to the environment
+(for PHP etc) in ``ssl_engine_kernel.c`` and also do the logging of ECH outcomes
+(to the error log).
+
+- We use``ap_log_error()`` liberally for now, mostly with ``APLOG_INFO`` level
+  (or higher).  There's a semi-automated log numbering scheme - the idea is to
+start with code that uses the ``APLOGNO()`` macro with nothing in the brackets,
+then to run a perl script (from $HOME/code/httpd) that'll generate the next
+unique log number to use, and modify the code accordingly. (I guess that would
+need re-doing when a PR is eventually submitted but can cross that hurdle when
+I get there.) As I'll forget what to do, the first time I used this the command
+I ran was:
+
+            $ cd $HOME/code/httpd
+            $ perl docs/log-message-tags/update-log-msg-tags modules/ssl/ssl_engine_config.c
+
+## Reloading ECH keys
+
+Giving apache a command line argument of "-k graceful" causes a graceful reload
+of the configuration, without dropping existing connections.  (Not sure how
+well I can test that proposition.) In any case, "-k graceful" does seem to have
+the required effect, so that's useful whenever one deploys in a context with
+regular ECH key updates. For the present that can be done via the
+[testapache.sh](../scripts/testapache.sh) script by providing a "graceful"
+parameter to the script:
+
+```bash
+    $ $HOME/code/ech-dev-utils/scripts/testapache.sh graceful
+    Telling apache to do the graceful thing
+    ...
+```
 
 ## Debugging
 
@@ -109,70 +191,3 @@ To build for debug:
     $ make -j8
     ... lotsa lotsa stuff ...
 ```
-
-## Code changes
-
-Notes on code changes made for this:
-
-- All code changes are within ``modules/ssl`` and are protected via ``#ifdef
-  HAVE_OPENSSL_ECH``.  That's defined in ``ssl_private.h`` if the included
-``ssl.h`` defines ``SSL_OP_ECH_GREASE``.
-
-- I'm using ``ap_log_error()`` liberally for now, mostly with ``APLOG_INFO``
-  level (or higher).  There's a semi-automated log numbering scheme - the idea
-is to start with code that uses the ``APLOGNO()`` macro with nothing in the
-brackets, then to run a perl script (from $HOME/code/httpd) that'll generate
-the next unique log number to use, and modify the code accordingly. (I guess
-that would need re-doing when a PR is eventually submitted but can cross that
-hurdle when I get there.) As I'll forget what to do, the first time I used this
-the command I ran was:
-
-            $ cd $HOME/code/httpd
-            $ perl docs/log-message-tags/update-log-msg-tags modules/ssl/ssl_engine_config.c
-
-- Adding the SSLECHKeyDir config item required changes to: ``ssl_private.h``
-  and ``ssl_engine_config.c``
-
-- I added a ``load_echkeys()`` function in ``ssl_engine_init.c``  
-
-## Reloading ECH keys
-
-Apparently giving apache a command line argument of "-k graceful" causes a
-graceful reload of the configuration, without dropping existing connections.
-(Not sure how well I can test that proposition.)
-In any case, "-k graceful" does seem to have the required effect, so we'll
-try that whenever we deploy in a context with regular key updates. For the
-present that can be done via the [testapache.sh](../scripts/testapache.sh) script by
-providing a "graceful" parameter to the script:
-
-```bash
-    $ $HOME/code/ech-dev-utils/scripts/testapache.sh graceful
-    Telling apache to do the graceful thing
-    ...
-```
-
-## PHP variables
-
-The following variables that are now visible to PHP code:
-
-- ``SSL_ECH_STATUS`` - ``success`` means that others also mean what they say
-- ``SSL_ECH_INNER_SNI`` - has value that was encrypted in ECH (or ``NONE``)
-- ``SSL_ECH_OUTER_SNI`` - has value that was seen in plaintext SNI (or ``NONE``)
-
-I setup PHP for my apache deployment on
-[https://defo.ie:9443](https://defo.ie:9443).  That's not part of the localhost
-test setup, and there were a couple of things to do:
-
-    - If needed, install fast-cgi: ``sudo apt install php7.2-cgi``
-
-    - I edited ``/etc/php/7.2/fpm/pool.d/www.conf`` to use localhost:9000,
-      added ``proxy_module`` and ``proxy_fcgi_module`` to the global apache
-      config and turn on PHP and added the following to the apache config for
-      the VirtualHost using ECH: 
-
-            <FilesMatch "\.php$">
-                SetHandler "proxy:fcgi://127.0.0.1:9000"
-            </FilesMatch>
-            Options +ExecCGI
-
-

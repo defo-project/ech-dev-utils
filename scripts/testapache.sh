@@ -80,7 +80,7 @@ then
     kill `cat $PIDFILE`
     rm -f $PIDFILE
 else 
-    echo "Can't find $PIDFILE - tring killall httpd"
+    echo "Can't find $PIDFILE - trying killall httpd"
     killall httpd
 fi
 
