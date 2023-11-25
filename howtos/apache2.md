@@ -1,8 +1,7 @@
 
 # Apache2 and ECH
 
-We're on apache 2.5.1 - whereas 2.4.x is probably what's widely used.  Might
-want to revert to that later, but we'll see (also later:-). 
+Our fork is from https://github.com/apache/httpd which is apache 2.5.1 at the moment.
 
 ## Build
 
@@ -104,7 +103,7 @@ The following variables that are now visible to PHP code:
 - ``SSL_ECH_OUTER_SNI`` - has value that was seen in plaintext SNI (or ``NONE``)
 
 I setup PHP for my apache deployment on
-[https://draft-13.esni.defo.ie:9443](https://draft-13.esni.defo.ie:9443).
+[https://draft-13.esni.defo.ie:11413](https://draft-13.esni.defo.ie:11413).
 That's not part of the localhost test setup, and there were a couple of other 
 things to do:
 
