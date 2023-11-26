@@ -68,7 +68,7 @@ You should run that from the directory we used before for
     Executing:  /home/user/code/httpd/httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf 
     /home/user/lt
     $ 
-    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -p 9443 -s localhost -H foo.example.com  -P d13.pem -f index.html
+    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -p 9443 -s localhost -H foo.example.com  -P echconfig.pem -f index.html
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231124-164157
     /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
     Looks like ECH worked ok
@@ -153,6 +153,14 @@ I ran was:
 
             $ cd $HOME/code/httpd
             $ perl docs/log-message-tags/update-log-msg-tags modules/ssl/ssl_engine_config.c
+
+- There is currently a CI build fall due to a bunch of info message idenfier
+  collision warnings, e.g.
+
+```bash
+    WARNING: Duplicate tag 10254 at server/util_etag.c:172 and modules/ssl/ssl_engine_init.c:215
+```
+Those seem fine to fix later.
 
 ## Reloading ECH keys
 

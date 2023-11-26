@@ -1,281 +1,109 @@
-# Notes on building/integrating with haproxy
+# Haproxy and ECH
 
-## October 2023
+Our fork is from https://github.com/haproxy/haproxy
 
-- 20231016 - rebased with upstream
-- 20231016 - some fixes for CI issues, changed from ``#ifdndef OPENSSL_NO_ECH`` as 
-  guard to ``#ifdef USE_ECH``
+This text, and associated scripts/configs, are still being fixed to work in
+this repo. So take it all with a pinch of salt for the moment.
 
-You need my haproxy fork and to use the ``ECH-experimental``
-branch from that, so...
+## Build
 
-            $ cd $HOME/code
-            $ git clone https://github.com/sftcd/haproxy.git
-            $ cd haproxy
-            $ git checkout ECH-experimental
+We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
+have gotten the [localhost-tests](localhost-tests.md) working, and you
+should have created an ``echkeydir`` as described [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
 
-To build that with our ECH-enabled build of OpenSSL...
+You need our haproxy fork and to use the ``ECH-experimental`` branch from that,
+so...
 
-            export OSSL=$HOME/code/openssl
-            export LD_LIBRARY_PATH=$OSSL
-            make V=1  SSL_INC=$OSSL/include/ SSL_LIB=$OSSL TARGET=linux-glibc USE_OPENSSL=1 \
-                DEFINE="-DOPENSSL_SUPPRESS_DEPRECATED -DDEBUG -O0 -DUSE_ECH"
+```bash
+    $ cd $HOME/code
+    $ git clone https://github.com/sftcd/haproxy.git
+    $ cd haproxy
+    $ git checkout ECH-experimental
+    $ export OSSL=$HOME/code/openssl
+    $ export LD_LIBRARY_PATH=$OSSL
+    $ make V=1  SSL_INC=$OSSL/include/ SSL_LIB=$OSSL TARGET=linux-glibc \
+        USE_OPENSSL=1 DEFINE="-DOPENSSL_SUPPRESS_DEPRECATED -DDEBUG -O0 \
+        -DUSE_ECH"
+```
 
-Testing:
+## Configuration
 
-            $ ./testhaproxy.sh
-            ...stuff... # hit ctrl-C to exit haproxy, killall lighttpd to kill backend
+We followed this haproxy
+[configuration guide](https://www.haproxy.com/blog/the-four-essential-sections-of-an-haproxy-configuration/).
 
-            $ # split-mode test
-            $ ./echcli.sh -s localhost  -H foo.example.com -p 7446 -P `./pem2rr.sh d13.pem` -f index.html
-            Running ./echcli.sh at 20230315-154634
-            Assuming supplied ECH is encoded ECHConfigList or SVCB
-            ./echcli.sh Summary: 
-            Looks like ECH worked ok
-            ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-            $ # shared-mode test
-            $ ./echcli.sh -s localhost  -H foo.example.com -p 7445 -P `./pem2rr.sh d13.pem` -f index.html
-            Running ./echcli.sh at 20230315-154900
-            Assuming supplied ECH is encoded ECHConfigList or SVCB
-            ./echcli.sh Summary: 
-            Looks like ECH worked ok
-            ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-            $
-            $ 
+Compared to other web servers, haproxy configuration is a bit more involved as
+our integration supports both split-mode and shared mode ECH, and haproxy, not
+being a web server, also needs a backend web server configured.
 
-That seems to work ok, but with very (very:-) little testing! 
+ECH shared-mode in haproxy terms is where the haproxy frontend is a TLS
+terminator and does all the ECH and TLS work before handing off a cleartext
+HTTP request to a backend web server. If desired, a new TLS session can be 
+used to protect the HTTP request, as is normal for haproxy.
 
-## August 2023
+Split-mode is where the frontend does the ECH decryption but doesn't terminate
+the client's TLS session.
 
-Both HRR and early data working now. Switched to stderr based logging.
+If split-mode decryption fails or no ECH extension is present, then haproxy
+should be configured to forward to a backend that has the private key
+corresponding to the ``ECHConfig.public_name``. If decryption works, then
+haproxy will forward the inner CH, routing the request based on the SNI from
+that inner CH. 
 
-Next up is to figure out how to reload ECH keys without restarting haproxy.
-TLS certificate/key reloading via socket-API/CLI is described
-[here](https://docs.haproxy.org/dev/management.html#9.3). We'll want to try
-figure out something similar for ECH keys, or to figure out an equivalent for
-the LUA interface.
-
-## May 2023 rebuild...
-
-I just updated the current code (i.e. without rebasing with upstream) to
-handle recent ECH API tweaks.
-
-## March 2023 rebase...
-
-These are the updated notes from 20230315 for haproxy with ECH.
-Will test on ubuntu 20.10, with latest haproxy code.
-
-You need my haproxy fork and to use the ``ECH-experimental``
-branch from that, so...
-
-            $ cd $HOME/code
-            $ git clone https://github.com/sftcd/haproxy.git
-            $ cd haproxy
-            $ git checkout ECH-experimental
-
-To build that with a non-standard build of OpenSSL...
-
-            $ make SSL_INC=$HOME/code/openssl/include/ \
-                SSL_LIB=$HOME/code/openssl \
-                TARGET=linux-glibc USE_OPENSSL=1
-
-Testing:
-
-            $ ./testhaproxy.sh
-            ...stuff... # hit ctrl-C to exit haproxy, killall lighttpd to kill backend
-
-            $ # split-mode test
-            $ ./echcli.sh -s localhost  -H foo.example.com -p 7446 -P `./pem2rr.sh d13.pem` -f index.html
-            Running ./echcli.sh at 20230315-154634
-            Assuming supplied ECH is encoded ECHConfigList or SVCB
-            ./echcli.sh Summary: 
-            Looks like ECH worked ok
-            ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-            $ # shared-mode test
-            $ ./echcli.sh -s localhost  -H foo.example.com -p 7445 -P `./pem2rr.sh d13.pem` -f index.html
-            Running ./echcli.sh at 20230315-154900
-            Assuming supplied ECH is encoded ECHConfigList or SVCB
-            ./echcli.sh Summary: 
-            Looks like ECH worked ok
-            ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-            $
-            $ 
-
-That seemed to work ok, but with very (very:-) little testing! 
-
-## Sep 2021 Notes
-
-These notes are from September 2021.
-
-Our integration with haproxy is more experimental that e.g. those for web
-servers. There are a few reasons for this:
-
-- haproxy doesn't read from disk after initial startup, so we can't re-use
-  code for periodically reloading ECH keys - what needs doing is clear (just
-  replicate what's done for TLS server keys) but very specific to haproxy so
-  we won't invest effort there for now.
-- we do support split-mode (our mail reason for integrating with haproxy) but
-  don't currently support HRR with split-mode - haproxy seems to have a
-  current limitation that it can only parse the first client message, so
-  decrypting the 2nd ClientHello (CH) that follows a HRR isn't possible for now.
-  Addressing this would likely require the kind of major surgery that it'd
-  only make sense be carried out by the upstream devs. (We have described
-  the issue to them.)
-- some additional changes are needed to properly handle ``early_data`` in
-  split-mode - we need to inject back the inner CH without disturbing
-  any other data in haproxy's buffers (right now, we overwrite the relevant
-  buffer with the inner CH). This is probably fairly easily fixable so we
-  may address it shortly.
-- One could argue that there's a need to be able to support cover traffic from
-  frontend to backend and to have that, and subsequent traffic, use an encrypted
-  tunnel between frontend and backend. Otherwise a network observer who can see
-  traffic between client and frontend, and also between frontend and backend,
-  can easily defeat ECH as it'll simply see the result of ECH decryption. (That
-  wouldn't be needed in all network setups, but in some.)
-- There were (at one stage) leaks on exit - check if that's some effect of
-  threads by running with vanilla OpenSSL libraries. We need to re-test for
-  those.
-
-## Clone and build
-
-First you need my ECH-enabled OpenSSL fork:
-
-            $ cd $HOME/code
-            $ git clone https://github.com/sftcd/openssl.git
-            $ cd openssl
-            $ git checkout ECH-draft-13a
-            $ ./config
-            ...
-            $ make
-            ...
-
-Next you need my fork of the [upstream haproxy
-repo](https://github.com/haproxy/haproxy) and to use the ``ECH-experimental``
-branch from that, so...
-
-            $ cd $HOME/code
-            $ git clone https://github.com/sftcd/haproxy.git
-            $ cd haproxy
-            $ git checkout ECH-experimental
-
-To build that with a non-standard build of OpenSSL...
-
-            $ make SSL_INC=$HOME/code/openssl/include/ \
-                SSL_LIB=$HOME/code/openssl \
-                TARGET=linux-glibc USE_OPENSSL=1
-
-But we get lots of errors, as our bleeding-edge OpenSSL produces errors for
-a whole pile of now-deprecated functions that are used by haproxy, so...
-
-            $ make SSL_INC=$HOME/code/openssl/include/ \
-                SSL_LIB=$HOME/code/openssl \
-                TARGET=linux-glibc USE_OPENSSL=1 \
-                DEFINE="-DOPENSSL_SUPPRESS_DEPRECATED"
-
-In another case, to see what was happening in the build and turn off
-optimisation (to make gdb "pleasant":-), I built using:
-
-            $ make V=1 SSL_INC=$HOME/code/openssl/include/ \
-                SSL_LIB=$HOME/code/openssl \
-                TARGET=linux-glibc USE_OPENSSL=1 \
-                DEFINE="-DOPENSSL_SUPPRESS_DEPRECATED \
-                -DDEBUG -O0"
-
-All my code code changes, are protected using ``#ifndef OPENSSL_NO_ECH``
-
-## Shared-mode
-
-"Shared-mode" in haproxy terms is where the frontend is a TLS terminator and
-does all the ECH work.
-
-We followed [this haprox config
-guide](https://www.haproxy.com/blog/the-four-essential-sections-of-an-haproxy-configuration/)
-and my test script is [here](testhaproxy.sh) with a minimal config
-[here](haproxymin.conf).  That test script starts a lighttpd as needed to act
-as a back-end server. (You'll need to manually kill that when done with it.)
+Our test script is [testhaproxy.sh](../scripts/testhaproxy.sh) with our minimal
+config in [haproxymin.conf](../configs/haproxymin.conf).  The test script
+starts a lighttpd as needed to act as the back-end web server. (You'll need to
+manually kill that when done with it.)
 
 A typical haproxy config for terminating TLS will include lines like:
 
-            bind :7443 ssl crt cadir/foo.example.com.pem
+```bash
+    bind :7443 ssl crt cadir/foo.example.com.pem
+```
 
 We've simply extended that to add the ECH keypair filename to that line, e.g.:
 
-            bind :7443 ech d13.pem ssl crt cadir/foo.example.com.pem
+```bash
+    bind :7443 ech d13.pem ssl crt cadir/foo.example.com.pem
+```
 
-Code for that is in ``src/cfgparse-ssl.c`` and the new code to read in the ECH
-pem file is in ``src/ssl-sock.c``; the header files I changed were
-``include/haproxy/openssl-compat.h`` and ``include/haproxy/listener-t.h`` but
-the changes to all those are pretty obvious and minimal for now.
+We added a ``tcp-request ech-decrypt`` keyword to allow configuring
+the PEM file with the ECH key pair.
 
-So far, we've just done the minimum, if going further, we would consider at
-least the following features for shared-mode (or generally):
+## Test
 
-* a "trial decryption" option, defaulting to "off"
-* periodic rekeying of ECH keys
+The [testhaproxy.sh](../scripts/testhaproxy.sh) script starts servers and
+optionally runs clients against those. If needed, a lighttpd backend web server
+is started listening on 3480 (see
+[lighttpd4haproxymin.conf](../configs/lighttpd4haproxymin.conf)). It also
+starts an haproxy instance listening on port 7443 and other front-ends for
+TLS with ECH. 
 
-In addition, we need to consider the "scope" of the set of loaded ECH keys -
-previously we've considered it fine to decrypt an ECH based on any loaded ECH
-private key, (we do provide a way an application can manage that set for a
-given ``SSL_CTX`` or ``SSL`` session). It's not clear if that makes sense for
-haproxy where (at least in principle) different frontends might each need their
-own fully independent sets of ECH keys.
+```bash
+    $ cd $HOME/lt
+    $ $HOME/code/ech-dev-utils/scripts/testhaproxy.sh
+    ...stuff... # hit ctrl-C to exit haproxy, killall lighttpd to kill backend
+    $ # split-mode test
+    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7446 -P echconfig.pem -f index.html
+    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20230315-154634
+    Assuming supplied ECH is encoded ECHConfigList or SVCB
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    Looks like ECH worked ok
+    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
+    $ # shared-mode test
+    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7445 -P echconfig.pem -f index.html
+    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20230315-154900
+    Assuming supplied ECH is encoded ECHConfigList or SVCB
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    Looks like ECH worked ok
+    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
+```
 
-## Split-mode 
+[testhaproxy.sh](../scripts/testhaproxy.sh) takes one optional command line
+argument (the string "client").  If the "client" argument is provided, servers
+are run in the background and various client tests (both shared- and
+split-mode) are run against those.
 
-The model for split-mode is that haproxy only does ECH decryption - if
-decryption fails or no ECH extension is present, then haproxy will forward to a
-backend that has the private key of the ``ECHConfig.public_name``. If
-decryption works, then haproxy will forward the recovered plaintext, which will
-be the inner CH, routing the request based on the SNI from that inner CH. 
-
-We added an external API for haproxy to use in split-mode
-(``SSL_CTX_ech_raw_decrypt``) that takes the putative outer CH, and, if that
-containr an ECH, attempts decryption. That API also returns the outer and inner
-SNI (if present) so that routing can happen as needed. 
-
-In haproxy, we added a ``tcp-request ech-decrypt`` keyword to allow configuring
-the PEM file with the ECH key pair.  When so configured, the existing
-``smp_fetch_ssl_hello_sni`` (which handles SNI based routing) is modified to
-first call ``attempt_split_ech``.  ``attempt_split_ech`` will try decrypt and
-setup routing based on the inner or outer SNI values found as appropriate.
-If decryption succeeds, then the inner CH is spliced into the buffer that
-used hold the outer CH and processing continues as normal. 
-
-Notes:
-
-* ``early_data`` handling - we still need to test and likely fix how we splice
-  the inner CH into the haproxy buffer so that we don't e.g. throw away any
-  ``early_data``.
-
-## haproxy ECH tests
-
-As an aside: I have ``/etc/hosts`` entries for example.com and foo.example.com
-that map those to localhost.
-
-The [testhaproxy.sh](testhaproxy.sh) script starts servers and optionally runs
-clients against those.  This starts a lighttpd listening on localhost:3480 and
-other ports (see [lighttpd4haproxymin.conf](lighttpd4haproxymin.conf)) an
-haproxy instance listening on localhost:7443 and other front-ends for TLS with
-ECH. (If there's already a lighttpd running a new one won't be started.) The
-script also pesters you if the changes needed for some haproxy logging haven't
-been made to the ``/etc/rsyslog.conf`` file, in which case, it'll tell you what
-changes you need to make manually.
-
-[testhaproxy.sh](testhaproxy.sh) takes one optional command line argument (the
-string "client"). If not supplied the script starts lighttpd if need, and a
-haproxy instance runs in the foreground. If the "client" argument is rovided,
-both servers are run in the background and various client tests (both shared-
-and split-mode) are run against those.
-
-[testhaproxy.sh](testhaproxy.sh) does pretty minimal logging in
-``$HOME/code/openssl/esnistuff/haproxy/logs/haproxy.log`` but you
-need to add some stanzas to ``/etc/rsyslog.conf`` to get that.
-(Absent those, the test script will, for now, complain and exit.)
-
-A ``SERVERUSED`` cookie is added by haproxy in these configurations and the
-file served by lighttpd, as can be seen from the lighttpd logs. 
-
-# Naming different frontend/backend setups
+### Naming different frontend/backend setups
 
 Here's some terminology we use when talking about shared- or split-mode and
 haproxy configurations.  
@@ -323,7 +151,7 @@ If that did prove useful, it'd probably be fairly easy to do.
 
             5. Two-ECH: Client <--[TLS+ECH]--> frontend <--[other-TLS+ECH]--> backend
 
-## Running haproxy split-mode 
+### Running haproxy split-mode 
 
 The idea is to configure "routes" for both in the frontend. With the example
 configuration below, assuming "foo.example.com" is the inner SNI and
@@ -389,4 +217,44 @@ For the client, we do the following to use ECH and send our request to port
             ECH: success: outer SNI: 'something-else', inner SNI: 'foo.example.com'
 
 
+## Logs
 
+[testhaproxy.sh](../scripts/testhaproxy.sh) does pretty minimal logging in
+``$HOME/code/openssl/esnistuff/haproxy/logs/haproxy.log`` but you need to add
+some stanzas to ``/etc/rsyslog.conf`` to get that.  (Absent those, the test
+script will, for now, complain and exit.)
+
+A ``SERVERUSED`` cookie is added by haproxy in these configurations and the
+file served by lighttpd, as can be seen from the lighttpd logs. 
+
+## Key Rotation
+
+We still need to figure out how to reload ECH keys without restarting haproxy.
+Haproxy doesn't read from disk after initial startup, so we can't re-use the
+plan from other serves for periodically reloading ECH keys.
+TLS certificate/key reloading via socket-API/CLI is described
+[here](https://docs.haproxy.org/dev/management.html#9.3). We'll want to try
+do something similar for ECH keys, likely via that socket API.
+
+## Split mode backend traffic security
+
+One could argue that there's a need to be able to support cover traffic from
+frontend to backend and to have that, and subsequent traffic, use an encrypted
+tunnel between frontend and backend. Otherwise a network observer who can see
+traffic between client and frontend, and also between frontend and backend, can
+easily defeat ECH as it'll simply see the result of ECH decryption. (That
+wouldn't be needed in all network setups, but in some.)
+
+### Code Changes
+
+Code for shared-mode  is in ``src/cfgparse-ssl.c`` and the new code to read in
+the ECH pem file is in ``src/ssl-sock.c``; the header files I changed were
+``include/haproxy/openssl-compat.h`` and ``include/haproxy/listener-t.h`` but
+the changes to all those are pretty obvious and minimal for now.
+
+When so configured, the existing ``smp_fetch_ssl_hello_sni`` (which handles SNI
+based routing) is modified to first call ``attempt_split_ech``.
+``attempt_split_ech`` will try decrypt and setup routing based on the inner or
+outer SNI values found as appropriate.  If decryption succeeds, then the inner
+CH is spliced into the buffer that used hold the outer CH and processing
+continues as norml. 
