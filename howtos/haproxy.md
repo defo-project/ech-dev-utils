@@ -51,32 +51,54 @@ that inner CH.
 
 Our test script is [testhaproxy.sh](../scripts/testhaproxy.sh) with our minimal
 config in [haproxymin.conf](../configs/haproxymin.conf).  The test script
-starts a lighttpd as needed to act as the back-end web server. (You'll need to
+starts lighttpd as needed to act as the back-end web server. (You'll need to
 manually kill that when done with it.)
 
-A typical haproxy config for terminating TLS will include lines like:
+A typical pre-existing haproxy config for terminating TLS will include lines
+like the following for listeners in "http mode":
 
 ```bash
     bind :7443 ssl crt cadir/foo.example.com.pem
 ```
 
-We've simply extended that to add the ECH keypair filename to that line, e.g.:
+We extend that to support ECH shared mode via the ECH keyword that can be
+followed by a filename or directory name, e.g.:
 
 ```bash
-    bind :7443 ech d13.pem ssl crt cadir/foo.example.com.pem
+    bind :7443 ech echconfig.pem ssl crt cadir/foo.example.com.pem
 ```
 
-We added a ``tcp-request ech-decrypt`` keyword to allow configuring
-the PEM file with the ECH key pair.
+If the ech keyword names a file, that'll be loaded and work if it's a correctly
+encoded ECH PEM file. If the keyword names a directory, then that directory
+will be scanned for all ``*.ech`` files.
+
+For split-mode, we added an ``ech-decrypt`` keyword to allow configuring the
+PEM file or directory with the ECH key pair(s). That keyword can be added to
+a "tcp mode" frontend configuration, e.g.:
+
+```bash
+    tcp-request ech-decrypt echkeydir
+```
 
 ## Test
 
 The [testhaproxy.sh](../scripts/testhaproxy.sh) script starts servers and
 optionally runs clients against those. If needed, a lighttpd backend web server
-is started listening on 3480 (see
-[lighttpd4haproxymin.conf](../configs/lighttpd4haproxymin.conf)). It also
-starts an haproxy instance listening on port 7443 and other front-ends for
-TLS with ECH. 
+is started using
+[lighttpd4haproxymin.conf](../configs/lighttpd4haproxymin.conf).
+
+The set of ports used is as follows:
+
+- haproxy listens on 7443 in ECH shared mode, passing cleartext requests on to
+  lighttpd listening on port 3480
+- haproxy listens on 7444 in ECH shared mode, passing TLS-protected requests (via
+  a 2nd TLS session) on to lighttpd listening on port 3481
+- haproxy listens on 7445 doing no ECH processing, passing all TLS data on to
+  lighttpd listening on port 3482
+- haproxy listens on 7446 in ECH split mode, passing TLS-protected requests
+  (via a 2nd TLS session) on to lighttpd listening on port 3484 (if ECH 
+  decryption worked), or 3485 if ECH decryption failed or no ECH extension
+  was present
 
 ```bash
     $ cd $HOME/lt

@@ -2,28 +2,25 @@
 
 # set -x
 
-# Run a haproxy on localhost:7443 with a backed of:
-# a lighttpd on localhost:3480 with foo.example.com 
+# Run a haproxy test
 
-# Note on testing - if you have our curl build locally, and foo.example.com
-# is in your /etc/hosts, then:
-#       $ cd $HOME/code/curl
-#       $ src/curl --echconfig AED+CgA8ogAgACCRR4BdUxMqi3p2QZxscc4yKK7SSEe6yvjD/XQcodPBLwAEAAEAAQAAAAtleGFtcGxlLmNvbQAA --cacert ../openssl/esnistuff/cadir/oe.csr https://foo.example.com:7443/index.html -v
-#
-# Replace the bas64 encoded stuff abouve with the right public key as
-# needed.
-
-: ${OSSL:="$HOME/code/openssl"}
+# to pick up correct .so's - maybe note 
+: ${CODETOP:="$HOME/code/openssl"}
+# to pick up correct wrapper scripts
+: ${EDTOP:="$HOME/code/ech-dev-utils"}
+# to set where our cadir and ECH keys are
+: ${RUNTOP:="$HOME/lt"}
+# where back-end web server can be found
 : ${LIGHTY:="$HOME/code/lighttpd1.4"}
+# where front-end haproxy can be found
 : ${HAPPY:="$HOME/code/haproxy"}
-: ${ECHCONFIG:="d13.pem"}
-# to pick up correct executables and .so's  
-export TOP=$OSSL
-export LD_LIBRARY_PATH=$OSSL
+# default ECH key pair
+: ${ECHCONFIG:="echconfig.pem"}
 
-HLOGDIR="$OSSL/esnistuff/haproxy/logs"
+export LD_LIBRARY_PATH=$CODETOP
+
+HLOGDIR="$RUNTOP/haproxy/logs"
 HLOGFILE="$HLOGDIR/haproxy.log"
-RSCFG="/etc/rsyslog.conf"
 
 doclient="no"
 allgood="yes"
@@ -39,9 +36,9 @@ then
 fi
 
 # make directories for lighttpd stuff if needed
-mkdir -p $OSSL/esnistuff/lighttpd/logs
-mkdir -p $OSSL/esnistuff/lighttpd/www
-mkdir -p $OSSL/esnistuff/lighttpd/baz
+mkdir -p $RUNTOP/lighttpd/logs
+mkdir -p $RUNTOP/lighttpd/www
+mkdir -p $RUNTOP/lighttpd/baz
 mkdir -p $HLOGDIR
 
 if [ ! -f $HLOGFILE ]
@@ -50,36 +47,10 @@ then
     chmod a+w $HLOGFILE
 fi
 
-# Check if $RSCFG has an entry for our haproxy log file
-if [ -f $RSCFG ] 
-then
-    syslogknowsalready=`grep -c "$HLOGFILE" $RSCFG`
-    if [[ "$syslogknowsalready" == "0" ]]
-    then
-        echo "You need stanzas for haproxy logging in $RSCFG"
-        echo "That should look like:" 
-        echo ""
-    cat <<EOF
-# Haproxy - you might not want this here forever as it means packets
-# rx'd could fill a disk maybe
-\$ModLoad imudp
-\$UDPServerAddress 127.0.4.5
-\$UDPServerRun 7514
-local0.* $HLOGFILE
-EOF
-    echo ""
-    echo "You should fix that - exiting in the meantime"
-    exit
-    fi
-else 
-    echo "No sign of $RSCFG - exiting as haproxymin.conf needs that"
-    exit
-fi
-
 # check for/make a home page for example.com and other virtual hosts
-if [ ! -f $OSSL/esnistuff/lighttpd/www/index.html ]
+if [ ! -f $RUNTOP/lighttpd/www/index.html ]
 then
-    cat >$OSSL/esnistuff/lighttpd/www/index.html <<EOF
+    cat >$RUNTOP/lighttpd/www/index.html <<EOF
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -100,9 +71,9 @@ EOF
 fi
 
 # check for/make a slightly different home page for baz.example.com
-if [ ! -f $OSSL/esnistuff/lighttpd/baz/index.html ]
+if [ ! -f $RUNTOP/lighttpd/baz/index.html ]
 then
-    cat >$OSSL/esnistuff/lighttpd/baz/index.html <<EOF
+    cat >$RUNTOP/lighttpd/baz/index.html <<EOF
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -136,11 +107,21 @@ lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v tail`
 
 if [[ "$lrunning" == "" ]]
 then
-    echo "Executing: $VALGRIND $LIGHTY/src/lighttpd $FOREGROUND -f $OSSL/esnistuff/lighttpd4haproxymin.conf -m $LIGHTY/src/.libs"
-    $LIGHTY/src/lighttpd $FOREGROUND -f $OSSL/esnistuff/lighttpd4haproxymin.conf -m $LIGHTY/src/.libs
+    export LIGHTYTOP=$RUNTOP
+    echo "Executing: $VALGRIND $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpd4haproxymin.conf -m $LIGHTY/src/.libs"
+    $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpd4haproxymin.conf -m $LIGHTY/src/.libs
 else
     echo "Lighttpd already running: $lrunning"
 fi
+
+# Check we have a back-end
+lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v tail`
+if [[ "$lrunning" == "" ]]
+then
+    echo "No back-end running, sorry - exiting"
+    exit 1
+fi
+
 
 HAPDEBUGSTR=" -dV " 
 if [[ "$doclient" == "yes" ]]
@@ -153,8 +134,8 @@ fi
 
 
 # Now start up a haproxy
-echo "Executing: $VALGRIND $HAPPY/haproxy -f $OSSL/esnistuff/haproxymin.conf $HAPDEBUGSTR"
-$VALGRIND $HAPPY/haproxy -f $OSSL/esnistuff/haproxymin.conf $HAPDEBUGSTR
+echo "Executing: $VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGILE"
+$VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGFILE
 
 if [[ "$doclient" == "yes" ]]
 then
@@ -164,24 +145,24 @@ then
     for port in 7443 7444 7445 7446 
     do
         # do GREASEy case
-        echo "**** Greasing: $OSSL/esnistuff/echcli.sh $clilog -gn -p $port \
+        echo "**** Greasing: $CODETOP/esnistuff/echcli.sh $clilog -gn -p $port \
                 -c example.com -s localhost -f index.html"
-        $OSSL/esnistuff/echcli.sh $clilog -gn -p $port \
+        $EDTOP/scripts/echcli.sh $clilog -gn -p $port \
                 -c example.com -s localhost -f index.html
-        echo "**** Above was Greasing: $OSSL/esnistuff/echcli.sh $clilog -gn -p $port \
+        echo "**** Above was Greasing: $EDTOP/scripts/echcli.sh $clilog -gn -p $port \
                 -c example.com -s localhost -f index.html"
         # do real ECH case
-        echo "**** Real ECH: $OSSL/esnistuff/echcli.sh $clilog -s localhost -H foo.example.com  \
+        echo "**** Real ECH: $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
                 -p $port -P $ECHCONFIG -f index.html -N "
-        $OSSL/esnistuff/echcli.sh $clilog -s localhost -H foo.example.com  \
+        $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
                 -p $port -P $ECHCONFIG -f index.html -N
         res=$?
         if [[ "$res" == "0" ]]
         then
-            echo "**** This worked: : $OSSL/esnistuff/echcli.sh $clilog -s localhost -H foo.example.com  \
+            echo "**** This worked: : $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
                 -p $port -P $ECHCONFIG -f index.html -N "
         else
-            echo "**** This failed ($res): : $OSSL/esnistuff/echcli.sh $clilog -s localhost -H foo.example.com  \
+            echo "**** This failed ($res): : $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
                 -p $port -P $ECHCONFIG -f index.html -N "
             allgood="no"
         fi
