@@ -51,7 +51,7 @@ There's an example in [apachemin.conf](../configs/apachemin.conf).
 
 ## Test
 
-The [testapache.sh](../scrtpts/testapache.sh) script starts an ECH-enabled
+The [testapache.sh](../scripts/testapache.sh) script starts an ECH-enabled
 apache server listening on port 9443 using the config in
 [apachemin.conf](../configs/apachemin.conf). That script will also create some
 basic web content for ``example.com`` (the ECH ``public_name`) and for

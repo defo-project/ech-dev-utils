@@ -25,6 +25,17 @@ HLOGFILE="$HLOGDIR/haproxy.log"
 doclient="no"
 allgood="yes"
 
+run_indented() {
+  local indent=${INDENT:-"    "}
+  local indent_cmdline=(awk '{print "'"$indent"'" $0}')
+
+  if [ -t 1 ] && command -v unbuffer >/dev/null 2>&1; then
+    { unbuffer "$@" 2> >("${indent_cmdline[@]}" >&2); } | "${indent_cmdline[@]}"
+  else
+    { "$@" 2> >("${indent_cmdline[@]}" >&2); } | "${indent_cmdline[@]}"
+  fi
+}
+
 if [[ "$1" == "client" ]]
 then
     doclient="yes"
@@ -111,7 +122,8 @@ then
     echo "Executing: $VALGRIND $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpd4haproxymin.conf -m $LIGHTY/src/.libs"
     $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpd4haproxymin.conf -m $LIGHTY/src/.libs
 else
-    echo "Lighttpd already running: $lrunning"
+    echo "Lighttpd already running."
+    echo "$lrunning"
 fi
 
 # Check we have a back-end
@@ -122,7 +134,6 @@ then
     exit 1
 fi
 
-
 HAPDEBUGSTR=" -dV " 
 if [[ "$doclient" == "yes" ]]
 then
@@ -132,9 +143,8 @@ then
     killall haproxy
 fi
 
-
 # Now start up a haproxy
-echo "Executing: $VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGILE"
+echo "Executing: $VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGFILE"
 $VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGFILE
 
 if [[ "$doclient" == "yes" ]]
@@ -145,26 +155,27 @@ then
     for port in 7443 7444 7445 7446 
     do
         # do GREASEy case
-        echo "**** Greasing: $CODETOP/esnistuff/echcli.sh $clilog -gn -p $port \
-                -c example.com -s localhost -f index.html"
-        $EDTOP/scripts/echcli.sh $clilog -gn -p $port \
-                -c example.com -s localhost -f index.html
-        echo "**** Above was Greasing: $EDTOP/scripts/echcli.sh $clilog -gn -p $port \
-                -c example.com -s localhost -f index.html"
-        # do real ECH case
-        echo "**** Real ECH: $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
-                -p $port -P $ECHCONFIG -f index.html -N "
-        $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
-                -p $port -P $ECHCONFIG -f index.html -N
+        echo "Testing port $port"
+        INDENT="  " run_indented echo "GREASEing"
+        run_indented echo "$CODETOP/esnistuff/echcli.sh $clilog -gn -p $port -c example.com -s localhost -f index.html"
+        run_indented $EDTOP/scripts/echcli.sh $clilog -gn -p $port -c example.com -s localhost -f index.html
         res=$?
-        if [[ "$res" == "0" ]]
+        if [[ "$res" != "0" ]]
         then
-            echo "**** This worked: : $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
-                -p $port -P $ECHCONFIG -f index.html -N "
-        else
-            echo "**** This failed ($res): : $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com  \
-                -p $port -P $ECHCONFIG -f index.html -N "
+            run_indented echo "GREASEing failed - exiting"
             allgood="no"
+            break
+        fi
+        # do real ECH case
+        INDENT="  " run_indented echo "Real ECH"
+        run_indented echo "$EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com -p $port -P $ECHCONFIG -f index.html -N "
+        run_indented $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com -p $port -P $ECHCONFIG -f index.html -N
+        res=$?
+        if [[ "$res" != "0" ]]
+        then
+            run_indented echo "Real ECH failed - exiting"
+            allgood="no"
+            break
         fi
     done
 fi
