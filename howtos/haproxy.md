@@ -30,6 +30,7 @@ so...
 
 We followed this haproxy
 [configuration guide](https://www.haproxy.com/blog/the-four-essential-sections-of-an-haproxy-configuration/).
+Text here assumes you've at least scanned that.
 
 Compared to other web servers, haproxy configuration is a bit more involved as
 our integration supports both split-mode and shared mode ECH, and haproxy, not
@@ -51,17 +52,17 @@ that inner CH.
 
 Our test script is [testhaproxy.sh](../scripts/testhaproxy.sh) with our minimal
 config in [haproxymin.conf](../configs/haproxymin.conf).  The test script
-starts lighttpd as needed to act as the back-end web server. (You'll need to
+starts lighttpd as needed to act as the backend web server. (You'll need to
 manually kill that when done with it.)
 
 A typical pre-existing haproxy config for terminating TLS will include lines
-like the following for listeners in "http mode":
+like the following for listeners in a "mode http" frontend:
 
 ```bash
     bind :7443 ssl crt cadir/foo.example.com.pem
 ```
 
-We extend that to support ECH shared mode via the ECH keyword that can be
+We extend that to support ECH shared mode via the ``ech`` keyword that can be
 followed by a filename or directory name, e.g.:
 
 ```bash
@@ -73,8 +74,8 @@ encoded ECH PEM file. If the keyword names a directory, then that directory
 will be scanned for all ``*.ech`` files.
 
 For split-mode, we added an ``ech-decrypt`` keyword to allow configuring the
-PEM file or directory with the ECH key pair(s). That keyword can be added to
-a "tcp mode" frontend configuration, e.g.:
+ECH PEM file or directory with the ECH key pair(s). That keyword can be added
+to a "tcp mode" frontend configuration, e.g.:
 
 ```bash
     tcp-request ech-decrypt echkeydir
@@ -87,18 +88,42 @@ optionally runs clients against those. If needed, a lighttpd backend web server
 is started using
 [lighttpd4haproxymin.conf](../configs/lighttpd4haproxymin.conf).
 
-The set of ports used is as follows:
+The following are the "names" for test setups and are also used as
+the names for frontend (FE) setting in the [haproxy configuration
+file](../configs/haproxymin.conf):
 
-- haproxy listens on 7443 in ECH shared mode, passing cleartext requests on to
-  lighttpd listening on port 3480
-- haproxy listens on 7444 in ECH shared mode, passing TLS-protected requests (via
-  a 2nd TLS session) on to lighttpd listening on port 3481
-- haproxy listens on 7445 doing no ECH processing, passing all TLS data on to
-  lighttpd listening on port 3482
-- haproxy listens on 7446 in ECH split mode, passing TLS-protected requests
-  (via a 2nd TLS session) on to lighttpd listening on port 3484 (if ECH 
-  decryption worked), or 3485 if ECH decryption failed or no ECH extension
-  was present
+- ECH-front: haproxy terminates the client's TLS session and is ECH-enabled,
+  cleartext HTTP requests are sent to backend
+- Two-TLS: haproxy terminates the client's TLS session and is ECH-enabled,
+  HTTPS requests are sent to backend, using a 2nd FE-BE TLS session
+- One-TLS: haproxy passes on anything with the outer SNI that has the
+  ``public_name`` to a backend server that does ECH and can also serve
+  as authenticate as the ``public_name``  
+- Split-mode: haproxy decrypts ECH but passes on the cliet's TLS session
+  to the backend if ECH decryption worked, or to the ``public_name``
+  server in other cases
+
+The table below shows the port numbers involved in each named setup:
+
+name | ECH mode | haproxy mode | FE port | default BE port | foo.example.com BE port |
+-------
+ECH-front | shared | http | 7443 | 3485 | 3480 | 
+Two-TLS | shared | http | 7444 | 3485 | 3481 | 
+One-TLS | split | tcp | 7444 | 3485 | 3482 | 
+Split-mode | split | tcp | 7445 | 3485 | 3484 | 
+
+The test script starts a lighttpd running as the backend with the
+following configuration:
+
+port | server name | comment
+------
+3480 | foo.example.com | accepts cleartext HTTP for foo.example.com
+3481 | foo.example.com | accepts HTTPS for foo.example.com
+3482 | foo.example.com | accepts HTTPS for foo.example.com
+3484 | foo.example.com | accepts cleartext HTTP for foo.example.com (as ECH-backend)
+3485 | example.com | the ``public_name`` server
+
+To run the test:
 
 ```bash
     $ cd $HOME/lt
