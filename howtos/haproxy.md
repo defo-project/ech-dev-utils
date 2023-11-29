@@ -105,7 +105,7 @@ file](../configs/haproxymin.conf):
 
 The table below shows the port numbers involved in each named setup:
 
-| name | ECH mode | haproxy mode | FE port | default BE port | foo.example.com BE port |
+| name | ECH mode | haproxy mode | FE port | default BE port | BE port |
 | ------- |:---:|:---:|:---:|:---:|:---:|
 | ECH-front | shared | http | 7443 | 3485 | 3480 | 
 | Two-TLS | shared | http | 7444 | 3485 | 3481 | 
@@ -116,7 +116,7 @@ The test script starts a lighttpd running as the backend with the
 following configuration:
 
 | port | server name | comment |
-| ------- | --- | --- | --- |
+| ---- | ----------- | ------- |
 | 3480 | foo.example.com | accepts cleartext HTTP for foo.example.com |
 | 3481 | foo.example.com | accepts HTTPS for foo.example.com |
 | 3482 | foo.example.com | accepts HTTPS for foo.example.com |
