@@ -105,23 +105,23 @@ file](../configs/haproxymin.conf):
 
 The table below shows the port numbers involved in each named setup:
 
-name | ECH mode | haproxy mode | FE port | default BE port | foo.example.com BE port |
--------
-ECH-front | shared | http | 7443 | 3485 | 3480 | 
-Two-TLS | shared | http | 7444 | 3485 | 3481 | 
-One-TLS | split | tcp | 7444 | 3485 | 3482 | 
-Split-mode | split | tcp | 7445 | 3485 | 3484 | 
+| name | ECH mode | haproxy mode | FE port | default BE port | foo.example.com BE port |
+| ------- |:---:|:---:|:---:|:---:|:---:|
+| ECH-front | shared | http | 7443 | 3485 | 3480 | 
+| Two-TLS | shared | http | 7444 | 3485 | 3481 | 
+| One-TLS | split | tcp | 7444 | 3485 | 3482 | 
+| Split-mode | split | tcp | 7445 | 3485 | 3484 | 
 
 The test script starts a lighttpd running as the backend with the
 following configuration:
 
-port | server name | comment
-------
-3480 | foo.example.com | accepts cleartext HTTP for foo.example.com
-3481 | foo.example.com | accepts HTTPS for foo.example.com
-3482 | foo.example.com | accepts HTTPS for foo.example.com
-3484 | foo.example.com | accepts cleartext HTTP for foo.example.com (as ECH-backend)
-3485 | example.com | the ``public_name`` server
+| port | server name | comment |
+| ------- | --- | --- | --- |
+| 3480 | foo.example.com | accepts cleartext HTTP for foo.example.com |
+| 3481 | foo.example.com | accepts HTTPS for foo.example.com |
+| 3482 | foo.example.com | accepts HTTPS for foo.example.com |
+| 3484 | foo.example.com | accepts cleartext HTTP for foo.example.com (as ECH-backend) |
+| 3485 | example.com | the ``public_name`` server |
 
 To run the test:
 
