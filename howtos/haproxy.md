@@ -109,7 +109,7 @@ The table below shows the port numbers involved in each named setup:
 | ------- |:---:|:---:|:---:|:---:|:---:|
 | ECH-front | shared | http | 7443 | 3485 | 3480 | 
 | Two-TLS | shared | http | 7444 | 3485 | 3481 | 
-| One-TLS | split | tcp | 7444 | 3485 | 3482 | 
+| One-TLS | shared | tcp | 7444 | 3485 | 3482 | 
 | Split-mode | split | tcp | 7445 | 3485 | 3484 | 
 
 The test script starts a lighttpd running as the backend with the
