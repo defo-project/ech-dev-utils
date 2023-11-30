@@ -199,3 +199,5 @@ used in some time:
   (just a useful snippet, not so much for using in anger)
 - [scanem.sh](scripts/scanem.sh) compares two OpenSSL source trees and reports on which
   files differ
+- [runindented.sh](scripts/runindented.sh) is a bash function for indenting things (not
+  currently used, but was, and may be again sometime)

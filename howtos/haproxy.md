@@ -83,6 +83,9 @@ to a "tcp mode" frontend configuration, e.g.:
 
 ## Test
 
+Note: as of now, two tests fail and are being investigated. Not yet sure
+if those are real fails or due to restructuring the test code/config.
+
 The [testhaproxy.sh](../scripts/testhaproxy.sh) script starts servers and
 optionally runs clients against those. If needed, a lighttpd backend web server
 is started using
@@ -109,8 +112,8 @@ The table below shows the port numbers involved in each named setup:
 | ------- |:---:|:---:|:---:|:---:|:---:|
 | ECH-front | shared | http | 7443 | 3485 | 3480 | 
 | Two-TLS | shared | http | 7444 | 3485 | 3481 | 
-| One-TLS | shared | tcp | 7444 | 3485 | 3482 | 
-| Split-mode | split | tcp | 7445 | 3485 | 3484 | 
+| One-TLS | shared | tcp | 7445 | 3485 | 3482 | 
+| Split-mode | split | tcp | 7446 | 3485 | 3484 | 
 
 The test script starts a lighttpd running as the backend with the
 following configuration:
@@ -198,110 +201,61 @@ If that did prove useful, it'd probably be fairly easy to do.
 
             5. Two-ECH: Client <--[TLS+ECH]--> frontend <--[other-TLS+ECH]--> backend
 
-### Running haproxy split-mode 
-
-The idea is to configure "routes" for both in the frontend. With the example
-configuration below, assuming "foo.example.com" is the inner SNI and
-"example.com" is the outer SNI (or ``ECHConfig.public_name``) then if
-decryption works, we'll route to the "foo" backend on port 3484, whereas if it
-fails (or no ECH is present etc.) then we'll route to the "eg" server on port
-3485. 
-
-            frontend Split-mode
-                mode tcp
-                option tcplog
-                bind :7446 
-                use_backend 3484
-            backend 3484
-                mode tcp
-                # next 2 lines needed to get switching on (outer) SNI to
-                # work, not sure why
-                tcp-request inspect-delay 5s
-                tcp-request content accept if { req_ssl_hello_type 1 }
-                tcp-request ech-decrypt d13.pem
-                use-server foo if { req.ssl_sni -i foo.example.com }
-                use-server eg if { req.ssl_sni -i example.com }
-                server eg 127.0.3.4:3485 
-                server foo 127.0.3.4:3484 
-                server default 127.0.3.4:3485
-
-If the above configuration is in a file called ``sm.cfg`` then haproxy can be
-started via a command like:
-
-            $ LD_LIBRARY_PATH=$HOME/code/openssl ./haproxy -f sm.cfg -dV 
-
-We can then start the non-ECH-enabled backend for foo.example.com listening on
-port 3484 as follows:
-
-            $ cd $HOME/code/openssl/esnistuff
-            $ ../apps/openssl s_server -msg -trace  -tlsextdebug  \
-                -key cadir/example.com.priv \
-                -cert cadir/example.com.crt \
-                -key2 cadir/foo.example.com.priv \
-                -cert2 cadir/foo.example.com.crt  \
-                -CApath cadir/  \
-                -port 3484  -tls1_3  -servername foo.example.com
-
-Equivalently, it's ok if the backend server on port 3484 is also ECH-enabled
-itself and has a copy of the ECH key pair. If that's the desired setup, one of
-our test scripts is also usable:
-
-            $ cd $HOME/code/openssl/esnistuff
-            $ ./echsvr.sh -p 3484
-
-Running a server for example.com on port 3485 is done similarly.
-
-For the client, we do the following to use ECH and send our request to port
-7446 where haproxy is listening:
-
-            $ cd $HOME/code/openssl/esnistuff
-            $ ./echcli.sh -s localhost  -H foo.example.com -p 7446 \
-                -P `./pem2rr.sh echconfig.pem` -f index.html -N -c something-else
-            Running ./echcli.sh at 20210615-191012
-            Assuming supplied ECH is RR value
-            ./echcli.sh Summary: 
-            Looks like it worked ok
-            ECH: success: outer SNI: 'something-else', inner SNI: 'foo.example.com'
-
-
 ## Logs
 
 [testhaproxy.sh](../scripts/testhaproxy.sh) does pretty minimal logging in
-``$HOME/code/openssl/esnistuff/haproxy/logs/haproxy.log`` but you need to add
-some stanzas to ``/etc/rsyslog.conf`` to get that.  (Absent those, the test
-script will, for now, complain and exit.)
+``$HOME/code/openssl/esnistuff/haproxy/logs/haproxy.log``. 
 
 A ``SERVERUSED`` cookie is added by haproxy in these configurations and the
 file served by lighttpd, as can be seen from the lighttpd logs. 
 
 ## Key Rotation
 
-We still need to figure out how to reload ECH keys without restarting haproxy.
-Haproxy doesn't read from disk after initial startup, so we can't re-use the
-plan from other serves for periodically reloading ECH keys.
-TLS certificate/key reloading via socket-API/CLI is described
-[here](https://docs.haproxy.org/dev/management.html#9.3). We'll want to try
-do something similar for ECH keys, likely via that socket API.
+We still need to implement reloading ECH keys without restarting haproxy.
+Haproxy doesn't (like to) read from disk after initial startup, so we can't
+re-use the plan from other serves for periodically reloading ECH keys.  TLS
+certificate/key reloading via socket-API/CLI is described
+[here](https://docs.haproxy.org/dev/management.html#9.3). We'll want to try do
+something similar for ECH keys, likely via that socket API.
 
 ## Split mode backend traffic security
 
-One could argue that there's a need to be able to support cover traffic from
-frontend to backend and to have that, and subsequent traffic, use an encrypted
-tunnel between frontend and backend. Otherwise a network observer who can see
-traffic between client and frontend, and also between frontend and backend, can
-easily defeat ECH as it'll simply see the result of ECH decryption. (That
-wouldn't be needed in all network setups, but in some.)
+For now, we do nothing at all to protect traffice between the haproxy frontend
+and backend, other than show how to enable TLS. As a network observer who could
+see that traffic could mount traffic analysis attacks, one could argue that
+there's a need to be able to support cover traffic from frontend to backend and
+to have that, and non-cover traffic, use an encrypted tunnel between frontend
+and backend. We've done nothing to mitigate that attack so far. 
 
 ### Code Changes
 
-Code for shared-mode  is in ``src/cfgparse-ssl.c`` and the new code to read in
-the ECH pem file is in ``src/ssl-sock.c``; the header files I changed were
-``include/haproxy/openssl-compat.h`` and ``include/haproxy/listener-t.h`` but
-the changes to all those are pretty obvious and minimal for now.
+- All ECH code is protected via ``#ifdef USE_ECH`` which is provided on the
+  ``make`` command line as described above.
 
-When so configured, the existing ``smp_fetch_ssl_hello_sni`` (which handles SNI
-based routing) is modified to first call ``attempt_split_ech``.
-``attempt_split_ech`` will try decrypt and setup routing based on the inner or
-outer SNI values found as appropriate.  If decryption succeeds, then the inner
-CH is spliced into the buffer that used hold the outer CH and processing
-continues as norml. 
+- Two new header files define a new type (``include/haproxy/ech-h.h``) and a
+  new internal API for split-mode (``include/haproxy/ech.h``).
+
+- A new config setting ``ech_filedir`` is added to
+  ``include/haproxy/listener-t.h`` to store the new ECH configuration setting.
+  That's processed in ``src/cfgparse-ssl.c`` - if ECH is configured then
+
+- ``include/haproxy/proxy-t.h`` has some fields added to the ``proxy.tcp_req``
+  sub-strcuture to handle split-mode ECH.
+
+- ``include/haproxy/stconn-t.h`` has an ``ech_state`` field added to the
+  ``stconn`` structure (also for split-mode ECH).
+
+- ``src/ech.c`` has the implementation of ``attempt_split_ech()``
+
+- ``src/payload.c`` had code to determine if a call to ``attempt_split_ech()``
+  is warranted, and if so, makes that call.
+
+- ``src/ssl_sock.c`` makes the call to enable ECH for the ``SSL_CTX`` if so
+  configured, which is all that's needed to handle shared mode ECH.
+
+- ``src/stconn.c`` has code to handle ECH with the 2nd ClientHello if HRR is
+  encountered. That's basically a 2nd call to ``attempt_split_ech()`` when
+  warranted.
+
+- ``src/tcp_rules.c`` handles loading ECH key pairs for ECH split-mode.
+

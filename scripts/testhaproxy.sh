@@ -21,19 +21,43 @@ export LD_LIBRARY_PATH=$CODETOP
 
 HLOGDIR="$RUNTOP/haproxy/logs"
 HLOGFILE="$HLOGDIR/haproxy.log"
+CLILOGFILE="$HLOGDIR/clienttest.log"
 
 doclient="no"
 allgood="yes"
 
-run_indented() {
-  local indent=${INDENT:-"    "}
-  local indent_cmdline=(awk '{print "'"$indent"'" $0}')
+cli_test() {
+    local port=$1
+    local runparm=$2
+    local target="foo.example.com"
+    local lres="0"
 
-  if [ -t 1 ] && command -v unbuffer >/dev/null 2>&1; then
-    { unbuffer "$@" 2> >("${indent_cmdline[@]}" >&2); } | "${indent_cmdline[@]}"
-  else
-    { "$@" 2> >("${indent_cmdline[@]}" >&2); } | "${indent_cmdline[@]}"
-  fi
+    if [[ "$runparm" == "public" ]]
+    then
+        gorp="-g "
+        target="example.com"
+    elif [[ "$runparm" == "grease" ]]
+    then
+        gorp="-g "
+    elif [[ "$runparm" == "hrr" ]]
+    then
+        gorp="-P echconfig.pem -R "
+    elif [[ "$runparm" == "real" ]]
+    then
+        gorp="-P echconfig.pem"
+    else
+        echo "bad cli_test parameter $runparm, exiting"
+        exit 99
+    fi
+    $EDTOP/scripts/echcli.sh $clilog $gorp -p $port -H $target -s localhost -f index.html >>$CLILOGFILE 2>&1
+    lres=$?
+    if [[ "$lres" != "0" ]]
+    then
+        echo "test failed, exiting"
+        echo "command that failed: $CODETOP/esnistuff/echcli.sh $clilog $gorp-p $port -H $target -s localhost -f index.html"
+        # exit $lres
+        allgood="no"
+    fi
 }
 
 if [[ "$1" == "client" ]]
@@ -49,7 +73,7 @@ fi
 # make directories for lighttpd stuff if needed
 mkdir -p $RUNTOP/lighttpd/logs
 mkdir -p $RUNTOP/lighttpd/www
-mkdir -p $RUNTOP/lighttpd/baz
+mkdir -p $RUNTOP/lighttpd/public_name
 mkdir -p $HLOGDIR
 
 if [ ! -f $HLOGFILE ]
@@ -58,7 +82,7 @@ then
     chmod a+w $HLOGFILE
 fi
 
-# check for/make a home page for example.com and other virtual hosts
+# check for/make a home page for foo.example.com and other virtual hosts
 if [ ! -f $RUNTOP/lighttpd/www/index.html ]
 then
     cat >$RUNTOP/lighttpd/www/index.html <<EOF
@@ -67,13 +91,13 @@ then
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Lighttpd top page.</title>
+<title>Lighttpd foo.example.com top page.</title>
 </head>
 <!-- Background white, links blue (unvisited), navy (visited), red
 (active) -->
 <body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
 vlink="#000080" alink="#FF0000">
-<p>This is the pretty dumb top page for testing. </p>
+<p>This is the pretty dumb top page for foo.example.com </p>
 
 </body>
 </html>
@@ -81,22 +105,22 @@ vlink="#000080" alink="#FF0000">
 EOF
 fi
 
-# check for/make a slightly different home page for baz.example.com
-if [ ! -f $RUNTOP/lighttpd/baz/index.html ]
+# check for/make a slightly different home page for public_name/example.com
+if [ ! -f $RUNTOP/lighttpd/public_name/index.html ]
 then
-    cat >$RUNTOP/lighttpd/baz/index.html <<EOF
+    cat >$RUNTOP/lighttpd/public_name/index.html <<EOF
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Lighttpd top page.</title>
+<title>Lighttpd public_name page.</title>
 </head>
 <!-- Background white, links blue (unvisited), navy (visited), red
 (active) -->
 <body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
 vlink="#000080" alink="#FF0000">
-<p>This is the pretty dumb top page for baz.example.com testing. </p>
+<p>This is the pretty dumb top page for public_name/example.com </p>
 
 </body>
 </html>
@@ -144,39 +168,21 @@ then
 fi
 
 # Now start up a haproxy
-echo "Executing: $VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGFILE"
-$VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR 2>$HLOGFILE
+echo "Executing: $VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$HLOGFILE 2>&1"
+$VALGRIND $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$HLOGFILE 2>&1
 
 if [[ "$doclient" == "yes" ]]
 then
+    # all things should appear the same to the client
+    # server log checks will tells us if stuff worked or not
     echo "Doing client calls..."
-    # Uncomment for loadsa logging...
-    # clilog=" -d "
-    for port in 7443 7444 7445 7446 
+    for type in grease public real hrr
     do
-        # do GREASEy case
-        echo "Testing port $port"
-        INDENT="  " run_indented echo "GREASEing"
-        run_indented echo "$CODETOP/esnistuff/echcli.sh $clilog -gn -p $port -c example.com -s localhost -f index.html"
-        run_indented $EDTOP/scripts/echcli.sh $clilog -gn -p $port -c example.com -s localhost -f index.html
-        res=$?
-        if [[ "$res" != "0" ]]
-        then
-            run_indented echo "GREASEing failed - exiting"
-            allgood="no"
-            break
-        fi
-        # do real ECH case
-        INDENT="  " run_indented echo "Real ECH"
-        run_indented echo "$EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com -p $port -P $ECHCONFIG -f index.html -N "
-        run_indented $EDTOP/scripts/echcli.sh $clilog -s localhost -H foo.example.com -p $port -P $ECHCONFIG -f index.html -N
-        res=$?
-        if [[ "$res" != "0" ]]
-        then
-            run_indented echo "Real ECH failed - exiting"
-            allgood="no"
-            break
-        fi
+        for port in 7443 7444 7445 7446 
+        do
+            echo "Testing $type $port"
+            cli_test $port $type
+        done
     done
 fi
 if [[ "$allgood" == "yes" ]]
