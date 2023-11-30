@@ -237,7 +237,12 @@ and backend. We've done nothing to mitigate that attack so far.
 
 - A new config setting ``ech_filedir`` is added to
   ``include/haproxy/listener-t.h`` to store the new ECH configuration setting.
-  That's processed in ``src/cfgparse-ssl.c`` - if ECH is configured then
+  That's stored for later in ``src/cfgparse-ssl.c`` if ECH is configured.
+
+- ``src/ssl_sock.c`` makes the call to enable ECH for the ``SSL_CTX`` if so
+  configured, which is all that's needed to handle shared mode ECH.
+
+ECH split-mode is mode involved:
 
 - ``include/haproxy/proxy-t.h`` has some fields added to the ``proxy.tcp_req``
   sub-strcuture to handle split-mode ECH.
@@ -245,17 +250,14 @@ and backend. We've done nothing to mitigate that attack so far.
 - ``include/haproxy/stconn-t.h`` has an ``ech_state`` field added to the
   ``stconn`` structure (also for split-mode ECH).
 
+- ``src/tcp_rules.c`` handles loading ECH key pairs for ECH split-mode.
+
 - ``src/ech.c`` has the implementation of ``attempt_split_ech()``
 
-- ``src/payload.c`` had code to determine if a call to ``attempt_split_ech()``
-  is warranted, and if so, makes that call.
-
-- ``src/ssl_sock.c`` makes the call to enable ECH for the ``SSL_CTX`` if so
-  configured, which is all that's needed to handle shared mode ECH.
+- ``src/payload.c`` had code to determine if a first call to
+  ``attempt_split_ech()`` is warranted, and if so, makes that call.
 
 - ``src/stconn.c`` has code to handle ECH with the 2nd ClientHello if HRR is
   encountered. That's basically a 2nd call to ``attempt_split_ech()`` when
   warranted.
-
-- ``src/tcp_rules.c`` handles loading ECH key pairs for ECH split-mode.
 
