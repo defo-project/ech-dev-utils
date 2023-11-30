@@ -153,7 +153,7 @@ argument (the string "client").  If the "client" argument is provided, servers
 are run in the background and various client tests (both shared- and
 split-mode) are run against those.
 
-### Naming different frontend/backend setups
+### Test nomenclature (again:-)
 
 Here's some terminology we use when talking about shared- or split-mode and
 haproxy configurations.  
@@ -227,7 +227,7 @@ there's a need to be able to support cover traffic from frontend to backend and
 to have that, and non-cover traffic, use an encrypted tunnel between frontend
 and backend. We've done nothing to mitigate that attack so far. 
 
-### Code Changes
+## Code Changes
 
 - All ECH code is protected via ``#ifdef USE_ECH`` which is provided on the
   ``make`` command line as described above.
