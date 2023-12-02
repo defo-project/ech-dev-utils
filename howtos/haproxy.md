@@ -83,7 +83,7 @@ to a "tcp mode" frontend configuration, e.g.:
 
 ## Test
 
-Note: as of now, two tests fail and are being investigated. Not yet sure
+Note: as of now, some tests fail and are being investigated. Not yet sure
 if those are real fails or due to restructuring the test code/config.
 
 The [testhaproxy.sh](../scripts/testhaproxy.sh) script starts servers and

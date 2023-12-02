@@ -1,22 +1,100 @@
 
-# ECH-enabling Nginx
+# Ngnix and ECH
 
-Notes on our proof-of-concept nginx with ECH integration.
+Notes on our nginx integration.
 
-## Nginx ECH split-mode - May 2023
+## Build
 
-These notes are a work-in-progress. ECH split-mode seems basically working even
-with early data and HRR.  Still need to figure out how to handle case where one nginx
-instance does ECH in both split-mode and shared-mode.
+First, you need a separate clone of our OpenSSL build (because nginx's build,
+in this instantiation, re-builds OpenSSL and links static libraries, so we put
+that in a new directory in order to avoid disturbing other builds):
 
-We're investigating nginx split-mode, based on the [SSL
-preread](https://nginx.org/en/docs/stream/ngx_stream_ssl_preread_module.html)
-stream module that allows an nginx server instance to route a connection to a
-back-end based on e.g., TLS client hello SNI, without terminating the TLS
-session. For HRR handling we also need to modify other stream module
-code too though, not just the pre-read module.
+```bash
+    $ cd $HOME/code
+    $ git clone https://github.com/sftcd/openssl.git openssl-for-nginx
+    $ cd openssl-for-nginx
+    $ git checkout ECH-draft-13c
+    $ ./config -d
+    ...stuff...
+    $ make
+    ...go for coffee...
+```
 
-### Build
+Then you need nginx, and to switch to our ``ECH-experimental`` branch:
+
+```bash
+    $ cd $HOME/code
+    $ git clone https://github.com/sftcd/nginx.git
+    $ cd nginx
+    $ git checkout ECH-experimental
+    $ ./auto/configure --with-debug --prefix=nginx --with-http_ssl_module --with-stream --with-stream_ssl_module --with-stream_ssl_preread_module --with-openssl=$HOME/code/openssl-for-nginx --with-openssl-opt="--debug" --with-http_v2_module
+    $ make
+    ... go for coffee ...
+```
+
+## Configuration
+
+To turn on ECH configure a directory (via ``ssl_echkeydir``) that contains ECH
+PEM key files. That stanza can appear in the "http" or  "stream" section of an
+nginx configuration as appropriate.
+
+## Test
+
+At least as built here, nginx is fussy about configuration file pathnames and
+doesn't like inheriting environment variables. (That's I'm sure for very good
+reasons.) So, to run localhost tests, we copy over the
+[``configs/nginxmin.conf``](../configs/nginxmin.conf) file to the place from
+which we run tests, replacing environment variables in the copied file using
+the ``envsubst`` command to do the replacement of ``$RUNTOP`` from the 
+template config file.
+
+So if you run localhost tests from ``$HOME/lt`` then that'll be expanded into
+an nginx config file that'll end up in ``$HOME/lt/nginx/nginxmin.conf``.
+That's only done the first time (or re-done if you delete that file) so if
+you want to play with more configuration changes, bear this in mind.
+
+To test, (configuration template is in [nginxmin.con](../configs/nginxmin.conf)):
+
+```bash
+    $ cd $HOME/lt
+    $ $HOME/code/ech-dev-utils/scripts/testnginx.sh
+    ...stuff...
+    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -p 5443 -s localhost -H foo.example.com  -P echconfig.pem -f index.html
+    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231202-031052
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    Looks like ECH worked ok
+    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
+    $ killall nginx # to stop daemon
+```
+
+## Logs
+
+The log files for the test above will be in ``$HOME/lt/nginx/logs`` and after
+running the above ``error.log`` should contain a line like:
+
+```bash
+    2023/12/02 03:10:52 [notice] 70334#0: *2 ECH success outer_sni: example.com inner_sni: foo.example.com while SSL handshaking, client: 127.0.0.1, server: 0.0.0.0:5443
+
+```
+
+## PHP variables
+
+## Code changes
+
+## Reloading ECH keys
+
+With nginx sending a SIGHUP signal to the running process causes it to reload
+it's configuration, so if ``$PIDFILE`` is a file with the nginx server process
+id:
+
+```bash
+    kill -SIGHUP `cat $PIDFILE`
+```
+
+## Debugging
+
+
+# Legacy text
 
 1st thing seems to be to confgure build using ``--with-stream`` - that seems to work fine:
 
@@ -170,41 +248,6 @@ tested on ubuntu 22.10, with latest nginx code.
 - Just a couple of minor tweaks to ``load_echkeys()``
 
 ## March 2023 Clone and Build
-
-First, you need a separate clone of our OpenSSL build (because nginx's build,
-in this instantiation, re-builds OpenSSL and links static libraries, so we put
-that in a new directory in order to avoid disturbing other builds):
-
-            $ cd $HOME/code
-            $ git clone https://github.com/sftcd/openssl.git openssl-for-nginx
-            $ cd openssl-for-nginx
-            $ git checkout ECH-draft-13c
-            $ ./config -d
-            ...stuff...
-            $ make
-            ...go for coffee...
-
-Then you need nginx, and to switch to our ``ECH-experimental`` branch:
-
-            $ cd $HOME/code
-            $ git clone https://github.com/sftcd/nginx.git
-            $ cd nginx
-            $ git checkout ECH-experimental
-            $ ./auto/configure --with-debug --prefix=nginx --with-http_ssl_module --with-openssl=$HOME/code/openssl-for-nginx  --with-openssl-opt="--debug"
-            $ make
-            ... go for coffee ...
-
-To test, (configuration is in ``nginxmin-draft-13.con``):
-
-            $ ./testnginx-draft-13.sh
-            ...stuff...
-            $ ./echcli.sh -p 5443 -s localhost -H foo.example.com  -P d13.pem -f index.html
-            Running ./echcli.sh at 20230315-121742
-            ./echcli.sh Summary:
-            Looks like ECH worked ok
-            ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-            $
-            $ killall nginx # to stop daemon
 
 Seems to work ok again.
 
@@ -481,23 +524,24 @@ bits of nginx config:
             fastcgi_param SSL_ESNI_HIDDEN $ssl_esni_hidden;
             fastcgi_param SSL_ESNI_COVER $ssl_esni_cover;
 
-## Some OpenSSL deprecations 
+## Nginx ECH split-mode - May 2023
 
-On 20191109 I re-merged my nginx fork with upstream, and then built against the
-latest OpenSSL.  I had to fix up a couple of calls to now-deprecated OpenSSL
-functions. I think I found non-deprecated alternatives for both. Those were:
-    - ``SSL_CTX_load_verify_locations``
-    - ``ERR_peek_error_line_data``
+These notes are a work-in-progress. ECH split-mode seems basically working even
+with early data and HRR.  Still need to figure out how to handle case where one nginx
+instance does ECH in both split-mode and shared-mode.
+
+We're investigating nginx split-mode, based on the [SSL
+preread](https://nginx.org/en/docs/stream/ngx_stream_ssl_preread_module.html)
+stream module that allows an nginx server instance to route a connection to a
+back-end based on e.g., TLS client hello SNI, without terminating the TLS
+session. For HRR handling we also need to modify other stream module
+code too though, not just the pre-read module.
 
 ## TODO/Improvements...
 
-- Figure out how to get nginx to use openssl as a shared object.
 - It'd be better if the ``ssl_esnikeydir`` were a "global" setting probably
   (like ``error_log``) but I need to figure out how to get that to work still.
 For now it seems it has to be inside the ``http`` stanza, and one occurrence of
 the setting causes ``load_esnikeys()`` to be called three times in our test
 setup which seems a little off. (It's ok though as we only really store keys
 from different files.)
-
-
-

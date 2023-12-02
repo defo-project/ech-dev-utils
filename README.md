@@ -135,6 +135,8 @@ only sometimes for chromium, probably based on complex in-browser DNS caching.
 
 ### Apache
 
+This one's done.
+
 - HOWTO: [apache2.md](howtos/apache2.md)
 - config: [apachemin.conf](configs/apachemin.conf)
 - test script: [testapache.sh](scripts/testapache.sh)
@@ -142,16 +144,19 @@ only sometimes for chromium, probably based on complex in-browser DNS caching.
 
 ### Haproxy
 
+This one's 90% done, but some tests are failing for now, will
+get nginx working first for comparison before addressing those.
+
 Haproxy needs a real web server behind it, or two if we're
 using split mode.
 
 - HOWTO: [haproxy.md](howtos/haproxy.md)
 - config: [haproxymin.conf](configs/haproxymin.conf)
 - test script: [testhaproxy.sh](scripts/testhaproxy.sh)
-- split mode config: [haproxy-split.conf](configs/haproxy-split.conf)
-- split mode script: [testhaproxy-split.sh](scripts/testhaproxy-split.sh)
 
 ### Lighttpd
+
+This one's not started.
 
 Lighttpd is what we use as a split mode backend. I forget why we
 have multiple config files for that but we do.
@@ -159,15 +164,16 @@ have multiple config files for that but we do.
 - HOWTO: [lighttpd.md](howtos/lighttpd.md)
 - config: [lighttpdmin.conf](configs/lighttpdmin.conf)
 - test script: [testlighttpd.sh](scripts/testlighttpd.sh)
-- split mode config: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
-- split mode config: [lighttpd4haproxy-split.conf](configs/lighttpd4haproxy-split.conf)
-- split mode config: [lighttpd4nginx-split.conf](configs/lighttpd4nginx-split.conf)
+- split mode backend config for haproxy: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
+- split mode backend config for nginx: [lighttpd4nginx-split.conf](configs/lighttpd4nginx-split.conf)
 
 ### Nginx
 
+Working on this one now, so things are in-flux.
+
 - HOWTO: [nginx.md](howtos/nginx.md)
-- config: [nginxmin-draft-13.conf](configs/nginxmin-draft-13.conf)
-- test script: [testnginx-draft-13.sh](scripts/testnginx-draft-13.sh)
+- config: [nginxmin.conf](configs/nginxmin.conf)
+- test script: [testnginx.sh](scripts/testnginx.sh)
 - split mode config: [nginx-split.conf](configs/nginx-split.conf)
 - split mode script: [testnginx-split.sh](scripts/testnginx-split.sh)
 

@@ -108,3 +108,11 @@ There are lots of parameters that [``echcli.sh``](../scripts/echcli.sh) and
 and each has a ``usage()`` feature if you provide ``-h`` on the command line,
 so feel free to explore more and play about.
 
+## Even more tracing
+
+If you want even more tracing from the OpenSSL build, re-run the
+``config`` step as shown below then re-build.
+
+```bash
+    $ ./config enable-ssl-trace enable-trace --debug; make clean; make -j8
+```
