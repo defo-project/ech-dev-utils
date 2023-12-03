@@ -15,6 +15,43 @@ SERVERS="yes"
 CLIENT="no"
 EARLY="no"
 HRR="no"
+SPLIT="no"
+
+allgood="yes"
+
+cli_test() {
+    local port=$1
+    local runparm=$2
+    local target="foo.example.com"
+    local lres="0"
+
+    if [[ "$runparm" == "public" ]]
+    then
+        gorp="-g "
+        target="example.com"
+    elif [[ "$runparm" == "grease" ]]
+    then
+        gorp="-g "
+    elif [[ "$runparm" == "hrr" ]]
+    then
+        gorp="-P echconfig.pem -R "
+    elif [[ "$runparm" == "real" ]]
+    then
+        gorp="-P echconfig.pem"
+    else
+        echo "bad cli_test parameter $runparm, exiting"
+        exit 99
+    fi
+    $EDTOP/scripts/echcli.sh $clilog $gorp -p $port -H $target -s localhost -f index.html >>$CLILOGFILE 2>&1
+    lres=$?
+    if [[ "$lres" != "0" ]]
+    then
+        echo "test failed, exiting"
+        echo "command that failed: $CODETOP/esnistuff/echcli.sh $clilog $gorp-p $port -H $target -s localhost -f index.html"
+        # exit $lres
+        allgood="no"
+    fi
+}
 
 SERVER="lighty"
 

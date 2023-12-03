@@ -31,6 +31,7 @@ cli_test() {
     local runparm=$2
     local target="foo.example.com"
     local lres="0"
+    local gorp="-g "
 
     if [[ "$runparm" == "public" ]]
     then
