@@ -33,7 +33,7 @@ CLILOGFILE=`mktemp`
 SRVLOGFILE=`mktemp`
 KEEPLOG="no"
 EARLY="yes"
-SPLIT="yes"
+SPLIT="no"
 # set next one to " -d " if keeping logs and verbosity desired
 DPARM=" "
 
