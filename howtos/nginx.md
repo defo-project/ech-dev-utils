@@ -5,9 +5,10 @@ Notes on our nginx integration.
 
 ## Build
 
-First, you need a separate clone of our OpenSSL build (because nginx's build,
-in this instantiation, re-builds OpenSSL and links static libraries, so we put
-that in a new directory in order to avoid disturbing other builds):
+First, you probably want a separate clone of our OpenSSL build (because nginx's
+build, in this instantiation, re-builds OpenSSL and links static libraries, so
+putting that in a new directory is a good plan if you prefer not to disturb
+other builds):
 
 ```bash
     $ cd $HOME/code
@@ -36,9 +37,14 @@ Then you need nginx, and to switch to our ``ECH-experimental`` branch:
 
 To turn on ECH configure a directory (via ``ssl_echkeydir``) that contains ECH
 PEM key files. That stanza can appear in the "http" or  "stream" section of an
-nginx configuration as appropriate.
+nginx configuration as appropriate. The latter, the "stream" section, stanza is
+only really relevant for split-mode, for which: see below.
 
 ## Test
+
+We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
+have gotten the [localhost-tests](localhost-tests.md) working, and you
+should have created an ``echkeydir`` as described [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
 
 At least as built here, nginx is fussy about configuration file pathnames and
 doesn't like inheriting environment variables. (That's I'm sure for very good
@@ -48,23 +54,43 @@ which we run tests, replacing environment variables in the copied file using
 the ``envsubst`` command to do the replacement of ``$RUNTOP`` from the 
 template config file.
 
-So if you run localhost tests from ``$HOME/lt`` then that'll be expanded into
-an nginx config file that'll end up in ``$HOME/lt/nginx/nginxmin.conf``.
-That's only done the first time (or re-done if you delete that file) so if
-you want to play with more configuration changes, bear this in mind.
+So if you run localhost tests from ``$HOME/lt`` then our test script will
+expand that into an nginx config file that'll end up in
+``$HOME/lt/nginx/nginxmin.conf``.  That's only done the first time (or re-done
+if the git repo version is newer, but with a backup) so if you want to play
+with more configuration changes, bear this in mind.
+
+The test configuration listens on port 5443.
 
 To test, (configuration template is in [nginxmin.con](../configs/nginxmin.conf)):
 
 ```bash
     $ cd $HOME/lt
-    $ $HOME/code/ech-dev-utils/scripts/testnginx.sh
-    ...stuff...
-    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -p 5443 -s localhost -H foo.example.com  -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231202-031052
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    $ ~/code/ech-dev-utils/scripts/testnginx.sh 
+    Can't find /home/stephen/lt/nginx/logs/nginx.pid - trying killall nginx
+    nginx: no process found
+    Executing:  /home/stephen/code/nginx/objs/nginx -c nginxmin.conf
+    /home/stephen/lt
+    Testing grease 5443
+    Testing public 5443
+    Testing real 5443
+    Testing hrr 5443
+    All good.
+    Killing nginx in process 513085
+    $
+```
+
+Once you've done that, there'll be DocRoot and log directories below
+``$HOME/lt/nginx`` and if you want to play more you could e.g. do:
+
+```bash
+    $ ~/code/nginx/objs/nginx -c nginxmin.conf
+    $ ~/code/ech-dev-utils/scripts/echcli.sh -H foo.example.com -p 5443 -s localhost -P echconfig.pem 
+    Running /home/stephen/code/ech-dev-utils/scripts/echcli.sh at 20231205-024549
+    /home/stephen/code/ech-dev-utils/scripts/echcli.sh Summary: 
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-    $ killall nginx # to stop daemon
+    $
 ```
 
 ## Logs
@@ -73,13 +99,43 @@ The log files for the test above will be in ``$HOME/lt/nginx/logs`` and after
 running the above ``error.log`` should contain a line like:
 
 ```bash
-    2023/12/02 03:10:52 [notice] 70334#0: *2 ECH success outer_sni: example.com inner_sni: foo.example.com while SSL handshaking, client: 127.0.0.1, server: 0.0.0.0:5443
-
+    2023/12/05 02:45:49 [notice] 513505#0: *1 ECH success outer_sni: example.com inner_sni: foo.example.com while SSL handshaking, client: 127.0.0.1, server: 0.0.0.0:5443
 ```
 
 ## PHP variables
 
+We added the following variables that are now visible to PHP code:
+
+- ``SSL_ECH_STATUS`` - ``success`` means that others also mean what they say
+- ``SSL_ECH_INNER_SNI`` - has value that was in inner CH SNI (or ``NONE``)
+- ``SSL_ECH_OUTER_SNI`` - has value that was in outer CH SNI (or ``NONE``)
+
+To see those using fastcgi you need to include the following in the relevant
+bits of nginx config:
+
+            fastcgi_param SSL_ECH_STATUS $ssl_ech_status;
+            fastcgi_param SSL_ECH_INNER_SNI $ssl_ech_inner_sni;
+            fastcgi_param SSL_ECH_OUTER_SNI $ssl_ech_outer_sni;
+
 ## Code changes
+
+Just starting to go over this now...
+
+- New code is protected using ``#ifndef OPENSSL_NO_ECH`` as is done in the
+  OpenSSL library.
+
+- There are some purely housekeeping changes that may or may not be needed
+  but were at one point, due to building with the OpenSSL ``master`` branch,
+  e.g. early on in ``src/event/ngx_event_openssl.c``.
+
+- ``ngx_ssl_info_callback()`` (in ``src/event/ngx_event_openssl.c``) has makes
+  a call to ``SSL_ech_get_status()`` for additional logging of ECH outcomes.
+  Similar code in the same file provides for setting the PHP environment
+  variables mentioned above.
+
+- There's a new ``load_echkeys()`` function (also in
+  ``src/event/ngx_event_openssl.c``) that loads ECH PEM files as directed by
+  the new ``ssl_echkeydir`` direcrive.
 
 ## Reloading ECH keys
 
@@ -326,19 +382,6 @@ The main defo.ie web server on port 443 is now also nginx with an ECH check page
 [https://defo.ie/ech-check.php](https://defo.ie/ech-check.php).
 
 ## PHP variables
-
-I added the following variables that are now visible to PHP code:
-
-- ``SSL_ECH_STATUS`` - ``success`` means that others also mean what they say
-- ``SSL_ECH_INNER_SNI`` - has value that was in inner CH SNI (or ``NONE``)
-- ``SSL_ECH_OUTER_SNI`` - has value that was in outer CH SNI (or ``NONE``)
-
-To see those using fastcgi you need to include the following in the relevant
-bits of nginx config:
-
-            fastcgi_param SSL_ECH_STATUS $ssl_ech_status;
-            fastcgi_param SSL_ECH_INNER_SNI $ssl_ech_inner_sni;
-            fastcgi_param SSL_ECH_OUTER_SNI $ssl_ech_outer_sni;
 
 # ESNI
 
