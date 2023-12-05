@@ -19,9 +19,8 @@ assume that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. Some of those pathnames are
 likely still too hardcoded in scripts and configs but we'll fix things as we
 go.  Feel free to submit PRs if you make things better, or bear with us as we
-fix that. (We've gotten as far as just before verifying the apache stuff, so
-all before that should work, but all below that has yet to be tested when run
-from here.)
+fix that. (We've gotten as far as verifying the nginx stuff, so all before that
+should work, but all below that has is still in-work.)
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
@@ -72,6 +71,14 @@ Some of the scripts below depend on that.
   HTTPS RR to be usable in the DNS - note that as nobody yet has any real use
   for ECHConfig extensions (and they're a bad idea anyway;-) this is really
   just used to try, but hopefully fail, to break things
+
+## Client HOWTOs
+
+- the HOWTO for
+  [curl](https://github.com/sftcd/curl/blob/ECH-experimental/docs/ECH.md) is no
+  longer in this repo but is now part of a curl PR branch
+- [wget.md](howtos/wget.md) has notes about how ECH-enabling wget is
+  non-trivial
 
 ## Web server build HOWTOs, configs and test scripts
 
@@ -131,25 +138,25 @@ working.
 As of 2023-11-24, ECH works unreliably with chromium and doesn't work with
 Firefox for ports other then 443.  It doesn't work at all for Firefox, and
 only sometimes for chromium, probably based on complex in-browser DNS caching.
-``curl`` and ``echcli.sh`` do however work reliably for other ports.
+``curl`` and ``echcli.sh`` do however work reliably for other ports. Bear
+that in mind if you deploy test services using these servers.
+
+For each of the servers below, read the HOWTO then you can play with the test
+script etc. (We'll re-factor these when all are done to move common bits of
+scripting into one file etc.)
+
+### Nginx
+
+- HOWTO: [nginx.md](howtos/nginx.md)
+- config template: [nginxmin.conf](configs/nginxmin.conf)
+- test script: [testnginx.sh](scripts/testnginx.sh)
 
 ### Apache
-
-This one's done. (But we'll revisit as scripting for the others below
-firms up - refactoring and all that:-)
 
 - HOWTO: [apache2.md](howtos/apache2.md)
 - config: [apachemin.conf](configs/apachemin.conf)
 - test script: [testapache.sh](scripts/testapache.sh)
 - to run apache in gdb: [apachegdb.sh](scripts/apachegdb.sh)
-
-### Nginx
-
-This one's also working fine, the documentation is in-work.
-
-- HOWTO: [nginx.md](howtos/nginx.md)
-- config: [nginxmin.conf](configs/nginxmin.conf)
-- test script: [testnginx.sh](scripts/testnginx.sh)
 
 ### Lighttpd
 
@@ -177,12 +184,6 @@ using split mode.
 
 - split mode config: [nginx-split.conf](configs/nginx-split.conf)
 - split mode script: [testnginx-split.sh](scripts/testnginx-split.sh)
-
-## Client HOWTOs (sorta)
-
-- the HOWTO for [curl](https://github.com/sftcd/curl/blob/ECH-experimental/docs/ECH.md)
-  is no longer in this repo but is now part of a curl PR branch
-- [wget.md](howtos/wget.md) describes a bit about how ECH-enabling wget is non-trivial
 
 ## Misc. files
 
