@@ -141,39 +141,30 @@ only sometimes for chromium, probably based on complex in-browser DNS caching.
 ``curl`` and ``echcli.sh`` do however work reliably for other ports. Bear
 that in mind if you deploy test services using these servers.
 
+### Server details
+
 For each of the servers below, read the HOWTO then you can play with the test
 script etc. (We'll re-factor these when all are done to move common bits of
 scripting into one file etc.)
 
-### Nginx
-
-- HOWTO: [nginx.md](howtos/nginx.md)
-- config template: [nginxmin.conf](configs/nginxmin.conf)
-- test script: [testnginx.sh](scripts/testnginx.sh)
-
-### Apache
-
-- HOWTO: [apache2.md](howtos/apache2.md)
-- config: [apachemin.conf](configs/apachemin.conf)
-- test script: [testapache.sh](scripts/testapache.sh)
-- to run apache in gdb: [apachegdb.sh](scripts/apachegdb.sh)
-
-### Lighttpd
-
-This one's not started.
-
-Lighttpd is what we use as a split mode backend. I forget why we
-have multiple config files for that but we do.
-
-- HOWTO: [lighttpd.md](howtos/lighttpd.md)
-- config: [lighttpdmin.conf](configs/lighttpdmin.conf)
-- test script: [testlighttpd.sh](scripts/testlighttpd.sh)
-- split mode backend config for haproxy: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
-- split mode backend config for nginx: [lighttpd4nginx-split.conf](configs/lighttpd4nginx-split.conf)
+- Nginx
+    - HOWTO: [nginx.md](howtos/nginx.md)
+    - config template: [nginxmin.conf](configs/nginxmin.conf)
+    - test script: [testnginx.sh](scripts/testnginx.sh)
+- Apache
+    - HOWTO: [apache2.md](howtos/apache2.md)
+    - config: [apachemin.conf](configs/apachemin.conf)
+    - test script: [testapache.sh](scripts/testapache.sh)
+    - to run apache in gdb: [apachegdb.sh](scripts/apachegdb.sh)
+- Lighttpd
+    - This one's just started.
+    - HOWTO: [lighttpd.md](howtos/lighttpd.md)
+    - config: [lighttpdmin.conf](configs/lighttpdmin.conf)
+    - test script: [testlighttpd.sh](scripts/testlighttpd.sh)
 
 ### ECH split-mode with nginx or haproxy
 
-Working now, documentation needs doing...
+Tests work now, documentation is not done for that at all yet.
 
 Haproxy needs a real web server behind it, or two if we're
 using split mode.
@@ -184,6 +175,8 @@ using split mode.
 
 - split mode config: [nginx-split.conf](configs/nginx-split.conf)
 - split mode script: [testnginx-split.sh](scripts/testnginx-split.sh)
+- split mode backend config for haproxy: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
+- split mode backend config for nginx: [lighttpd4nginx-split.conf](configs/lighttpd4nginx-split.conf)
 
 ## Misc. files
 
