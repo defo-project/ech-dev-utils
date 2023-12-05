@@ -3,9 +3,9 @@
 # set -x
 
 # to pick up correct executables and .so's
-: ${CODETOP:=$HOME/code/openssl}
+: ${CODETOP:="$HOME/code/openssl"}
 export LD_LIBRARY_PATH=$CODETOP
-: ${EDTOP:=$HOME/code/ech-dev-utils}
+: ${EDTOP:="$HOME/code/ech-dev-utils"}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
@@ -14,9 +14,7 @@ export RUNTOP=$RUNTOP
 # where front-end haproxy can be found
 : ${HAPPY:="$HOME/code/haproxy"}
 # where front-end nginx can be found
-: ${NTOP:=$HOME/code/nginx}
-# default ECH key pair
-: ${ECHCONFIG:="echconfig.pem"}
+: ${NTOP:="$HOME/code/nginx"}
 
 allgood="yes"
 
@@ -257,8 +255,8 @@ do
     $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem $DPARM -f index.html -S $session_ticket_file >>$CLILOGFILE 2>&1
     if [ ! -f $session_ticket_file ]
     then
-        echo "No session so no early data - exiting"
-        exit 1
+        echo "No session, so can't try early data - skipping $type $port"
+        continue
     fi
     $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem $DPARM -f index.html -S $session_ticket_file -e >>$CLILOGFILE 2>&1
     rm -f $session_ticket_file
