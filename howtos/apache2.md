@@ -3,6 +3,10 @@
 
 Our fork is from https://github.com/apache/httpd which is apache 2.5.1 at the moment.
 
+We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
+have gotten the [localhost-tests](localhost-tests.md) working, and you
+should have created an ``echkeydir`` as described [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
+
 ## Build
 
 We need the httpd code and the Apache Portable Runtime (APR).  As recommended,
@@ -46,10 +50,6 @@ names the directory where ECH key pair files (names ``*.ech``) are stored.
 There's an example in [apachemin.conf](../configs/apachemin.conf). 
 
 ## Test
-
-We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
-have gotten the [localhost-tests](localhost-tests.md) working, and you
-should have created an ``echkeydir`` as described [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
 
 The [testapache.sh](../scripts/testapache.sh) script starts an ECH-enabled
 apache server listening on port 9443 using the config in

@@ -3,6 +3,10 @@
 
 Notes on our nginx integration.
 
+We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
+have gotten the [localhost-tests](localhost-tests.md) working, and you
+should have created an ``echkeydir`` as described [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
+
 ## Build
 
 First, you may want a separate clone of our OpenSSL build (because nginx's
@@ -42,11 +46,6 @@ is only really relevant for split-mode, for which, see the [split-mode
 howto](split-mode.md).
 
 ## Test
-
-We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
-have gotten the [localhost-tests](localhost-tests.md) working, and you should
-have created an ``echkeydir`` as described
-[here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
 
 At least as built here, nginx is fussy about configuration file pathnames and
 doesn't like inheriting environment variables. (That's I'm sure for very good
