@@ -113,57 +113,6 @@ do
     cli_test $port $type
 done
 
-#if we're testing split-mode stuff...
-if [[ "$SPLIT" == "yes" ]]
-then
-    # start a backend
-    lighty_start
-    # all these should appear the same to the client
-    # server log checks will tell us if stuff worked or not
-    echo "Doing split-mode tests..."
-    for type in grease public real hrr
-    do
-        for port in 5443 9443
-        do
-            echo "Testing $type $port"
-            cli_test $port $type
-        done
-    done
-    # need special stuff for early_data as lighty doesn't support that
-    if [[ "$EARLY" == "yes" ]]
-    then
-        echo "Doing early data tests"
-        lighty_stop
-
-        # need to srart s_server differently to trigger hrr, same client 
-        # args is fine though
-        for type in nohrr hrr
-        do
-            port=9443
-            echo "Testing $type $port"
-            s_server_start $type
-            # connect twice, 2nd time using resumption and sending early data
-            session_ticket_file=`mktemp`
-            rm -f $session_ticket_file
-            $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem -f index.html -S $session_ticket_file >>$CLILOGFILE 2>&1
-            if [ ! -f $session_ticket_file ]
-            then
-                echo "No session so no early data - exiting"
-                exit 1
-            fi
-            $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem -f index.html -S $session_ticket_file -e >>$CLILOGFILE 2>&1
-            rm -f $session_ticket_file
-            res=$?
-            if [[ "$res" != "0" ]]
-            then
-                echo "Early-data+split-mode test failed (with-HRR: $HRR)"
-                allgood="no"
-            fi
-            s_server_stop
-        done
-    fi
-fi
-
 if [[ "$allgood" == "yes" ]]
 then
     echo "All good."

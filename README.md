@@ -165,22 +165,17 @@ triggering ECH+HRR. There are utility bash functions in
     - HOWTO: [lighttpd.md](howtos/lighttpd.md)
     - config: [lighttpdmin.conf](configs/lighttpdmin.conf)
     - test script: [testlighttpd.sh](scripts/testlighttpd.sh)
-
-### ECH split-mode with nginx or haproxy
-
-Tests work now, documentation here is not done at all yet.
-
-Haproxy needs a real web server behind it, or two if we're
-using split mode.
-
-- HOWTO: [haproxy.md](howtos/haproxy.md)
-- config: [haproxymin.conf](configs/haproxymin.conf)
-- test script: [testhaproxy.sh](scripts/testhaproxy.sh)
-
-- split mode config: [nginx-split.conf](configs/nginx-split.conf)
-- split mode script: [testnginx-split.sh](scripts/testnginx-split.sh)
-- split mode backend config for haproxy: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
-- split mode backend config for nginx: [lighttpd4nginx-split.conf](configs/lighttpd4nginx-split.conf)
+- Haproxy (shared-mode):
+    - HOWTO: [haproxy.md](howtos/haproxy.md)
+    - config: [haproxymin.conf](configs/haproxymin.conf)
+    - test script: [testhaproxy.md](scripts/testhaproxy.sh)
+- ECH split-mode with nginx or haproxy front-end
+    - Tests work now, documentation here is not done at all yet.
+    - HOWTO: [split-mode.md](howtos/split-mode.md)
+    - front-end nginx config: [nginxsplit.conf](configs/nginxsplit.conf)
+    - front-end haproxy config: [haproxymin.conf](configs/haproxymin.conf)
+    - back-end lighttpd config: [lighttpdsplit.conf](configs/lighttpdsplit.conf)
+    - test script: [testsplitmode.sh](scripts/testsplitmode.sh)
 
 ## Misc. files
 
