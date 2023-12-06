@@ -167,7 +167,8 @@ triggering ECH+HRR. There are utility bash functions in
     - test script: [testlighttpd.sh](scripts/testlighttpd.sh)
 - Haproxy (shared-mode):
     - HOWTO: [haproxy.md](howtos/haproxy.md)
-    - config: [haproxymin.conf](configs/haproxymin.conf)
+    - front-end haproxy config: [haproxymin.conf](configs/haproxymin.conf)
+    - back-end lighttpd config: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
     - test script: [testhaproxy.md](scripts/testhaproxy.sh)
 - ECH split-mode with nginx or haproxy front-end
     - Tests work now, documentation here is not done at all yet.

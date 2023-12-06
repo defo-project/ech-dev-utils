@@ -2,8 +2,8 @@
 
 Our fork is from https://github.com/haproxy/haproxy
 
-This text, and associated scripts/configs, are still being fixed to work in
-this repo. So take it all with a pinch of salt for the moment.
+It may be useful to look at [nomenclature](split-mode.md#nomenclature) text
+describing the various ECH shared- and split-mode setups.
 
 ## Build
 
@@ -42,18 +42,18 @@ HTTP request to a backend web server. If desired, a new TLS session can be
 used to protect the HTTP request, as is normal for haproxy.
 
 Split-mode is where the frontend does the ECH decryption but doesn't terminate
-the client's TLS session.
+the client's TLS session. There's another HOWTO specifically for
+[split-mode](split-mode.md).
 
 If split-mode decryption fails or no ECH extension is present, then haproxy
 should be configured to forward to a backend that has the private key
-corresponding to the ``ECHConfig.public_name``. If decryption works, then
-haproxy will forward the inner CH, routing the request based on the SNI from
-that inner CH. 
+corresponding to the ``ECHConfig.public_name``. If OTOH decryption works, then
+haproxy should forward the inner CH, routing the request based on the SNI from
+that inner CH to the appropriate web server. 
 
 Our test script is [testhaproxy.sh](../scripts/testhaproxy.sh) with our minimal
 config in [haproxymin.conf](../configs/haproxymin.conf).  The test script
-starts lighttpd as needed to act as the backend web server. (You'll need to
-manually kill that when done with it.)
+starts lighttpd as needed to act as the backend web server.
 
 A typical pre-existing haproxy config for terminating TLS will include lines
 like the following for listeners in a "mode http" frontend:
@@ -71,7 +71,7 @@ followed by a filename or directory name, e.g.:
 
 If the ech keyword names a file, that'll be loaded and work if it's a correctly
 encoded ECH PEM file. If the keyword names a directory, then that directory
-will be scanned for all ``*.ech`` files.
+will be scanned for all ``*.ech`` files, each of which is similarly handled.
 
 For split-mode, we added an ``ech-decrypt`` keyword to allow configuring the
 ECH PEM file or directory with the ECH key pair(s). That keyword can be added
@@ -83,11 +83,8 @@ to a "tcp mode" frontend configuration, e.g.:
 
 ## Test
 
-Note: as of now, some tests fail and are being investigated. Not yet sure
-if those are real fails or due to restructuring the test code/config.
-
-The [testhaproxy.sh](../scripts/testhaproxy.sh) script starts servers and
-optionally runs clients against those. If needed, a lighttpd backend web server
+The [testhaproxy.sh](../scripts/testhaproxy.sh) script starts haproxy and
+runs clients against those. A lighttpd backend web server
 is started using
 [lighttpd4haproxymin.conf](../configs/lighttpd4haproxymin.conf).
 
@@ -123,7 +120,7 @@ following configuration:
 | 3480 | foo.example.com | accepts cleartext HTTP for foo.example.com |
 | 3481 | foo.example.com | accepts HTTPS for foo.example.com |
 | 3482 | foo.example.com | accepts HTTPS for foo.example.com |
-| 3484 | foo.example.com | accepts cleartext HTTP for foo.example.com (as ECH-backend) |
+| 3484 | foo.example.com | terminates client's TLS for foo.example.com (as ECH-backend) |
 | 3485 | example.com | the ``public_name`` server |
 
 To run the test:
@@ -131,75 +128,20 @@ To run the test:
 ```bash
     $ cd $HOME/lt
     $ $HOME/code/ech-dev-utils/scripts/testhaproxy.sh
-    ...stuff... # hit ctrl-C to exit haproxy, killall lighttpd to kill backend
-    $ # split-mode test
-    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7446 -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20230315-154634
-    Assuming supplied ECH is encoded ECHConfigList or SVCB
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
-    Looks like ECH worked ok
-    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-    $ # shared-mode test
-    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7445 -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20230315-154900
-    Assuming supplied ECH is encoded ECHConfigList or SVCB
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
-    Looks like ECH worked ok
-    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
+    haproxy: no process found
+    Executing: /home/stephen/code/haproxy/haproxy -f /home/stephen/code/ech-dev-utils/configs/haproxymin.conf  -DdV  >/home/stephen/lt/haproxy/logs/haproxy.log 2>&1
+    Doing shared-mode client calls...
+    Testing grease 7443
+    Testing grease 7444
+    Testing public 7443
+    Testing public 7444
+    Testing real 7443
+    Testing real 7444
+    Testing hrr 7443
+    Testing hrr 7444
+    All good.
+    $
 ```
-
-[testhaproxy.sh](../scripts/testhaproxy.sh) takes one optional command line
-argument (the string "client").  If the "client" argument is provided, servers
-are run in the background and various client tests (both shared- and
-split-mode) are run against those.
-
-### Test nomenclature (again:-)
-
-Here's some terminology we use when talking about shared- or split-mode and
-haproxy configurations.  
-
-We'll name and document them like this:
-
-            N. setup-name: Client <--[prot]--> frontend <--[prot]--> Backend
-
-Where "N" is a number, "setup-name" is some catchy title we use just for ease
-of reference, "client" is ``curl`` or ``s_client``, "frontend" is haproxy in
-all cases so we'll just note the relevant port number used by our test setup,
-and as the "backend" is also always lighttpd, we'll do the same for that.
-Finally, "prot" is some string describing the protocol options on that hop.
-
-With that our first and most basic setup is:
-
-            1. ECH-front: Client <--[TLS+ECH]--> :7443 <--[Plaintext HTTP]--> :3480
-
-The second one just turns on TLS, via two entirely independent TLS sessions,
-with no ECH to the backend:
-
-            2. Two-TLS: Client <--[TLS+ECH]--> :7444 <--[other-TLS]--> :3481
-
-The third has one TLS session from the client to backend, with the frontend
-just using the (outer) SNI for e.g. routing, if at all, and so that the
-frontend doesn't get to see the plaintext HTTP traffic. This isn't that
-interesting for us (other than to understand how to set it up), but is on the
-path to one we do want. (In the actual configuration we also have a backend
-listener at :3483 to handle the case where an unknown (outer) SNI was seen.)
-
-            3. One-TLS: Client <--[TLS]--> :7445 <--[same-TLS]--> :3482
-
-The fourth is where use split-mode, with the same TLS session between client
-and backend but where the frontend did decrypt the ECH and just pass on the
-inner CH to the backend, but where the frontend doesn't get to see the
-plaintext HTTP traffic.  (As in the previous case, we have another backend
-listener at :3485 to handle the case of both an outer SNI and a failure to
-decrypt an ECH.)
-
-            4. Split-mode: Client <--[TLS+ECH]--> :7446 <--[inner-CH]--> :3484
-
-A fifth option that we don't plan to investigate but that may be worth naming
-is where we have two separate TLS sessions both of which independently use ECH.
-If that did prove useful, it'd probably be fairly easy to do.
-
-            5. Two-ECH: Client <--[TLS+ECH]--> frontend <--[other-TLS+ECH]--> backend
 
 ## Logs
 
