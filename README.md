@@ -165,14 +165,14 @@ triggering ECH+HRR. There are utility bash functions in
     - test script: [testlighttpd.sh](scripts/testlighttpd.sh)
 - Haproxy (shared-mode):
     - HOWTO: [haproxy.md](howtos/haproxy.md)
-    - front-end haproxy config: [haproxymin.conf](configs/haproxymin.conf)
-    - back-end lighttpd config: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
+    - frontend haproxy config: [haproxymin.conf](configs/haproxymin.conf)
+    - backend lighttpd config: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
     - test script: [testhaproxy.md](scripts/testhaproxy.sh)
-- ECH split-mode with nginx or haproxy front-end
+- ECH split-mode with nginx or haproxy frontend
     - HOWTO: [split-mode.md](howtos/split-mode.md)
-    - front-end nginx config: [nginxsplit.conf](configs/nginxsplit.conf)
-    - front-end haproxy config: [haproxymin.conf](configs/haproxymin.conf)
-    - back-end lighttpd config: [lighttpdsplit.conf](configs/lighttpdsplit.conf)
+    - frontend nginx config: [nginxsplit.conf](configs/nginxsplit.conf)
+    - frontend haproxy config: [haproxymin.conf](configs/haproxymin.conf)
+    - backend lighttpd config: [lighttpdsplit.conf](configs/lighttpdsplit.conf)
     - test script: [testsplitmode.sh](scripts/testsplitmode.sh)
 
 ## Misc. files

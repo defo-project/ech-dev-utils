@@ -6,9 +6,9 @@ have gotten the [localhost-tests](localhost-tests.md) working, and you should
 have created an ``echkeydir`` as described
 [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
 
-Split-mode tests use lighttpd [HOWTO](lighttpd.md) as the back-end web server
+Split-mode tests use lighttpd [HOWTO](lighttpd.md) as the backend web server
 for split-mode processing, and can use either [nginx](nginx.md) or
-[haproxy](haproxy.md) as the front-end.
+[haproxy](haproxy.md) as the frontend.
 
 This file mostly has the same structure as the other HOWTOs, but much of the
 content is by reference to others.
@@ -78,7 +78,7 @@ of the servers:
 - [haproxy](haproxy.md#configuration)
 - [lighttpd](lighttpd.md#configuration)
 
-Briefly, for front-ends that means:
+Briefly, for frontends that means:
 
 - for haproxy, using the ``ech-decrypt`` directive in ``mode tcp`` frontends,
   e.g. ``tcp-request ech-decrypt echkeydir`` where ``echkeydir`` is the 
@@ -97,8 +97,8 @@ Individual tests are described in the links below but don't cover split-mode.
 For split-mode we have a special test script
 [testsplitmode.sh](../scripts/testsplitmode.sh) that takes one command line
 argument (either ``haproxy`` or ``nginx``) to specify the frontend to use.
-That script starts the relevant front-end server and a lighttpd instance as
-a backend and then runs a client against the chosen front-end, checking
+That script starts the relevant frontend server and a lighttpd instance as
+a backend and then runs a client against the chosen frontend, checking
 the usual GREASEing, use of the ``public_name`` a real use of ECH and a
 case that triggers HRR.
 

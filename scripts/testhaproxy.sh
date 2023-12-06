@@ -10,9 +10,9 @@
 : ${EDTOP:="$HOME/code/ech-dev-utils"}
 # to set where our cadir and ECH keys are
 : ${RUNTOP:="$HOME/lt"}
-# where back-end web server can be found
+# where backend web server can be found
 : ${LIGHTY:="$HOME/code/lighttpd1.4"}
-# where front-end haproxy can be found
+# where frontend haproxy can be found
 : ${HAPPY:="$HOME/code/haproxy"}
 
 export LD_LIBRARY_PATH=$CODETOP
