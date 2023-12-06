@@ -19,8 +19,10 @@ assume that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. Some of those pathnames are
 likely still too hardcoded in scripts and configs but we'll fix things as we
 go.  Feel free to submit PRs if you make things better, or bear with us as we
-fix that. (We've gotten as far as verifying the nginx stuff, so all before that
-should work, but all below that has is still in-work.)
+fix that.
+
+The split-mode stuff below still needs documenting, so don't believe that
+section yet.
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
@@ -166,7 +168,7 @@ triggering ECH+HRR. There are utility bash functions in
 
 ### ECH split-mode with nginx or haproxy
 
-Tests work now, documentation is not done for that at all yet.
+Tests work now, documentation here is not done at all yet.
 
 Haproxy needs a real web server behind it, or two if we're
 using split mode.
