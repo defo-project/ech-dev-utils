@@ -3,12 +3,15 @@
 
 Notes on our lighttpd integration.
 
-This is in-work now, but not yet complete/tested.
-
 We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
 have gotten the [localhost-tests](localhost-tests.md) working, and you should
 have created an ``echkeydir`` as described
 [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
+
+The main lighttpd maintainer (@gstrauss) provided much well-appreciated help in
+developing this integration, which was the first web server we tackled, but all
+blame for flaws goes to @sftcd and there's no implication @gstrauss is happy or
+unhappy with how this proof-of-concept is currently done.
 
 ## Build
 
@@ -230,9 +233,9 @@ the full output of which is shown below:
 In the above case, the client thinks it has a session with ``baz.example.com``
 but the server has returned the web page for ``example.com``. (That works in
 our test setup as the x.509 certificate for that instance has a wildcard for
-``*.example.com``. It's unclear if that feature is worth includnig in other
-web servers (so it's not present in nginx or apache integrations) but it
-could be useful for experimentation.
+``*.example.com``.) It's unclear if that "ECH only" feature is worth including
+in other web servers (so it's not present in nginx or apache integrations) but
+it could be useful for experimentation.
 
 ## Logs
 
@@ -293,7 +296,35 @@ Here's a PHP snippet that will display those:
 
 ## Code changes
 
-TBD
+- Code changes can be examined
+  [here](https://github.com/lighttpd/lighttpd1.4/compare/master...sftcd:lighttpd1.4:ECH-experimental).
+
+- ALl code changes are within the ``src/mod_openssl.c`` file.
+
+- Significant new code is protected via ``#ifndef OPENSSL_NO_ECH`` as is done
+  in our OpenSSL fork. The new code is compiled if the OpenSSL include files
+  used define the ``SSL_OP_ECH_GREASE`` symbol. On upstream maintainer advice,
+  structures that contain new ECH related fields are not protected via ``#ifndef
+  OPENSSL_NO_ECH`` and some config file handling (that would in any case work
+  with the released OpenSSL library) is similarly unprotected.
+
+- Some code is also protected via ``#ifdef TLSEXT_TYPE_ech`` which is defined
+  if the TLS library in use defines that symbol, and could in principle be of
+  use in future with other TLS libraries that support ECH (e.g. boringssl).
+
+- Some changes are additionally protected via ``#ifdef LIGHTTPD_OPENSSL_ECH_DEBUG``.
+  which is currently turned on by default. Those are mainly tracing/logging chunks
+  of code.
+
+- ``mod_openssl_refresh_ech_keys_ctx()`` handles periodic re-loading of ECH PEM
+  files and enabling ECH for the relevant ``SSL_CTX`` contexts. That's called
+  for each ``SSL_CTX`` loaded into the server via
+  ``mod_openssl_refresh_ech_keys()``.
+
+- ``mod_openssl_ech_only_policy_check()`` implements the "ECH only" logic.
+
+- A block of code within ``network_init_ssl()`` sets the ``SSL_OP_ECH_TRIALDECRYPT``
+  option for the OpenSSL library if so configured.
 
 ## Reloading ECH keys
 
@@ -303,5 +334,27 @@ web access). The default is TBD.
 
 ## Debugging
 
-TBD
+To start lighttpd in a debugger, and break when loading ECH PEM files:
+
+```bash
+    $ cd $HOME/lt
+    $ export LD_LIBRARY_PATH=$HOME/code/openssl
+    $ export RUNTOP=`/bin/pwd`
+    $ gdb $HOME/code/lighttpd1.4/src/lighttpd
+    ...
+    (gdb) b mod_openssl_refresh_ech_keys_ctx
+    Function "mod_openssl_refresh_ech_keys_ctx" not defined.
+    Make breakpoint pending on future shared library load? (y or [n]) y
+    Breakpoint 1 (mod_openssl_refresh_ech_keys_ctx) pending.
+    (gdb) r -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
+    Starting program: /home/stephen/code/lighttpd1.4/src/lighttpd -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
+    [Thread debugging using libthread_db enabled]
+    Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+    
+    Breakpoint 1, mod_openssl_refresh_ech_keys_ctx (srv=srv@entry=0x5555555ac540, s=0x5555556141f8, cur_ts=cur_ts@entry=1701830361) at mod_openssl.c:554
+    554	mod_openssl_refresh_ech_keys_ctx (server * const srv, plugin_ssl_ctx * const s, const time_t cur_ts)
+    (gdb) 
+```
+
+
 
