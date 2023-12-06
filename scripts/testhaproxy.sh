@@ -20,7 +20,7 @@ export LD_LIBRARY_PATH=$CODETOP
 HLOGDIR="$RUNTOP/haproxy/logs"
 SRVLOGFILE="$HLOGDIR/haproxy.log"
 CLILOGFILE="$HLOGDIR/clienttest.log"
-PIDFILE="$RUNTOP/haproxy/logs/haproxy.pid"
+BE_PIDFILE="$RUNTOP/haproxy/logs/haproxy.pid"
 KEEPLOG="no"
 
 allgood="yes"
@@ -60,7 +60,7 @@ do
 done
 
 killall haproxy lighttpd
-rm -f $PIDFILE
+rm -f $BE_PIDFILE
 
 if [[ "$allgood" == "yes" ]]
 then

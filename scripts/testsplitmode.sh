@@ -35,15 +35,15 @@ TECH=$1
 # some preliminaries - ensure directories exist, kill old servers
 prep_server_dirs $TECH
 # if we want to reload config then that's "graceful restart"
-PIDFILE=$RUNTOP/$TECH/logs/$TECH.pid
+FE_PIDFILE=$RUNTOP/$TECH/logs/$TECH.pid
 # Kill off old processes from the last test
-if [ -f $PIDFILE ]
+if [ -f $FE_PIDFILE ]
 then
-    echo "Killing old $TECH in process `cat $PIDFILE`"
-    kill `cat $PIDFILE`
-    rm -f $PIDFILE
+    echo "Killing old $TECH in process `cat $FE_PIDFILE`"
+    kill `cat $FE_PIDFILE`
+    rm -f $FE_PIDFILE
 else
-    echo "Can't find $PIDFILE - trying killall $TECH"
+    echo "Can't find $FE_PIDFILE - trying killall $TECH"
     killall $TECH
 fi
 
@@ -68,12 +68,10 @@ fi
 
 if [[ "$TECH" == "nginx" ]]
 then
-    PIDFILE=$RUNTOP/$TECH/logs/$TECH.pid
     echo "Executing: $NTOP/objs/nginx -c nginxsplit.conf"
     $NTOP/objs/nginx -c nginxsplit.conf
 elif [[ "$TECH" == "haproxy" ]]
 then
-    PIDFILE=$RUNTOP/$TECH/logs/$TECH.pid
     HAPDEBUGSTR=" -DdV" 
     echo "Executing: $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >>$HLOGFILE 2>&1"
     $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >>$HLOGFILE 2>&1
@@ -83,6 +81,7 @@ else
 fi
 
 # start a backend
+PIDFILE=$RUNTOP/lighttpd/logs/lighttpd.pid
 lighty_start $EDTOP/configs/lighttpdsplit.conf
 
 # all these should appear the same to the client
@@ -146,4 +145,5 @@ fi
 
 # Kill off processes from this test
 killall $TECH
-rm -f $PIDFILE
+rm -f $FE_PIDFILE $PIDFILE
+

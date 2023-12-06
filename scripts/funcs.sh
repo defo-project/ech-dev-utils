@@ -54,11 +54,11 @@ cli_test() {
 lighty_start() {
     local cfgfile=$1
     local lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v testlight | grep -v tail`
+    local pfile="$RUNTOP/lighttpd/logs/lighttpd.pid"
 
     envcheck $RUNTOP
     envcheck $LIGHTY
     envcheck $SRVLOGFILE
-    envcheck $PIDFILE
     if [ ! -f $cfgfile ]
     then
         echo "Can't read $cfgfile - exiting"
@@ -70,9 +70,9 @@ lighty_start() {
         $LIGHTY/src/lighttpd -f $cfgfile -m $LIGHTY/src/.libs >>$SRVLOGFILE 2>&1
     fi
     # Check we now have a lighty running
-    if [ ! -f $PIDFILE ]
+    if [ ! -f $pfile ]
     then
-        echo "Can't read $PIDFILE - exiting"
+        echo "Can't read $pfile - exiting"
         exit 45
     fi
     lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v tail`
@@ -84,8 +84,6 @@ lighty_start() {
 }
 
 lighty_stop() {
-
-    envcheck $PIDFILE
     killall lighttpd
 }
 

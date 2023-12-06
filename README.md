@@ -169,7 +169,6 @@ triggering ECH+HRR. There are utility bash functions in
     - back-end lighttpd config: [lighttpd4haproxymin.conf](configs/lighttpd4haproxymin.conf)
     - test script: [testhaproxy.md](scripts/testhaproxy.sh)
 - ECH split-mode with nginx or haproxy front-end
-    - Tests work now, documentation here is not done at all yet.
     - HOWTO: [split-mode.md](howtos/split-mode.md)
     - front-end nginx config: [nginxsplit.conf](configs/nginxsplit.conf)
     - front-end haproxy config: [haproxymin.conf](configs/haproxymin.conf)

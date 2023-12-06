@@ -15,7 +15,6 @@ export LD_LIBRARY_PATH=$CODETOP
 
 . $EDTOP/scripts/funcs.sh
 
-PIDFILE=$RUNTOP/lighttpd/logs/lighttpd.pid
 CLILOGFILE=`mktemp`
 SRVLOGFILE=`mktemp`
 KEEPLOG="no"
@@ -55,4 +54,3 @@ done
 
 killall httpd
 rm -f $PIDFILE
-
