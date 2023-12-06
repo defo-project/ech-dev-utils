@@ -71,15 +71,48 @@ just need to follow the relevant HOWTOs:
 
 # Configuration
 
+The split-mode configuration settings are described for each
+of the servers:
+
 - [nginx](nginx.md#configuration)
 - [haproxy](haproxy.md#configuration)
 - [lighttpd](lighttpd.md#configuration)
 
+Briefly, for front-ends that means:
+
+- for haproxy, using the ``ech-decrypt`` directive in ``mode tcp`` frontends,
+  e.g. ``tcp-request ech-decrypt echkeydir`` where ``echkeydir`` is the 
+  usual directory used for ECH PEM files
+- for nginx, adding a ``ssl_echkeydir $RUNTOP/echkeydir;`` setting to a 
+  ``stream`` stanza
+
 # Test
+
+Individual tests are described in the links below but don't cover split-mode.
 
 - [nginx](nginx.md#test)
 - [haproxy](haproxy.md#test)
 - [lighttpd](lighttpd.md#test)
+
+For split-mode we have a special test script
+[testsplitmode.sh](../scripts/testsplitmode.sh) that takes one command line
+argument (either ``haproxy`` or ``nginx``) to specify the frontend to use.
+That script starts the relevant front-end server and a lighttpd instance as
+a backend and then runs a client against the chosen front-end, checking
+the usual GREASEing, use of the ``public_name`` a real use of ECH and a
+case that triggers HRR.
+
+In addition, since lighttpd doesn't support TLS ``early_data`` a test is
+run to check ECH split-mode with ``early_data`` both with and without
+triggering HRR. That uses an ``openssl s_server`` instance as the backend.
+(Testing ``early_data`` requires a first TLS connection to acquire the
+resumption tickets needed, then a second TLS connection to send a 
+request with ``early_data``.)
+
+TODO: check logs for split-mode+HRR+early to ensure all we expect is happening.
+
+For split-mode tests in our configurations the frontend listens on port 7446
+and the backend listens on port 3484.
 
 ```bash
     $ # split-mode test
@@ -100,11 +133,15 @@ just need to follow the relevant HOWTOs:
 
 # Logs
 
+No special logging is done for split-mode.
+
 - [nginx](nginx.md#logs)
 - [haproxy](haproxy.md#logs)
 - [lighttpd](lighttpd.md#logs)
 
 # PHP variables
+
+These should be available as usual for the backend.
 
 - [nginx](nginx.md#php-variables)
 - [haproxy](haproxy.md#php-variables)
@@ -112,17 +149,24 @@ just need to follow the relevant HOWTOs:
 
 # Code changes   
 
+These are described for the individual servers:
+
 - [nginx](nginx.md#code-changes)
 - [haproxy](haproxy.md#code-changes)
 - [lighttpd](lighttpd.md#code-changes)
 
 # Reloading ECH keys
 
+These are described for the individual servers (noting
+that we don't yet support key reloading for haproxy):
+
 - [nginx](nginx.md#reloading-ech-keys)
 - [haproxy](haproxy.md#reloading-ech-keys)
 - [lighttpd](lighttpd.md#reloading-ech-keys)
 
 # Debugging
+
+These are described for the individual servers:
 
 - [nginx](nginx.md#debugging)
 - [haproxy](haproxy.md#debugging)

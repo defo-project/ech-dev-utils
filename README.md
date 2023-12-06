@@ -1,7 +1,5 @@
 # Ancillary ECH developer content
 
-Stephen Farrell, stephen.farrell@cs.tcd.ie, 20231121-ish
-
 This is a [DEfO](https://defo.ie) project production.
 
 The current development branch of our Encrypted ClientHello (ECH) enabled fork
