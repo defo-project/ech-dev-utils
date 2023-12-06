@@ -1,6 +1,8 @@
 
 # Testing ECH split mode with haproxy or nginx
 
+TODO: check logs for split-mode+HRR+early to ensure all we expect is happening.
+
 We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
 have gotten the [localhost-tests](localhost-tests.md) working, and you should
 have created an ``echkeydir`` as described
@@ -109,43 +111,53 @@ triggering HRR. That uses an ``openssl s_server`` instance as the backend.
 resumption tickets needed, then a second TLS connection to send a 
 request with ``early_data``.)
 
-TODO: check logs for split-mode+HRR+early to ensure all we expect is happening.
-
 For split-mode tests in our configurations the frontend listens on port 7446
 and the backend listens on port 3484.
 
+If you wanted to play more with a split-mode setup, here's how to manually
+start servers and run a client against those:
+
 ```bash
-    $ # split-mode test
+    $ cd $HOME/lt
+    $ export LD_LIBRARY_PATH=$HOME/code/openssl
+    $ export LIGHTY=$HOME/code/lighttpd1.4
+    $ export HAPPY=$HOME/code/haproxy
+    $ export EDTOP=$HOME/code/ech-dev-utils
+    $ export LIGHTYTOP=$HOME/lt
+    $ # backend
+    $ $LIGHTY/src/lighttpd -f $EDTOP/configs/lighttpdsplit.conf -m $LIGHTY/src/.libs
+    ...stuff...
+    2023-12-06 23:06:42: (mod_openssl.c.546) SSL: SSL_CTX_ech_server_get_key_status number of keys loaded 2
+    $ # frontend
+    $ $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf -DdV
+    [NOTICE]   (64672) : config : tcp-request ech-decrypt worked - loaded 2 keys from echkeydir for backend '3484'
+    [NOTICE]   (64672) : config : Proxy 'ECH-front': loaded 2 ECH keys from echkeydir for bind ':7443' at [/home/user/code/ech-dev-utils/configs/haproxymin.conf:23]
+    [NOTICE]   (64672) : config : Proxy 'Two-TLS': loaded 2 ECH keys from echkeydir for bind ':7444' at [/home/user/code/ech-dev-utils/configs/haproxymin.conf:32]
+    $ # client split-mode test
     $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7446 -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20230315-154634
-    Assuming supplied ECH is encoded ECHConfigList or SVCB
+    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231206-230741
     /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-    $ # shared-mode test
-    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7445 -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20230315-154900
-    Assuming supplied ECH is encoded ECHConfigList or SVCB
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
-    Looks like ECH worked ok
-    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
+    $ killall lighttpd haproxy
+    $
 ```
 
 # Logs
 
-No special logging is done for split-mode.
+No special logging is done for split-mode. (TODO: Maybe we should though.)
 
 - [nginx](nginx.md#logs)
 - [haproxy](haproxy.md#logs)
 - [lighttpd](lighttpd.md#logs)
 
-# PHP variables
+# CGI variables
 
 These should be available as usual for the backend.
 
-- [nginx](nginx.md#php-variables)
-- [haproxy](haproxy.md#php-variables)
-- [lighttpd](lighttpd.md#php-variables)
+- [nginx](nginx.md#cgi-variables)
+- [haproxy](haproxy.md#cgi-variables)
+- [lighttpd](lighttpd.md#cgi-variables)
 
 # Code changes   
 

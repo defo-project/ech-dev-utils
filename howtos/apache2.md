@@ -87,7 +87,7 @@ And ``access.log`` should contain something like:
 127.0.0.1 - - [24/Nov/2023:16:41:57 +0000] foo.example.com "GET /index.html HTTP/1.1" 200 "-" "-"
 ```
 
-## PHP variables
+## CGI variables
 
 The following variables that are now visible to PHP code:
 

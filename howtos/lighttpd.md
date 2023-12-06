@@ -246,7 +246,7 @@ looks like:
     2023-12-06 01:17:05: (mod_openssl.c.667) ech_status: SSL_ECH_STATUS_SUCCESS sni_clr: example.com sni_ech: foo.example.com
 ```
 
-## PHP variables
+## CGI variables
 
 To enable PHP edit your lighttpd config to include:
 
@@ -260,7 +260,7 @@ To enable PHP edit your lighttpd config to include:
     )
 ```
 
-The PHP code can then access these variables:
+The PHP code can then access these CGI variables:
 
 - ``SSL_ECH_STATUS``: values can be: 
     - "not attempted" - if the client didn't include the TLS ClientHello extension at all

@@ -119,9 +119,9 @@ running the above ``error.log`` should contain a line like:
     2023/12/05 02:45:49 [notice] 513505#0: *1 ECH success outer_sni: example.com inner_sni: foo.example.com while SSL handshaking, client: 127.0.0.1, server: 0.0.0.0:5443
 ```
 
-## PHP variables
+## CGI variables
 
-We added the following variables that are now visible to PHP code:
+We use the following variables from PHP code:
 
 - ``SSL_ECH_STATUS`` - ``success`` means that others also mean what they say
 - ``SSL_ECH_INNER_SNI`` - has value that was in inner CH SNI (or ``NONE``)
@@ -146,7 +146,7 @@ bits of nginx config:
 - ``ngx_ssl_info_callback()`` (in ``src/event/ngx_event_openssl.c``) makes
   a call to ``SSL_ech_get_status()`` for logging of ECH outcomes.
   Similar code in the same file provides for setting the
-  variables for PHP mentioned above.
+  CGI variables mentioned above.
 
 - ``src/http/modules/ngx_http_ssl_module.c`` handles reading the new
   ``ssl_echkeydir`` configuration directive and defines the variables that
