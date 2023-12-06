@@ -144,8 +144,11 @@ that in mind if you deploy test services using these servers.
 ### Server details
 
 For each of the servers below, read the HOWTO then you can play with the test
-script etc. (We'll re-factor these when all are done to move common bits of
-scripting into one file etc.)
+script etc. The test scripts basically each start a server, then connect to the
+relevant server port using ``echcli.sh`` in different ways, including testing
+connecting to the ``public_name``, GREASEing ECH, a nominal use of ECH and
+triggering ECH+HRR. There are utility bash functions in
+[funcs.sh](./scripts/funcs.sh).
 
 - Nginx
     - HOWTO: [nginx.md](howtos/nginx.md)
@@ -157,7 +160,6 @@ scripting into one file etc.)
     - test script: [testapache.sh](scripts/testapache.sh)
     - to run apache in gdb: [apachegdb.sh](scripts/apachegdb.sh)
 - Lighttpd
-    - This one's just started.
     - HOWTO: [lighttpd.md](howtos/lighttpd.md)
     - config: [lighttpdmin.conf](configs/lighttpdmin.conf)
     - test script: [testlighttpd.sh](scripts/testlighttpd.sh)

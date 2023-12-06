@@ -13,69 +13,45 @@ export LD_LIBRARY_PATH=$CODETOP
 export RUNTOP=$RUNTOP
 : ${LIGHTY:=$HOME/code/lighttpd1.4}
 
+PIDFILE=$RUNTOP/lighttpd/logs/lighttpd.pid
+CLILOGFILE=`mktemp`
+SRVLOGFILE=`mktemp`
+KEEPLOG="no"
+
+allgood="yes"
+
 export TOP=$CODETOP
 
 export LD_LIBRARY_PATH=$CODETOP
 
-# make directories for lighttpd stuff if needed
-mkdir -p $RUNTOP/lighttpd/logs
-mkdir -p $RUNTOP/lighttpd/www
-mkdir -p $RUNTOP/lighttpd/baz
+. $EDTOP/scripts/funcs.sh
 
-# check for/make a home page for example.com and other virtual hosts
-if [ ! -f $RUNTOP/lighttpd/www/index.html ]
+prep_server_dirs lighttpd
+
+lighty_stop
+lighty_start $EDTOP/configs/lighttpdmin.conf
+
+for type in grease public real hrr
+do
+    port=3443
+    echo "Testing $type $port"
+    cli_test $port $type
+done
+
+lighty_stop
+
+if [[ "$allgood" == "yes" ]]
 then
-    cat >$RUNTOP/lighttpd/www/index.html <<EOF
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<title>Lighttpd top page.</title>
-</head>
-<!-- Background white, links blue (unvisited), navy (visited), red
-(active) -->
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#000080" alink="#FF0000">
-<p>This is the pretty dumb top page for testing. </p>
-
-</body>
-</html>
-
-EOF
+    echo "All good."
+    rm -f $CLILOGFILE $SRVLOGFILE
+else
+    echo "Something failed."
+    if [[ "$KEEPLOG" != "no" ]]
+    then
+        echo "Client logs in $CLILOGFILE"
+        echo "Server logs in $SRVLOGFILE"
+    else
+        rm -f $CLILOGFILE $SRVLOGFILE
+    fi
 fi
 
-# check for/make a slightly different home page for baz.example.com
-if [ ! -f $RUNTOP/lighttpd/baz/index.html ]
-then
-    cat >$RUNTOP/lighttpd/baz/index.html <<EOF
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<title>Lighttpd top page.</title>
-</head>
-<!-- Background white, links blue (unvisited), navy (visited), red
-(active) -->
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#000080" alink="#FF0000">
-<p>This is the pretty dumb top page for baz.example.com testing. </p>
-
-</body>
-</html>
-
-EOF
-fi
-
-# set to run in foreground or as daemon -D => foreground
-# unset =>daemon
-FOREGROUND="-D "
-
-# set to use valgrind, unset to not
-# VALGRIND="valgrind --leak-check=full --show-leak-kinds=all"
-# VALGRIND="valgrind --leak-check=full --error-limit=1 --track-origins=yes"
-VALGRIND=""
-
-echo "Executing: $VALGRIND $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpdmin.conf -m $LIGHTY/src/.libs"
-$VALGRIND $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpdmin.conf -m $LIGHTY/src/.libs

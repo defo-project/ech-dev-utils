@@ -34,144 +34,10 @@ SRVLOGFILE=`mktemp`
 KEEPLOG="no"
 EARLY="yes"
 SPLIT="no"
-# set next one to " -d " if keeping logs and verbosity desired
-DPARM=" "
 
-cli_test() {
-    local port=$1
-    local runparm=$2
-    local target="foo.example.com"
-    local lres="0"
-    local gorp="-g "
+. $EDTOP/scripts/funcs.sh
 
-    if [[ "$runparm" == "public" ]]
-    then
-        gorp="-g "
-        target="example.com"
-    elif [[ "$runparm" == "grease" ]]
-    then
-        gorp="-g "
-    elif [[ "$runparm" == "hrr" ]]
-    then
-        gorp="-P echconfig.pem -R "
-    elif [[ "$runparm" == "real" ]]
-    then
-        gorp="-P echconfig.pem"
-    else
-        echo "bad cli_test parameter $runparm, exiting"
-        exit 99
-    fi
-    $EDTOP/scripts/echcli.sh $clilog $gorp -p $port -H $target $DPARM -s localhost -f index.html >>$CLILOGFILE 2>&1
-    lres=$?
-    if [[ "$lres" != "0" ]]
-    then
-        echo "test failed: $EDTOP/scripts/echcli.sh $clilog $gorp-p $port -H $target $DPARM -s localhost -f index.html"
-        # exit $lres
-        allgood="no"
-    fi
-}
-
-# Check if a lighttpd is running, start one if not
-lighty_start() {
-    local lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v tail`
-
-    if [[ "$lrunning" == "" ]]
-    then
-        export LIGHTYTOP=$RUNTOP
-        $LIGHTY/src/lighttpd $FOREGROUND -f $EDTOP/configs/lighttpd4nginx-split.conf -m $LIGHTY/src/.libs >>$SRVLOGFILE 2>&1
-    fi
-    # Check we now have a lighty running
-    lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v tail`
-    if [[ "$lrunning" == "" ]]
-    then
-        echo "No lighttpd back-end running, sorry - exiting"
-        exit 14
-    fi
-}
-
-lighty_stop() {
-    killall lighttpd
-}
-
-s_server_start() {
-    local srunning=`ps -ef | grep s_server | grep -v grep | grep -v tail | awk '{print $2}'`
-    local HRR=$1
-
-    if [[ "$srunning" == "" ]]
-    then
-        # ditch or keep server tracing
-        if [[ "$HRR" == "hrr" ]]
-        then
-            $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 9444 $DPARM -R >$SRVLOGFILE 2>&1 &
-        else
-            $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 9444 $DPARM >$SRVLOGFILE 2>&1 &
-        fi
-        # recheck in a sec
-        sleep 2
-        srunning=`ps -ef | grep s_server | grep -v grep | grep -v tail | awk '{print $2}'`
-        if [[ "$srunning" == "" ]]
-        then
-            echo "Can't start s_server exiting"
-            exit 87
-        fi
-    fi
-}
-
-s_server_stop() {
-    local srunning=`ps -ef | grep s_server | grep -v grep | grep -v tail | awk '{print $2}'`
-    kill $srunning
-}
-
-# hackyery hack - prepare a nginx conf to use in localhost tests
-do_envsubst() {
-    cat $EDTOP/configs/nginxmin.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxmin.conf
-}
-
-# check for/make a home page for example.com and other virtual hosts
-if [ ! -f $RUNTOP/nginx/www/index.html ]
-then
-    cat >$RUNTOP/nginx/www/index.html <<EOF
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<title>example.com nginx top page.</title>
-</head>
-<!-- Background white, links blue (unvisited), navy (visited), red
-(active) -->
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#000080" alink="#FF0000">
-<p>This is the pretty dumb top page for nginx testing. </p>
-
-</body>
-</html>
-
-EOF
-fi
-
-# check for/make a slightly different home page for foo.example.com
-if [ ! -f $RUNTOP/nginx/foo/index.html ]
-then
-    cat >$RUNTOP/nginx/foo/index.html <<EOF
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<title>foo.example.com nginx top page.</title>
-</head>
-<!-- Background white, links blue (unvisited), navy (visited), red
-(active) -->
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#000080" alink="#FF0000">
-<p>This is the pretty dumb top page for foo.example.com nginx testing. </p>
-
-</body>
-</html>
-
-EOF
-fi
+prep_server_dirs nginx
 
 # if we want to reload config then that's "graceful restart"
 PIDFILE=$RUNTOP/nginx/logs/nginx.pid
@@ -279,13 +145,13 @@ then
             # connect twice, 2nd time using resumption and sending early data
             session_ticket_file=`mktemp`
             rm -f $session_ticket_file
-            $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem $DPARM -f index.html -S $session_ticket_file >>$CLILOGFILE 2>&1
+            $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem -f index.html -S $session_ticket_file >>$CLILOGFILE 2>&1
             if [ ! -f $session_ticket_file ]
             then
                 echo "No session so no early data - exiting"
                 exit 1
             fi
-            $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem $DPARM -f index.html -S $session_ticket_file -e >>$CLILOGFILE 2>&1
+            $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem -f index.html -S $session_ticket_file -e >>$CLILOGFILE 2>&1
             rm -f $session_ticket_file
             res=$?
             if [[ "$res" != "0" ]]

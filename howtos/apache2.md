@@ -63,21 +63,14 @@ You should run that from the directory we used before for
 ```bash
     $ cd $HOME/lt
     $ $HOME/code/ech-dev-utils/scripts/testapache.sh
-    Can't find /home/user/lt/apache/httpd.pid - trying killall httpd
     httpd: no process found
-    Executing:  /home/user/code/httpd/httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf 
-    /home/user/lt
-    $ 
-    $ $HOME/code/ech-dev-utils/scripts/echcli.sh -p 9443 -s localhost -H foo.example.com  -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231124-164157
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
-    Looks like ECH worked ok
-    ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-    $ 
-    $ killall httpd # kill daemon
+    Executing: /home/stephen/code/httpd/httpd -d /home/stephen/lt -f /home/stephen/code/ech-dev-utils/configs/apachemin.conf
+    Testing grease 9443
+    Testing public 9443
+    Testing real 9443
+    Testing hrr 9443
+    $
 ```
-
-The "success" above is what you're looking for.
 
 ## Logs
 

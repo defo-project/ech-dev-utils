@@ -44,9 +44,9 @@ Those are reflected in the
 [``lighthttpdmin.conf``](../configs/lighthttpdmin.conf) config file used in
 localhost testing.
 
-TODO: re-check this: We also support a way to make a specific virtual host "ECH
-only" by configuring a (presumably different) virtual host name to use, if ECH
-wasn't successfully used in the ClientHello for that TLS session.
+We also support a way to make a specific virtual host "ECH only" by configuring
+a (presumably different) virtual host name to use, if ECH wasn't successfully
+used in the ClientHello for that TLS session.
 
 For this, there's a virtual host specific configuration item:
 
@@ -54,16 +54,15 @@ For this, there's a virtual host specific configuration item:
   (or not tried)
 
 The basic idea here is to explore whether or not it's useful to mark a
-VirtualHost as "ECH only", i.e. to try deny it's existence if it's asked for via
-cleartext SNI.  I'm very unsure if this is worthwhile but since it could be done, it may
-be fun to play and see if it turns out to be useful. 
+VirtualHost as "ECH only", i.e. to try deny it's existence if it's asked for
+via cleartext SNI.  I'm very unsure if this is worthwhile but since it could be
+done, it may be fun to play and see if it turns out to be useful. 
 
-To that end we've added an "ssl.echonly" label that can be in a lighttpd configuration
-for a TLS listener. If that is present and if the relevant server.name is used in the
-cleartext SNI (with or without ECH) then the TLS connection will fail.
-For example, in my [localhost test setup](../configs/lighttpdmin.conf) baz.example.com is
-now maked "ECH only" as is [only.ech.defo.ie](https://only.ech.defo.ie/) in
-our test deployment.  (TODO: put that web site back up or delete, it's down now.)
+To that end we've added an "ssl.non-ech-host" label that can be in a lighttpd
+configuration for a TLS listener. If that is present and if the relevant
+name is used in the cleartext SNI (with or without ECH) then the TLS
+connection will fail.  For example, in my [localhost test
+setup](../configs/lighttpdmin.conf) baz.example.com is now marked "ECH only"
 
 Failing this check is logged in the error log, e.g.:
 
