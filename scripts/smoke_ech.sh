@@ -29,7 +29,7 @@ declare -A targets=(
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 # to pick up correct wrapper scripts
-: ${EDTOP:=$HOME/code/ech-dev-utils/scripts}
+: ${EDTOP:=$HOME/code/ech-dev-utils}
 
 # place to stash outputs when things go wrong
 : ${bad_dir:="$HOME/logs/smoke_ech_baddies"}
@@ -93,11 +93,11 @@ then
     allgood="no"
     echo "Can't see $CODETOP - exiting" >>$logfile
 fi
-echcli=$EDTOP/echcli.sh
+echcli=$EDTOP/scripts/echcli.sh
 if [ ! -f $echcli ]
 then
     allgood="no"
-    echo "Can't see $EDTOP/echcli.sh - exiting" >>$logfile
+    echo "Can't see $EDTOP/scripts/echcli.sh - exiting" >>$logfile
 fi
 if [ ! -f $CODETOP/apps/openssl ]
 then

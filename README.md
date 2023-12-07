@@ -5,35 +5,29 @@ This is a [DEfO](https://defo.ie) project production.
 The current development branch of our Encrypted ClientHello (ECH) enabled fork
 of OpenSSL is
 [ECH-draft-13c](https://github.com/sftcd/openssl/tree/ECH-draft-13c). That
-branch also contains this material, but when we turn that branch into a PR for
-upstream OpenSSL, this stuff will no longer belong there, so we've moved it
-here.
+branch also contains this material, but now that we've turned that branch into
+a [PR for upstream OpenSSL](https://github.com/openssl/openssl/pull/22938),
+this stuff no longer belongs there, so we've moved it here.
 
 The content includes scripts for doing ECH things, sample configurations and
-HOWTOs for building ECH-enabled things.
+HOWTOs for building and testing ECH-enabled things.
 
-These have been used in an ubuntu development environment and as a default
-assume that you have other code repos installed and built in e.g.
-``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. Some of those pathnames are
-likely still too hardcoded in scripts and configs but we'll fix things as we
-go.  Feel free to submit PRs if you make things better, or bear with us as we
-fix that.
-
-The split-mode stuff below still needs documenting, so don't believe that
-section yet.
+These have been used in an Ubuntu 23.04 development environment and as a
+default assume that you have other code repos installed and built in e.g.
+``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. 
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
+- [localhost-tests.md](howtos/localhost-tests.md) is a HOWTO for using the 
+  scripts below
 - [echcli.sh](scripts/echcli.sh) is a relatively comprehensive wrapper for ``openssl
   s_client`` that allows one to play with lots of ECH options
 - [echsvr.sh](scripts/echsvr.sh) is a relatively comprehensive wrapper for ``openssl
   s_server`` that allows one to play with lots of ECH options
-- [make-example-ca.sh](mscripts/ake-example-ca.sh) creates fake x.509 certs for
+- [make-example-ca.sh](./scripts/make-example-ca.sh) creates fake x.509 certs for
   example.com and the likes of foo.example.com so we can use the scripts and
   configs here for localhost tests - you have to have gotten that to work before
   ``echsvr.sh`` can be used for localhost tests
-- [localhost-tests.md](howtos/localhost-tests.md) is a HOWTO for getting started with
-  the above
 
 ## Pure test scripts
 

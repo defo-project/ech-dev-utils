@@ -2,8 +2,8 @@
 
 # set -x
 
-# Merge a bunch of ECHConfigs found in PEM files
-# We assume PEM files have the ECHConfig in the 2nd last line
+# Merge a the public values from bunch of ECHConfigs found in PEM files
+# We assume PEM files have the ECHConfigList in the 2nd last line
 # such as the example below...
 #
 # -----BEGIN ETAVIRP KEY-----
