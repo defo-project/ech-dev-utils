@@ -123,6 +123,7 @@ do_envsubst() {
     envcheck $EDTOP
     envcheck $RUNTOP
     cat $EDTOP/configs/nginxsplit.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxsplit.conf
+    cat $EDTOP/configs/nginxmin.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxmin.conf
 }
 
 prep_server_dirs() {
