@@ -1,3 +1,4 @@
+# ech-dev-utils utility functions
 
 function envcheck()
 {
@@ -148,7 +149,8 @@ prep_server_dirs() {
     fi
     if [ ! -d $RUNTOP/echkeydir ]
     then
-        cp $RUNTOP/echconfig.pem $RUNTOP/echkeydir
+        mkdir -p $RUNTOP/echkeydir
+        cp $RUNTOP/echconfig.pem $RUNTOP/echkeydir/echconfig.pem.ech
     fi
     # make directories for lighttpd stuff if needed
     mkdir -p $RUNTOP/$tech/logs

@@ -18,7 +18,9 @@
 if [[ "$PACKAGING" == "" ]]
 then
     HAPPYBIN=$HAPPY/haproxy
+    CMDPATH=$CODETOP/apps/openssl
 else
+    CMDPATH=`which openssl`
     HAPPYBIN=`which haproxy`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`

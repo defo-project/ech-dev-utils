@@ -14,7 +14,9 @@ export RUNTOP=$RUNTOP
 if [[ "$PACKAGING" == "" ]]
 then
     NBIN=$NTOP/objs/nginx
+    CMDPATH=$CODETOP/apps/openssl
 else
+    CMDPATH=`which openssl`
     NBIN=`which nginx`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`

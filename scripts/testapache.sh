@@ -16,7 +16,9 @@ export LD_LIBRARY_PATH=$CODETOP
 if [[ "$PACKAGING" == "" ]]
 then
     ABIN=$ATOP/httpd
+    CMDPATH=$CODETOP/apps/openssl
 else
+    CMDPATH=`which openssl`
     ABIN=`which httpd`
     RUNTOP=`mktemp -d`
 fi
