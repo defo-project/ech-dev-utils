@@ -4,6 +4,7 @@
 # via ECH
 
 # set -x
+set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
@@ -12,6 +13,12 @@ export LD_LIBRARY_PATH=$CODETOP
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
 : ${LIGHTY:=$HOME/code/lighttpd1.4}
+
+if [[ "$PACKAGING" != "" ]]
+then
+    EDTOP="$(dirname "$(realpath "$0")")/.."
+    RUNTOP=`mktemp -d`
+fi
 
 PIDFILE=$RUNTOP/lighttpd/logs/lighttpd.pid
 CLILOGFILE=`mktemp`

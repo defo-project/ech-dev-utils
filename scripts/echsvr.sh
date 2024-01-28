@@ -10,6 +10,15 @@ export LD_LIBRARY_PATH=$CODETOP
 
 : ${ECHKEYFILE:="$CFGTOP/echconfig.pem"}
 
+# Path to openssl binary
+if [[ "$PACKAGING" == "" ]]
+then
+    CMDPATH=$CODETOP/apps/openssl
+else
+    CMDPATH=`which openssl`
+    set -e
+fi
+
 HIDDEN="foo.example.com"
 HIDDEN2="bar.example.com"
 CLEAR_SNI="example.com"
@@ -186,7 +195,7 @@ keyfile2="-key2 $KEYFILE2 -cert2 $CERTFILE2"
 # ought work
 TRACING=""
 tmpf=`mktemp`
-$CODETOP/apps/openssl s_server -help >$tmpf 2>&1
+$CMDPATH s_server -help >$tmpf 2>&1
 tcount=`grep -c 'trace protocol messages' $tmpf`
 if [[ "$tcount" == "1" ]]
 then
@@ -307,8 +316,8 @@ fi
 
 if [[ "$DEBUG" == "yes" ]]
 then
-    echo "Running: $sudocmd $vgcmd $CODETOP/apps/openssl s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr"
+    echo "Running: $sudocmd $vgcmd $CMDPATH s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr"
 fi
-$sudocmd $vgcmd $CODETOP/apps/openssl s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr
+$sudocmd $vgcmd $CMDPATH s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr
 
 

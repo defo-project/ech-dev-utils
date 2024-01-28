@@ -10,12 +10,15 @@ export LD_LIBRARY_PATH=$CODETOP
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
-: ${LIGHTY:=$HOME/code/lighttpd1.4}
 
-# make directories for lighttpd stuff if needed
-mkdir -p $RUNTOP/nginx/logs
-mkdir -p $RUNTOP/nginx/www
-mkdir -p $RUNTOP/nginx/foo
+if [[ "$PACKAGING" == "" ]]
+then
+    NBIN=$NTOP/objs/nginx
+else
+    NBIN=`which nginx`
+    EDTOP="$(dirname "$(realpath "$0")")/.."
+    RUNTOP=`mktemp -d`
+fi
 
 # in case we wanna dump core and get a backtrace, make a place for
 # that (dir name is also in configs/nginxmin.conf)
@@ -58,9 +61,6 @@ then
     echo "Killing old nginx in process `cat $PIDFILE`"
     kill `cat $PIDFILE`
     rm -f $PIDFILE
-else
-    echo "Can't find $PIDFILE - trying killall nginx"
-    killall nginx
 fi
 
 # if starting afresh check if some process was left over after gdb or something
@@ -75,10 +75,6 @@ done
 
 # give the n/w a chance so ports are free to use
 sleep 2
-
-# set to use valgrind, unset to not
-# VALGRIND="valgrind --leak-check=full --show-leak-kinds=all"
-VALGRIND=""
 
 # Set/unset to detach or run in foreground
 FGROUND=""
@@ -100,10 +96,10 @@ then
     do_envsubst
 fi
 
-echo "Executing: $VALGRIND $NTOP/objs/nginx -c nginxmin.conf"
+echo "Executing: $NBIN -c nginxmin.conf"
 # move over there to run code, so config file can have relative paths
 cd $RUNTOP
-$VALGRIND $NTOP/objs/nginx -c nginxmin.conf
+$NBIN -c nginxmin.conf
 cd -
 
 for type in grease public real hrr
@@ -134,7 +130,4 @@ then
     echo "Killing nginx in process `cat $PIDFILE`"
     kill `cat $PIDFILE`
     rm -f $PIDFILE
-else
-    echo "Can't find $PIDFILE - trying killall nginx"
-    killall nginx
 fi

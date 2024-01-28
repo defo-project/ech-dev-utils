@@ -16,6 +16,11 @@ These have been used in an Ubuntu 23.04 development environment and as a
 default assume that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. 
 
+These are also used in a debian unstable packaging environment that we
+are in the process of setting up as a generic set of CI workflows for
+all of the software artefacts described here. That's a work-in-progress
+at the moment.
+
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
 - [localhost-tests.md](howtos/localhost-tests.md) is a HOWTO for using the 
@@ -193,3 +198,5 @@ used in some time:
   files differ
 - [runindented.sh](scripts/runindented.sh) is a bash function for indenting things (not
   currently used, but was, and may be again sometime)
+- [localhost-tests.sh](scripts/localhost-tests.sh) runs a couple of the localhost 
+  tests, as used (for now) in package testing - may well be enhanced soon.

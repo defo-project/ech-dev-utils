@@ -15,6 +15,15 @@
 # where frontend haproxy can be found
 : ${HAPPY:="$HOME/code/haproxy"}
 
+if [[ "$PACKAGING" == "" ]]
+then
+    HAPPYBIN=$HAPPY/haproxy
+else
+    HAPPYBIN=`which haproxy`
+    EDTOP="$(dirname "$(realpath "$0")")/.."
+    RUNTOP=`mktemp -d`
+fi
+
 export LD_LIBRARY_PATH=$CODETOP
 
 HLOGDIR="$RUNTOP/haproxy/logs"
@@ -37,15 +46,20 @@ then
     chmod a+w $SRVLOGFILE
 fi
 
-lighty_start $EDTOP/configs/lighttpd4haproxymin.conf
+lighty_stop
+if [ -f $BE_PIDFILE ]
+then
+    kill `cat $BE_PIDFILE`
+    rm -f $BE_PIDFILE
+fi
 
-killall haproxy
+lighty_start $EDTOP/configs/lighttpd4haproxymin.conf
 
 # Now start up a haproxy
 # run haproxy in background
 HAPDEBUGSTR=" -DdV " 
-echo "Executing: $HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
-$HAPPY/haproxy -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1
+echo "Executing: $HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
+$HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1
 
 # all things should appear the same to the client
 # server log checks will tells us if stuff worked or not
@@ -59,8 +73,12 @@ do
     done
 done
 
-killall haproxy lighttpd
-rm -f $BE_PIDFILE
+lighty_stop
+if [ -f $BE_PIDFILE ]
+then
+    kill `cat $BE_PIDFILE`
+    rm -f $BE_PIDFILE
+fi
 
 if [[ "$allgood" == "yes" ]]
 then

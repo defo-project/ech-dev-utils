@@ -13,6 +13,14 @@ export LD_LIBRARY_PATH=$CODETOP
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 
+if [[ "$PACKAGING" == "" ]]
+then
+    ABIN=$ATOP/httpd
+else
+    ABIN=`which httpd`
+    RUNTOP=`mktemp -d`
+fi
+
 . $EDTOP/scripts/funcs.sh
 
 CLILOGFILE=`mktemp`
@@ -27,7 +35,7 @@ prep_server_dirs apache
 if [[ "$1" == "graceful" ]]
 then
     echo "Telling apache to do the graceful thing"
-    $ATOP/httpd -d $RUNTOP -f $EDTOP/configs/apachemin.conf -k graceful
+    $ABIN -d $RUNTOP -f $EDTOP/configs/apachemin.conf -k graceful
     exit $?
 fi
 
@@ -39,11 +47,9 @@ then
     kill `cat $PIDFILE`
     rm -f $PIDFILE
 fi
-# just in case:-)
-killall httpd
 
-echo "Executing: $ATOP/httpd -d $RUNTOP -f $EDTOP/configs/apachemin.conf"
-$ATOP/httpd -d $RUNTOP -f $EDTOP/configs/apachemin.conf
+echo "Executing: $ABIN -d $RUNTOP -f $EDTOP/configs/apachemin.conf"
+$ABIN -d $RUNTOP -f $EDTOP/configs/apachemin.conf
 
 for type in grease public real hrr
 do
@@ -51,6 +57,5 @@ do
     echo "Testing $type $port"
     cli_test $port $type
 done
-
-killall httpd
+kill `cat $PIDFILE`
 rm -f $PIDFILE

@@ -50,12 +50,23 @@ cli_test() {
     fi
 }
 
+# stop a lighttpd if one is running
+lighty_stop() {
+    local pfile="$RUNTOP/lighttpd/logs/lighttpd.pid"
+
+    if [ -f $pfile ]
+    then
+        kill `cat $pfile`
+        rm -f $pfile
+    fi
+}
+
 # Check if a lighttpd is running, start one if not
 lighty_start() {
     local cfgfile=$1
-    local lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v testlight | grep -v tail`
     local pfile="$RUNTOP/lighttpd/logs/lighttpd.pid"
 
+    lighty_stop
     envcheck $RUNTOP
     envcheck $LIGHTY
     envcheck $SRVLOGFILE
@@ -64,10 +75,12 @@ lighty_start() {
         echo "Can't read $cfgfile - exiting"
         exit 45
     fi
-    if [[ "$lrunning" == "" ]]
+    export LIGHTYTOP=$RUNTOP
+    if [[ "$PACKAGING" == "" ]]
     then
-        export LIGHTYTOP=$RUNTOP
         $LIGHTY/src/lighttpd -f $cfgfile -m $LIGHTY/src/.libs >>$SRVLOGFILE 2>&1
+    else
+        lighttpd -f $cfgfile >>$SRVLOGFILE 2>&1
     fi
     # Check we now have a lighty running
     if [ ! -f $pfile ]
@@ -75,16 +88,6 @@ lighty_start() {
         echo "Can't read $pfile - exiting"
         exit 45
     fi
-    lrunning=`ps -ef | grep lighttpd | grep -v grep | grep -v tail`
-    if [[ "$lrunning" == "" ]]
-    then
-        echo "No lighttpd back-end running, sorry - exiting"
-        exit 14
-    fi
-}
-
-lighty_stop() {
-    killall lighttpd
 }
 
 s_server_start() {
@@ -130,8 +133,25 @@ prep_server_dirs() {
     local tech=$1
 
     envcheck $RUNTOP
+
+    cd $RUNTOP
+    # make sure fake CA is setup
+    if [ ! -d $RUNTOP/cadir ]
+    then
+        # don't re-do this if not needed, might break other configs
+        $EDTOP/scripts/make-example-ca.sh
+    fi
+    # make sure we have an ECHConfig PEM file
+    if [ ! -f $RUNTOP/echconfig.pem ]
+    then
+        $CMDPATH ech -public_name example.com || true
+    fi
+    if [ ! -d $RUNTOP/echkeydir ]
+    then
+        cp $RUNTOP/echconfig.pem $RUNTOP/echkeydir
+    fi
     # make directories for lighttpd stuff if needed
-    mkdir -p $RUNTOP/nginx/logs
+    mkdir -p $RUNTOP/$tech/logs
 
     for docroot in example.com foo.example.com baz.example.com
     do
@@ -159,5 +179,6 @@ vlink="#000080" alink="#FF0000">
 EOF
         fi
     done
+    cd -
 }
 

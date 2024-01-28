@@ -13,6 +13,15 @@ export LD_LIBRARY_PATH=$CODETOP
 # DNS recursive to use (don't ask:-)
 : ${DNSRECURSIVE=""}
 
+# Path to openssl binary
+if [[ "$PACKAGING" == "" ]]
+then
+    CMDPATH=$CODETOP/apps/openssl
+else
+    CMDPATH=`which openssl`
+    set -e
+fi
+
 # variables/settings
 # use Valgrind or not
 VG="no"
@@ -227,7 +236,7 @@ fi
 # ought work
 TRACING=""
 tmpf=`mktemp`
-$CODETOP/apps/openssl s_client -help >$tmpf 2>&1
+$CMDPATH openssl s_client -help >$tmpf 2>&1
 tcount=`grep -c 'trace output of protocol messages' $tmpf`
 if [[ "$tcount" == "1" ]]
 then
@@ -538,7 +547,7 @@ TMPF=`mktemp /tmp/echtestXXXX`
 if [[ "$DEBUG" == "yes" ]]
 then
     echo "HTTP REQ: $httpreq"
-    echo "Running: $CODETOP/apps/openssl s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $earlystr $tcust $hrrstr"
+    echo "Running: $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $earlystr $tcust $hrrstr"
 fi
 # seconds to sleep after firing up client so that tickets might arrive
 sleepaftr=2
@@ -557,9 +566,9 @@ fi
 if [[ "$EARLY_DATA" == "yes" ]]
 then
     httpreq1=${httpreq/foo.example.com/barbar.example.com}
-    ( echo -e "$httpreq1" ; sleep $sleepaftr) | $vgcmd $CODETOP/apps/openssl s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $earlystr $tcust $hrrstr >$TMPF 2>&1
+    ( echo -e "$httpreq1" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $earlystr $tcust $hrrstr >$TMPF 2>&1
 else
-    ( echo -e "$httpreq" ; sleep $sleepaftr) | $vgcmd $CODETOP/apps/openssl s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $tcust $hrrstr >$TMPF 2>&1
+    ( echo -e "$httpreq" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $tcust $hrrstr >$TMPF 2>&1
 fi
 
 c200=`grep -c "200 OK" $TMPF`
@@ -580,7 +589,12 @@ then
 	echo ""
 fi
 
-goodresult=`grep -c "ECH: success" $TMPF`
+if [[ "$GREASE" == "yes" ]]
+then
+  goodresult=`grep -c "ECH: only greasing, and got ECH in return" $TMPF`
+else
+  goodresult=`grep -c "ECH: success" $TMPF`
+fi
 echo "$0 Summary: "
 allresult=`grep "ECH: " $TMPF`
 # check if we saw any OpenSSL Errors, except we ignore
@@ -590,7 +604,7 @@ allresult=`grep "ECH: " $TMPF`
 sslerror=`grep ":error:" $TMPF \
              | grep -v BIO_new_file \
              | grep -v NCONF_get_string \
-             | grep -v "error:8000000" `
+             | grep -v "error:8000000" ` || true
 rm -f $TMPF
 if (( $goodresult > 0 ))
 then
@@ -619,12 +633,3 @@ then
 fi
 echo $allresult
 exit $res
-# exit with something useful
-# not sure if this still useful, check sometime...
-if [[ "$csucc" == "1" && "$c4xx" == "0" ]]
-then
-    exit 0
-else
-    exit 44
-fi 
-exit 66

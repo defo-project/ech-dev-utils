@@ -7,8 +7,16 @@
 
 : ${CODETOP:=$HOME/code/openssl}
 : ${LD_LIBRARY_PATH:=$CODETOP}
-: ${OBIN:=$CODETOP/apps/openssl}
 export LD_LIBRARY_PATH
+
+# Path to openssl binary
+if [[ "$PACKAGING" == "" ]]
+then
+    CMDPATH=$CODETOP/apps/openssl
+else
+    CMDPATH=`which openssl`
+    set -e
+fi
 
 #set -x
 DSTR=`date -u --rfc-3339=s | sed -e 's/ /T/' | sed -e 's/:/-/g'`
@@ -37,7 +45,7 @@ then
 	# this should probably be random and longer
 	# don't want it to be a fingerprint for this
 	# service
-	echo $RANDOM$RANDOM | $OBIN sha1 | awk '{print $2}' >serial
+	echo $RANDOM$RANDOM | $CMDPATH sha1 | awk '{print $2}' >serial
 	cp serial serial.1st
 fi
 
@@ -99,7 +107,7 @@ LENGTHS=(2048 3072 4096)
 NLENGTHS=${#LENGTHS[*]}
 
 # make the root CA key pair
-$OBIN req -batch -new -x509 -days 3650 -extensions v3_ca \
+$CMDPATH req -batch -new -x509 -days 3650 -extensions v3_ca \
 	-newkey rsa -keyout oe.priv  -out oe.csr  \
 	-config openssl.cnf -passin pass:$PASS \
 	-subj "/C=IE/ST=Laighin/O=openssl-ech/CN=ca" \
@@ -118,11 +126,11 @@ do
 	length=${LENGTHS[((index%NLENGTHS))]}
 
 	echo "Doing name $index, at $length"
-	$OBIN req -new -newkey rsa -days 3650 -keyout $host.priv \
+	$CMDPATH req -new -newkey rsa -days 3650 -keyout $host.priv \
 		-out $host.csr -nodes -config openssl.cnf \
 		-subj "/C=IE/ST=Laighin/L=dublin/O=openssl-ech/CN=$host" \
 		-addext "subjectAltName = DNS:*.$host,DNS:$host"
-	$OBIN ca -batch -in $host.csr -out $host.crt \
+	$CMDPATH ca -batch -in $host.csr -out $host.crt \
 		-days 3650 -keyfile oe.priv -cert oe.csr \
 		-passin pass:$PASS -config openssl.cnf
 	((index++))
