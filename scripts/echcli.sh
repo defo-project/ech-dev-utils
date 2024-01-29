@@ -236,7 +236,7 @@ fi
 # ought work
 TRACING=""
 tmpf=`mktemp`
-$CMDPATH openssl s_client -help >$tmpf 2>&1
+$CMDPATH s_client -help >$tmpf 2>&1
 tcount=`grep -c 'trace output of protocol messages' $tmpf`
 if [[ "$tcount" == "1" ]]
 then
