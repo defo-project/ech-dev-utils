@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# set -x
+set -x
 
 # Make key pairs for a fake local CA and a few example.com 
 # names with the latter's certs also covering *.example.com
