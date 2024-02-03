@@ -599,7 +599,7 @@ allresult=`grep "ECH: " $TMPF`
 # an openssl s_server, for a file it doesn't have or if
 # the server's running in the wrong mode
 sslerror=""
-sslerrorcount=`grep -c ":error:" $TMPF`
+sslerrorcount=`grep -c ":error:" $TMPF` || true
 if [[ "$sslerrorcount" != "0" ]]
 then
     sslerror=`grep ":error:" $TMPF \
