@@ -5,7 +5,6 @@
 
 set -x
 
-
 # to pick up correct .so's - maybe note 
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
@@ -573,7 +572,7 @@ fi
 
 c200=`grep -c "200 OK" $TMPF`
 csucc=`grep -c "ECH: success" $TMPF`
-c4xx=`grep -ce "^HTTP/1.1 4[0-9][0-9] " $TMPF`
+c4xx=`grep -ce "^HTTP/1.1 4[0-9][0-9] " $TMPF` || true
 if [[ "$DEBUG" == "yes" ]]
 then
 	echo "$0 All output" 
@@ -599,10 +598,15 @@ allresult=`grep "ECH: " $TMPF`
 # any related to fopen that can happen if/when we ask
 # an openssl s_server, for a file it doesn't have or if
 # the server's running in the wrong mode
-sslerror=`grep ":error:" $TMPF \
+sslerror=""
+sslerrorcount=`grep -c ":error:" $TMPF`
+if [[ "$sslerrorcount" != "0" ]]
+then
+    sslerror=`grep ":error:" $TMPF \
              | grep -v BIO_new_file \
              | grep -v NCONF_get_string \
              | grep -v "error:8000000" ` || true
+fi
 rm -f $TMPF
 if (( $goodresult > 0 ))
 then
