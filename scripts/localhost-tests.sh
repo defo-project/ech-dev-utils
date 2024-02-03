@@ -6,7 +6,7 @@ set -ex
 # A couple of basic openssl ECH tests
 
 # Override-able paths
-: ${EDTOP:=`/bin/pwd`}
+: ${EDTOP:="$HOME/code/ech-dev-utils"}
 : ${CODETOP:=$HOME/code/openssl}
 if [[ "$PACKAGING" == "" ]]
 then
@@ -14,6 +14,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
+    EDTOP="."
 fi
 
 # we assume we're in the root of a checked out ech-dev-utils repo
