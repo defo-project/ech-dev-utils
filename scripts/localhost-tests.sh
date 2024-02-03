@@ -19,7 +19,7 @@ fi
 # we assume we're in the root of a checked out ech-dev-utils repo
 
 # chec
-$EDTOP/scripts/echcli.sh -H defo.ie -f ech-check.php
+$EDTOP/scripts/echcli.sh -d -H defo.ie -f ech-check.php
 
 mkdir -p lt || true
 cd lt

@@ -574,7 +574,6 @@ fi
 c200=`grep -c "200 OK" $TMPF`
 csucc=`grep -c "ECH: success" $TMPF`
 c4xx=`grep -ce "^HTTP/1.1 4[0-9][0-9] " $TMPF`
-
 if [[ "$DEBUG" == "yes" ]]
 then
 	echo "$0 All output" 
@@ -588,7 +587,6 @@ then
 	echo "$vgout"
 	echo ""
 fi
-
 if [[ "$GREASE" == "yes" ]]
 then
   goodresult=`grep -c "ECH: only greasing, and got ECH in return" $TMPF`
