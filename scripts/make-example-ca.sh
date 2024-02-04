@@ -133,7 +133,7 @@ do
 	$CMDPATH ca -batch -in $host.csr -out $host.crt \
 		-days 3650 -keyfile oe.priv -cert oe.csr \
 		-passin pass:$PASS -config openssl.cnf
-	((index++))
+    index=$((index+1))
     # make a file with catenated private key and cert for use 
     # with lighttpd
     cat $host.priv $host.crt >$host.pem
