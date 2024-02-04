@@ -183,7 +183,7 @@ if [[ "$KEYGEN" == "yes" ]]
 then
 	echo "Generating kays and exiting..."
 	./make-example-ca.sh
-	exit
+	exit 0
 fi
 
 keyfile1="-key $KEYFILE1 -cert $CERTFILE1"
@@ -320,4 +320,4 @@ then
 fi
 $sudocmd $vgcmd $CMDPATH s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr
 
-
+exit 0
