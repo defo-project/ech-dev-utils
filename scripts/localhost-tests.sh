@@ -22,8 +22,8 @@ fi
 # basic ECH check vs. defo.ie
 $EDTOP/scripts/echcli.sh -d -H defo.ie -f ech-check.php
 
-mkdir -p lt || true
-cd lt
+# mkdir -p lt || true
+# cd lt
 
 if [ ! -d cadir ]
 then
