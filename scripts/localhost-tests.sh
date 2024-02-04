@@ -19,7 +19,7 @@ fi
 
 # we assume we're in the root of a checked out ech-dev-utils repo
 
-# chec
+# basic ECH check vs. defo.ie
 $EDTOP/scripts/echcli.sh -d -H defo.ie -f ech-check.php
 
 mkdir -p lt || true
@@ -27,6 +27,9 @@ cd lt
 
 if [ ! -d cadir ]
 then
+    # debugging;-(
+    echo "$EDTOP"
+    ls $EDTOP/scripts
     # don't re-do this if not needed, might break other configs
     $EDTOP/scripts/make-example-ca.sh
 fi
