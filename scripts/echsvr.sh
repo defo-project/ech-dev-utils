@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# set -x
+set -x
 
 # to pick up correct .so's - maybe note 
 : ${CODETOP:=$HOME/code/openssl}
