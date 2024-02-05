@@ -173,7 +173,7 @@ then
     echo "No sign of $GETOPTDIR/getopt - exiting"
     exit 32
 fi
-getoptcnt=`$GETOPTDIR/getopt --version | grep -c "util-linux"`
+getoptcnt=`$GETOPTDIR/getopt --version | grep -c "util-linux"` || true
 if [[ "$getoptcnt" != "1" ]]
 then
     echo "$GETOPTDIR/getopt doesn't seem to be gnu-getopt - exiting"
@@ -236,7 +236,7 @@ fi
 TRACING=""
 tmpf=`mktemp`
 $CMDPATH s_client -help >$tmpf 2>&1
-tcount=`grep -c 'trace output of protocol messages' $tmpf`
+tcount=`grep -c 'trace output of protocol messages' $tmpf` || true
 if [[ "$tcount" == "1" ]]
 then
     TRACING="-trace "
@@ -570,8 +570,8 @@ else
     ( echo -e "$httpreq" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $tcust $hrrstr >$TMPF 2>&1
 fi
 
-c200=`grep -c "200 OK" $TMPF`
-csucc=`grep -c "ECH: success" $TMPF`
+c200=`grep -c "200 OK" $TMPF` || true
+csucc=`grep -c "ECH: success" $TMPF` || true
 c4xx=`grep -ce "^HTTP/1.1 4[0-9][0-9] " $TMPF` || true
 if [[ "$DEBUG" == "yes" ]]
 then
@@ -588,9 +588,9 @@ then
 fi
 if [[ "$GREASE" == "yes" ]]
 then
-  goodresult=`grep -c "ECH: only greasing, and got ECH in return" $TMPF`
+  goodresult=`grep -c "ECH: only greasing, and got ECH in return" $TMPF` || true
 else
-  goodresult=`grep -c "ECH: success" $TMPF`
+  goodresult=`grep -c "ECH: success" $TMPF` || true
 fi
 echo "$0 Summary: "
 allresult=`grep "ECH: " $TMPF`

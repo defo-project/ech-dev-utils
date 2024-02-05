@@ -196,7 +196,7 @@ keyfile2="-key2 $KEYFILE2 -cert2 $CERTFILE2"
 TRACING=""
 tmpf=`mktemp`
 $CMDPATH s_server -help >$tmpf 2>&1
-tcount=`grep -c 'trace protocol messages' $tmpf`
+tcount=`grep -c 'trace protocol messages' $tmpf` || true
 if [[ "$tcount" == "1" ]]
 then
     TRACING="-trace "
