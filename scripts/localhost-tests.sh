@@ -39,6 +39,7 @@ ls -l ed.sess
 $EDTOP/scripts/echcli.sh -H foo.example.com -p 8443 -s localhost -P echconfig.pem -S ed.sess -e
 rm ed.sess
 if [[ "$PACKAGING" == "" ]]
+then
     ECHSVR=`ps -ef | grep "openssl s_server" | grep -v grep | awk '{print $2}'`
     if [[ "$ECHSVR" != "" ]]
     then
