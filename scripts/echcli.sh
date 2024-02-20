@@ -64,6 +64,7 @@ SUPPLIEDHIDDEN=""
 
 # PNO is the public_name_override that'll be sent as clear_sni
 SUPPLIEDPNO=""
+SUPPLIEDWAIT=""
 
 # ECH (or filename) from command line
 SUPPLIEDECH=""
@@ -181,7 +182,7 @@ then
 fi
 
 # options may be followed by one colon to indicate they have a required argument
-if ! options=$($GETOPTDIR/getopt -s bash -o 46a:C:c:def:gGhH:IjnNO:p:P:Rrs:S:t:Tv -l four,six,alpn,choose:,clear_sni:,debug,early,filepath:,grease,greasesuite,help,hidden:,ignore_cid,just,noech,noalpn,outer:,port:,echpub:,hrr,realcert,server:,session:,gtype:,test_cust,valgrind -- "$@")
+if ! options=$($GETOPTDIR/getopt -s bash -o 46a:C:c:def:gGhH:IjnNO:p:P:Rrs:S:t:Tv -l four,six,alpn,choose:,clear_sni:,debug,early,filepath:,grease,greasesuite,help,hidden:,ignore_cid,just,noech,noalpn,outer:,port:,echpub:,hrr,realcert,server:,session:,gtype:,test_cust,valgrind,wait: -- "$@")
 then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -217,6 +218,7 @@ do
         -t|--gtype) GTYPE=$2; shift;;
         -T|--test_cust) TESTCUST="yes" ;;
         -v|--valgrind) VG="yes" ;;
+        -w|--wait) SUPPLIEDWAIT=$2; shift;;
         (--) shift; break;;
         (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
         (*)  break;;
@@ -551,15 +553,20 @@ fi
 # seconds to sleep after firing up client so that tickets might arrive
 sleepaftr=2
 
-if [[ "$DEBUG" == "yes" ]]
+if [[ "$SUPPLIEDWAIT" != "" ]]
 then
-    # bit slower so sleep a bit more
-    sleepaftr=8
-fi
-if [[ "$VG" == "yes" ]]
-then
-    # bit slower so sleep a bit more
-    sleepaftr=6
+    sleepaftr="$SUPPLIEDWAIT"
+else
+    if [[ "$DEBUG" == "yes" ]]
+    then
+        # bit slower so sleep a bit more
+        sleepaftr=8
+    fi
+    if [[ "$VG" == "yes" ]]
+    then
+        # bit slower so sleep a bit more
+        sleepaftr=6
+    fi
 fi
 
 if [[ "$EARLY_DATA" == "yes" ]]
