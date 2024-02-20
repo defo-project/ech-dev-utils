@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# set -e
-set -ex
+# set -ex
+set -e
 
 # A couple of basic openssl ECH tests
 # we assume we're in the root of a checked out ech-dev-utils repo
