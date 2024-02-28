@@ -317,7 +317,7 @@ fi
 
 if [[ "$DEBUG" == "yes" ]]
 then
-    echo "Running: $sudocmd $vgcmd $CMDPATH s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr"
+    echo "Running: $sudocmd $vgcmd $CMDPATH s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr $@"
 fi
 $sudocmd $vgcmd $CMDPATH s_server $dbgstr $keyfile1 $keyfile2 $certsdb $portstr $force13 $echstr $snicmd $trialdecrypt $alpn_cmd $echpad_cmd $hrr_cmd $nreq_cmd $WEBSERVER $earlystr $greasestr $@
 
