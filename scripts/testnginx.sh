@@ -67,13 +67,17 @@ fi
 
 # if starting afresh check if some process was left over after gdb or something
 
-# kill off other processes
-procs=`ps -ef | grep nginx | grep -v grep | grep -v testnginx | awk '{print $2}'`
-for proc in $procs
-do
-    echo "Killing old nginx (from gdb maybe) in $proc"
-    kill -9 $proc
-done
+# kill off other processes (don't bother if PACKAGING)
+
+if [[ "$PACKAGING" == "" ]]
+then
+    procs=`ps -ef | grep nginx | grep -v grep | grep -v testnginx | awk '{print $2}'`
+    for proc in $procs
+    do
+        echo "Killing old nginx (from gdb maybe) in $proc"
+        kill -9 $proc
+    done
+fi
 
 # give the n/w a chance so ports are free to use
 sleep 2

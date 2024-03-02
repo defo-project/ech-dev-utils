@@ -126,8 +126,12 @@ s_server_stop() {
 do_envsubst() {
     envcheck $EDTOP
     envcheck $RUNTOP
-    cat $EDTOP/configs/nginxsplit.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxsplit.conf
-    cat $EDTOP/configs/nginxmin.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxmin.conf
+    # We'll use sed for now as figuring out how to get envsubst running in the github CI
+    # isn't (yet;-) obvious
+    # cat $EDTOP/configs/nginxsplit.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxsplit.conf
+    # cat $EDTOP/configs/nginxmin.conf | envsubst '{$RUNTOP}' >$RUNTOP/nginx/nginxmin.conf
+    sed "s#\$RUNTOP#$RUNTOP#g" "$EDTOP/configs/nginxmin.conf" > "$RUNTOP/nginx/nginxmin.conf"
+    sed "s#\$RUNTOP#$RUNTOP#g" "$EDTOP/configs/nginxsplit.conf" > "$RUNTOP/nginx/nginxsplit.conf"
 }
 
 prep_server_dirs() {
