@@ -12,6 +12,11 @@ this stuff no longer belongs there, so we've moved it here.
 The content includes scripts for doing ECH things, sample configurations and
 HOWTOs for building and testing ECH-enabled things.
 
+We also include CI builds and basic tests of the various packages here, to
+check for whenever we get a mismatch between upstream and our ECH-enabled
+forks. Those CI jobs are in the ``.github/workflows/packages.yaml`` and
+a further described [here](howtos/CI-builds.md).
+
 These have been used in an Ubuntu 23.04 development environment and as a
 default assume that you have other code repos installed and built in e.g.
 ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. 
