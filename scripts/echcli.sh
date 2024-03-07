@@ -3,7 +3,7 @@
 # Script to run basic tests using the openssl command line tool.
 # Equivalent tests should migrate to being run as part of ``make test``
 
-set -x
+# set -x
 
 # to pick up correct .so's - maybe note 
 : ${CODETOP:=$HOME/code/openssl}
@@ -18,7 +18,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
-    set -e
+    set -ex
 fi
 
 # variables/settings
