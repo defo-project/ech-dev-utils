@@ -102,6 +102,12 @@ then
     do_envsubst
 fi
 
+# Try put nginxmin.conf where it's needed in CI workflows
+if [[ "$PACKAGING" != "" ]]
+then
+    cp $RUNTOP/nginx/nginxmin.conf /usr/share/nginx/nginxmin.conf
+fi
+
 echo "Executing: $NBIN -c nginxmin.conf"
 # move over there to run code, so config file can have relative paths
 cd $RUNTOP
