@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -x
+# set -x
+
+set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
@@ -102,16 +104,15 @@ then
     do_envsubst
 fi
 
-# Try put nginxmin.conf where it's needed in CI workflows
-if [[ "$PACKAGING" != "" ]]
-then
-    cp $RUNTOP/nginx/nginxmin.conf /usr/share/nginx/nginxmin.conf
-fi
-
 echo "Executing: $NBIN -c nginxmin.conf"
 # move over there to run code, so config file can have relative paths
 cd $RUNTOP
-$NBIN -c nginxmin.conf
+if [ ! -f $RUNTOP/echconfig.pem ]
+then
+    echo "No ECHConfig - exiting!"
+    exit 56
+fi
+$NBIN -c "$RUNTOP/nginx/nginxmin.conf"
 cd -
 
 for type in grease public real hrr
