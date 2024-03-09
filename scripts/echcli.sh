@@ -8,6 +8,7 @@ echo "We're running this one."
 # to pick up correct .so's - maybe note
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
+: ${RUNTOP:="."}
 : ${GETOPTDIR:=/usr/bin}
 # DNS recursive to use (don't ask:-)
 : ${DNSRECURSIVE=""}
@@ -84,7 +85,7 @@ HIDDEN="crypto.cloudflare.com"
 DEFFRAG="cdn-cgi/trace" # what CF like for giving a hint as to whether ECH worked
 PNO=""
 CAPATH="/etc/ssl/certs/"
-CAFILE="./cadir/oe.csr"
+CAFILE="$RUNTOP/cadir/oe.csr"
 REALCERT="no" # default to fake CA for localhost
 CIPHERSUITES="" # default to internal default
 HRR="no" # default to not trying to force HRR
