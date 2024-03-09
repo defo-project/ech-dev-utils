@@ -34,7 +34,7 @@ cli_test() {
         gorp="-P $RUNTOP/echconfig.pem -R "
     elif [[ "$runparm" == "real" ]]
     then
-        gorp="-P echconfig.pem "
+        gorp="-P $RUNTOP/echconfig.pem "
     else
         echo "bad cli_test parameter $runparm, exiting"
         exit 99
