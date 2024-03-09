@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# set -x
+set -e
 
 # Run a haproxy test
 
@@ -15,6 +15,7 @@
 # where frontend haproxy can be found
 : ${HAPPY:="$HOME/code/haproxy"}
 
+
 if [[ "$PACKAGING" == "" ]]
 then
     HAPPYBIN=$HAPPY/haproxy
@@ -24,6 +25,7 @@ else
     HAPPYBIN=`which haproxy`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
+    VERBOSE=yes
 fi
 
 export LD_LIBRARY_PATH=$CODETOP
@@ -72,6 +74,11 @@ do
     do
         echo "Testing $type $port"
         cli_test $port $type
+        if [[ "$VERBOSE" == "yes" ]]
+        then
+            cat $CLILOGFILE
+            rm -f $CLILOGFILE
+        fi
     done
 done
 
