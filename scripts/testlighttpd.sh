@@ -14,9 +14,12 @@ export LD_LIBRARY_PATH=$CODETOP
 export RUNTOP=$RUNTOP
 : ${LIGHTY:=$HOME/code/lighttpd1.4}
 
-if [[ "$PACKAGING" != "" ]]
+if [[ "$PACKAGING" == "" ]]
 then
+    CMDPATH=$CODETOP/apps/openssl
+else
     EDTOP="$(dirname "$(realpath "$0")")/.."
+    CMDPATH=`which openssl`
     RUNTOP=`mktemp -d`
 fi
 
