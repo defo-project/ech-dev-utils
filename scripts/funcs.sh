@@ -31,7 +31,7 @@ cli_test() {
         gorp="-g "
     elif [[ "$runparm" == "hrr" ]]
     then
-        gorp="-P echconfig.pem -R "
+        gorp="-P $RUNTOP/echconfig.pem -R "
     elif [[ "$runparm" == "real" ]]
     then
         gorp="-P echconfig.pem "
