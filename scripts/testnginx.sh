@@ -1,8 +1,7 @@
-#!/bin/bash
-
-# set -x
+#!/bin/bash 
 
 set -ex
+# set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
@@ -12,6 +11,7 @@ export LD_LIBRARY_PATH=$CODETOP
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
+: ${VERBOSE:="no"}
 
 if [[ "$PACKAGING" == "" ]]
 then
@@ -120,6 +120,11 @@ do
     port=5443
     echo "Testing $type $port"
     cli_test $port $type
+    if [[ "$VERBOSE" == "yes" ]]
+    then
+        cat $CLILOGFILE
+        rm -f $CLILOGFILE
+    fi
 done
 
 if [[ "$allgood" == "yes" ]]

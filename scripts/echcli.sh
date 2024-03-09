@@ -1,11 +1,11 @@
 #!/bin/bash
 
+echo "We're running this one."
+
 # Script to run basic tests using the openssl command line tool.
 # Equivalent tests should migrate to being run as part of ``make test``
 
-# set -x
-
-# to pick up correct .so's - maybe note 
+# to pick up correct .so's - maybe note
 : ${CODETOP:=$HOME/code/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 : ${GETOPTDIR:=/usr/bin}
@@ -18,7 +18,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
-    set -ex
+    set -e
 fi
 
 # variables/settings
@@ -153,7 +153,7 @@ function usage()
     echo "  -p [port] specifices a port (default: 443)"
     echo "  -P [filename] means read ECHConfigs public value from file and not DNS"
     echo "  -r (or --realcert) says to not use locally generated fake CA regardless"
-    echo "  -R try force HRR by preferring P-384 over X2519" 
+    echo "  -R try force HRR by preferring P-384 over X2519"
     echo "  -s [name] specifices a server to which I'll connect (localhost=>local certs, unless --realcert)"
     echo "  -S [file] means save or resume session from <file>"
     echo "  -t [type] means to set the TLS extension type for GREASE to <type>"
@@ -161,13 +161,13 @@ function usage()
     echo "  -v means run with valgrind"
     echo "  -- anything after -- is passed directly to s_client"
 
-	echo ""
-	echo "The following should work:"
-	echo "    $0 -H defo.ie"
+    echo ""
+    echo "The following should work:"
+    echo "    $0 -H defo.ie"
     exit 99
 }
 
-# check we have what looks like a good getopt (the native version on macOS 
+# check we have what looks like a good getopt (the native version on macOS
 # seems to not be good)
 if [ ! -f $GETOPTDIR/getopt ]
 then
@@ -200,8 +200,8 @@ do
         -d|--debug) DEBUG="yes" ;;
         -e|--early) EARLY_DATA="yes" ;;
         -f|--filepath) HTTPPATH=$2; shift;;
-		-g|--grease) GREASE="yes";;
-		-G|--greasesuite) GSUITESET="yes";;
+        -g|--grease) GREASE="yes";;
+        -G|--greasesuite) GSUITESET="yes";;
         -h|--help) usage;;
         -H|--hidden) SUPPLIEDHIDDEN=$2; shift;;
         -I|--ignore_cid) IGNORE_CID="yes" ;;
@@ -210,7 +210,7 @@ do
         -N|--noalpn) DOALPN="no" ;;
         -O|--outer) SUPPLIEDOUTER=$2; shift;;
         -p|--port) SUPPLIEDPORT=$2; shift;;
-		-P|--echpub) SUPPLIEDECH=$2; shift;;
+        -P|--echpub) SUPPLIEDECH=$2; shift;;
         -r|--realcert) REALCERT="yes" ;;
         -R|--hrr) HRR="yes" ;;
         -s|--server) SUPPLIEDSERVER=$2; shift;;
@@ -225,10 +225,12 @@ do
     shift
 done
 
+set -x
+
 hidden=$HIDDEN
 if [[ "$SUPPLIEDHIDDEN" != "" ]]
 then
-	hidden=$SUPPLIEDHIDDEN
+    hidden=$SUPPLIEDHIDDEN
 fi
 
 # figure out if we have tracing enabled within OpenSSL
@@ -290,25 +292,25 @@ then
 fi
 
 snioutercmd=" "
-if [[ "$SUPPLIEDPNO" != "" && "$NOECH" != "yes" ]] 
+if [[ "$SUPPLIEDPNO" != "" && "$NOECH" != "yes" ]]
 then
     snioutercmd="-sni_outer $SUPPLIEDPNO"
 fi
 
-# Set address of target 
+# Set address of target
 if [[ "$SUPPLIEDPNO" != "" && "$hidden" == "" ]]
 then
     target=" -connect $SUPPLIEDPNO:$PORT "
 else
-    # I guess we better connect to hidden 
+    # I guess we better connect to hidden
     # Note that this could leak via DNS again
     target=" -connect $hidden:$PORT "
 fi
 server=$hidden
 if [[ "$SUPPLIEDSERVER" != "" ]]
 then
-	target=" -connect $SUPPLIEDSERVER:$PORT"
-	server=$SUPPLIEDSERVER
+    target=" -connect $SUPPLIEDSERVER:$PORT"
+    server=$SUPPLIEDSERVER
 fi
 
 selstr=""
@@ -322,27 +324,27 @@ ciphers=$CIPHERSUITES
 
 if [[ "$NOECH" == "no" && "$GREASE" == "no" ]]
 then
-	if [[ "$SUPPLIEDECH" != "" ]]
-	then
-		if [ ! -f $SUPPLIEDECH ]
-		then
+    if [[ "$SUPPLIEDECH" != "" ]]
+    then
+        if [ ! -f $SUPPLIEDECH ]
+        then
             echo "Assuming supplied ECH is encoded ECHConfigList or SVCB"
             ECH=" $selstr -ech_config_list $SUPPLIEDECH "
         else
-		    # check if file suffix is .pem (base64 encoding) 
-		    # and react accordingly, don't take any other file extensions
-		    ssfname=`basename $SUPPLIEDECH`
-		    if [ `basename "$ssfname" .pem` != "$ssfname" ]
-		    then
-			    ECH=" $selstr -ech_config_list `tail -2 $SUPPLIEDECH | head -1`" 
-		    else
-			    echo "Not sure of file type of $SUPPLIEDECH - try make a PEM file to help me"
-			    exit 8
-		    fi
-		fi
-	else
+            # check if file suffix is .pem (base64 encoding)
+            # and react accordingly, don't take any other file extensions
+            ssfname=`basename $SUPPLIEDECH`
+            if [ `basename "$ssfname" .pem` != "$ssfname" ]
+            then
+                ECH=" $selstr -ech_config_list `tail -2 $SUPPLIEDECH | head -1`"
+            else
+                echo "Not sure of file type of $SUPPLIEDECH - try make a PEM file to help me"
+                exit 8
+            fi
+        fi
+    else
         # try draft-13 only for now, i.e. HTTPS
-        # kill the spaces and joing the lines if multi-valued seen 
+        # kill the spaces and joing the lines if multi-valued seen
         qname=$hidden
         if [[ "$PORT" != "" && "$PORT" != "443" ]]
         then
@@ -373,7 +375,7 @@ then
             digval="`dig +unknownformat +short $recursivestr -t TYPE65 $qname | tail -1 | cut -f 3- -d' ' | sed -e 's/ //g' `"
             # digval used have one more sed command as per below...
             # digval="`dig +short -t TYPE65 $qname | tail -1 | cut -f 3- -d' ' | sed -e 's/ //g' | sed -e 'N;s/\n//'`"
-            # I think that's a hangover from some other script that had to merge lines, e.g. if the RR value is 
+            # I think that's a hangover from some other script that had to merge lines, e.g. if the RR value is
             # very very big - but since we're doing a tail -1 here (ignoring all but one RR value) that shouldn't
             # be needed (and it caused a problem for someone who didn't have GNU sed)
         fi
@@ -384,7 +386,7 @@ then
             exit 22
         fi
         ECH=" $selstr -ech_config_list $digval "
-	fi
+    fi
 fi
 
 if [[ "$NOECH" == "no" && "$GREASE" == "no" && "$ECH" == "" ]]
@@ -481,13 +483,13 @@ httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphos
 # tell it where CA stuff is...
 if [[ "$server" != "localhost" ]]
 then
-	certsdb=" -CApath $CAPATH"
+    certsdb=" -CApath $CAPATH"
 else
     if [[ "$REALCERT" == "no" && -f $CAFILE ]]
     then
-	    certsdb=" -CAfile $CAFILE"
+        certsdb=" -CAfile $CAFILE"
     else
-	    certsdb=" -CApath $CAPATH"
+        certsdb=" -CApath $CAPATH"
     fi
 fi
 
@@ -500,15 +502,15 @@ force13="-no_ssl3 -no_tls1 -no_tls1_1 -no_tls1_2"
 session=""
 if [[ "$SUPPLIEDSESSION" != "" ]]
 then
-	if [ ! -f $SUPPLIEDSESSION ]
-	then
-		# save so we can resume
-		session=" -sess_out $SUPPLIEDSESSION"
-	else
-		# resuming 
-		session=" -sess_in $SUPPLIEDSESSION"
+    if [ ! -f $SUPPLIEDSESSION ]
+    then
+        # save so we can resume
+        session=" -sess_out $SUPPLIEDSESSION"
+    else
+        # resuming
+        session=" -sess_in $SUPPLIEDSESSION"
         REUSINGSESSION="yes"
-	fi
+    fi
 fi
 
 alpn=""
@@ -576,16 +578,16 @@ csucc=`grep -c "ECH: success" $TMPF` || true
 c4xx=`grep -ce "^HTTP/1.1 4[0-9][0-9] " $TMPF` || true
 if [[ "$DEBUG" == "yes" ]]
 then
-	echo "$0 All output" 
-	cat $TMPF
-	echo ""
+    echo "$0 All output"
+    cat $TMPF
+    echo ""
 fi
 if [[ "$VG" == "yes" ]]
 then
-	vgout=`grep -e "^==" $TMPF`
-	echo "$0 Valgrind" 
-	echo "$vgout"
-	echo ""
+    vgout=`grep -e "^==" $TMPF`
+    echo "$0 Valgrind"
+    echo "$vgout"
+    echo ""
 fi
 if [[ "$GREASE" == "yes" ]]
 then
