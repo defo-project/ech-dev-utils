@@ -112,6 +112,12 @@ then
     echo "No ECHConfig - exiting!"
     exit 56
 fi
+# if we want to trace out the config 
+if [[ "$VERBOSE" == "yes" ]]
+then
+    echo "nginx config"
+    cat $RUNTOP/nginx/nginxmin.conf
+fi
 $NBIN -c "$RUNTOP/nginx/nginxmin.conf"
 cd -
 
