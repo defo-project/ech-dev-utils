@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-set -ex
+set -x
 # set -e
 
 # to pick up correct executables and .so's
