@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo "We're running this one."
-
 # Script to run basic tests using the openssl command line tool.
 # Equivalent tests should migrate to being run as part of ``make test``
 
@@ -37,7 +35,6 @@ GSUITESET="no"
 # GTYPE="65034" # that's 0xfe0a - for draft-10
 GTYPE_DEF="65037" # that's 0xfe0d - for draft-13
 GTYPE=$GTYPE_DEF
-
 
 # Protocol parameters
 
@@ -225,8 +222,6 @@ do
     esac
     shift
 done
-
-set -x
 
 hidden=$HIDDEN
 if [[ "$SUPPLIEDHIDDEN" != "" ]]

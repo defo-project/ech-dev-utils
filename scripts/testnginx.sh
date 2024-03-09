@@ -1,7 +1,7 @@
 #!/bin/bash 
 
-set -x
-# set -e
+# set -x
+set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
