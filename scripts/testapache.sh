@@ -54,7 +54,7 @@ then
 fi
 
 echo "Executing: $ABIN -d $RUNTOP -f $EDTOP/configs/apachemin.conf"
-$ABIN -d $RUNTOP -f $EDTOP/configs/apachemin.conf
+WHACKAGING=1 $ABIN -d $RUNTOP -f $EDTOP/configs/apachemin.conf
 
 for type in grease public real hrr
 do
