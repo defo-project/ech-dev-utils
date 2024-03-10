@@ -26,6 +26,8 @@ fi
 
 . $EDTOP/scripts/funcs.sh
 
+export RUNTOP PACKAGING
+
 CLILOGFILE=`mktemp`
 SRVLOGFILE=`mktemp`
 KEEPLOG="no"
