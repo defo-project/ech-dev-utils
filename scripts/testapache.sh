@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# set -x
+set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
@@ -20,6 +20,7 @@ then
 else
     CMDPATH=`which openssl`
     ABIN=`which httpd`
+    EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
 fi
 
