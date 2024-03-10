@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
@@ -62,5 +62,22 @@ do
     echo "Testing $type $port"
     cli_test $port $type
 done
+
+if [[ "$allgood" == "yes" ]]
+then
+    echo "All good."
+    rm -f $CLILOGFILE $SRVLOGFILE
+else
+    echo "Something failed."
+    if [[ "$KEEPLOG" != "no" ]]
+    then
+        echo "Client logs in $CLILOGFILE"
+        echo "Server logs in $SRVLOGFILE"
+    else
+        rm -f $CLILOGFILE $SRVLOGFILE
+    fi
+fi
+
 kill `cat $PIDFILE`
 rm -f $PIDFILE
+
