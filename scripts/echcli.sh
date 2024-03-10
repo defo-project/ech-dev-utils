@@ -20,8 +20,6 @@ else
     set -e
 fi
 
-set -x
-
 # variables/settings
 # use Valgrind or not
 VG="no"
