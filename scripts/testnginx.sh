@@ -10,7 +10,6 @@ export LD_LIBRARY_PATH=$CODETOP
 : ${NTOP:=$HOME/code/nginx}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
-export RUNTOP=$RUNTOP
 : ${VERBOSE:="no"}
 
 if [[ "$PACKAGING" == "" ]]
@@ -23,6 +22,7 @@ else
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
 fi
+export RUNTOP=$RUNTOP
 
 # in case we wanna dump core and get a backtrace, make a place for
 # that (dir name is also in configs/nginxmin.conf)

@@ -27,7 +27,7 @@ else
     RUNTOP=`mktemp -d`
     VERBOSE=yes
 fi
-
+export RUNTOP=$RUNTOP
 export LD_LIBRARY_PATH=$CODETOP
 
 HLOGDIR="$RUNTOP/haproxy/logs"
