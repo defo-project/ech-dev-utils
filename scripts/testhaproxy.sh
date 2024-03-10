@@ -88,6 +88,7 @@ do
     done
 done
 
+
 lighty_stop
 if [ -f $BE_PIDFILE ]
 then
