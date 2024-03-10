@@ -19,7 +19,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
-    ABIN=`which httpd`
+    ABIN=`which apache2`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
 fi
