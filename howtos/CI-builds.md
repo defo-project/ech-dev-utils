@@ -1,7 +1,7 @@
 
 # DEfO Project CI build/test setup
 
-The goal of these continuuous integration (CI) builds and tests is to identify
+The goal of these continuous integration (CI) builds and tests is to identify
 any cases where upstream code has diverged from our ECH-enabled forks, such
 that a ``git merge`` would fail, or a basic test of the result of such a 
 merge fails.
@@ -37,7 +37,7 @@ an environment variable ``PACKAGING=1`` so the scripts and configs
 can differ from the command line and CI environments, which is
 sometimes useful.
 
-## Heritge
+## Heritage
 
 Mostly, the ECH-enabled code in the various repos here was originally developed
 under the equivalent fork in the ``sftcd`` github account.
