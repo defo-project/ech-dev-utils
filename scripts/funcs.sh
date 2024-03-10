@@ -42,7 +42,7 @@ cli_test() {
     envcheck $EDTOP
     envcheck $CLILOGFILE
     envcheck $allgood
-    $EDTOP/scripts/echcli.sh $clilog $gorp -p $port -H $target -s localhost -f index.html >>$CLILOGFILE 2>&1
+    $EDTOP/scripts/echcli.sh $clilog $gorp -p $port -H $target -s localhost -f index.html -d >>$CLILOGFILE 2>&1
     lres=$?
     if [[ "$lres" != "0" ]]
     then
