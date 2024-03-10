@@ -61,6 +61,7 @@ lighty_start $EDTOP/configs/lighttpd4haproxymin.conf
 
 # Now start up a haproxy
 # run haproxy in background
+cd $RUNTOP
 HAPDEBUGSTR=" -DdV " 
 echo "Executing: $HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
 $HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1 || true
@@ -68,6 +69,7 @@ if [[ "$VERBOSE" == "yes" ]]
 then
     cat $SRVLOGFILE
 fi
+cd -
 
 # all things should appear the same to the client
 # server log checks will tells us if stuff worked or not
