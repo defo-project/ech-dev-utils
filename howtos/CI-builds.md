@@ -45,43 +45,58 @@ under the equivalent fork in the ``sftcd`` github account.
 The new CI scripting was initially added to these forks under the ``jspricke``
 github account.
 
-## Reacting to found issues
+## Reacting to ``builder`` fails
 
-When we see a failure with a ``git merge`` the general plan is to
+When we see a failure with a ``builder`` workflow the general plan is to
 do as follows:
 
-- clone your``development`` branch to a new local tree
+- clone the repo to a new directory
 - rebase that branch with upstream fixing any issues identified
-- add the relevant ``defo-project`` repo as a new upstream 
-- force-push to the defo-project repo
+- build and test
+- force-push
 
 While not the only way to do it, the recipe I'd follow for
 the above when dealing with an issue in the ``apache-http``
 repo would be:
 
+- First, clone the repo and rebase with upstream:
+
 ```bash
-$ git clone git@github.com:sftcd/httpd.git httpd-rebase
-$ cd httpd-rebase
+$ cd $HOME/code
+$ git clone git@github.com:defo-project/apache-httpd.git apache-httpd-rebase
 $ git remote add upstream https://github.com/apache/httpd.git
 $ git fetch upstream
-$ git checkout trunk
-$ git reset --hard upstream/trunk
-$ git push origin trunk --force 
-$ git checkout ECH-experimental
-$ git rebase -i trunk ECH-experimental
-... fix things...
-$ git status
-... see <to-be-fixed-thing> needs an edit...
-... do the edit...
-$ git add <to-be-fixed-thing>
-$ git rebase --continue
-... rinse/repeat 'till done ...
-$ git push -f
-$ git remote add defoprojectupstream git@github.com:defo-project/apache-httpd.git
-$ git push defoprojectupstream ECH-experimental:trunk
-$ cd ..
-$ rm -rf httpd-rebase
+$ git rebase -i upstream/trunk trunk
+... fix things that need fixing ...
 ```
 
-Various names in the above will change in other cases of course.
+- Next, follow our build/test howto for that repo, in this case
+that'd be [here](howtos/apache2.md).
+When running the test, you'll need to set the ``ATOP`` environment
+variable to reflect the use of the ``apache-httpd-rebase`` 
+directory, so:
+
+```bash
+$ cd $HOME/lt
+$ ATOP=$HOME/code/apache-httpd-rebase/ $HOME/code/defo-project-org/ech-dev-utils/scripts/testapache.sh 
+/home/user/lt
+Executing: /home/user/code/apache-httpd-rebase//httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf
+Testing grease 9443
+Testing public 9443
+Testing real 9443
+Testing hrr 9443
+All good.
+```
+
+- Once all is well, you can force-push the repo and then
+clean up:
+
+```bash
+$ cd $HOME/code/apache-httpd-rebase
+$ git push -f
+$ cd ..
+$ rm -rf apache-httpd-rebase
+```
+
+Various names in the above will change for other repos of course.
 
