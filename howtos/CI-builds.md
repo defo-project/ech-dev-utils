@@ -71,7 +71,7 @@ $ git rebase -i upstream/trunk trunk
 ```
 
 - Next, follow our build/test howto for that repo, in this case
-that'd be [here](howtos/apache2.md).
+that'd be [here](apache2.md).
 When running the test, you'll need to set the ``ATOP`` environment
 variable to reflect the use of the ``apache-httpd-rebase`` 
 directory, so:
