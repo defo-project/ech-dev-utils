@@ -15,7 +15,7 @@ source directory.
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/defo-project/httpd
+    $ git clone https://github.com/defo-project/apache-httpd httpd
     $ cd httpd
     $ cd srclib
     $ git clone https://github.com/apache/apr.git
