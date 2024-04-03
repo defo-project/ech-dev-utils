@@ -78,7 +78,7 @@ directory, so:
 
 ```bash
 $ cd $HOME/lt
-$ ATOP=$HOME/code/apache-httpd-rebase/ $HOME/code/defo-project-org/ech-dev-utils/scripts/testapache.sh 
+$ ATOP=$HOME/code/apache-httpd-rebase/ $HOME/code/ech-dev-utils/scripts/testapache.sh 
 /home/user/lt
 Executing: /home/user/code/apache-httpd-rebase//httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf
 Testing grease 9443
