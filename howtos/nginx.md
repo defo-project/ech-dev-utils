@@ -16,22 +16,20 @@ other builds):
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/sftcd/openssl.git openssl-for-nginx
+    $ git clone https://github.com/defo-project/openssl.git openssl-for-nginx
     $ cd openssl-for-nginx
-    $ git checkout ECH-draft-13c
     $ ./config -d
     ...stuff...
     $ make
     ...go for coffee...
 ```
 
-Then you need nginx, and to switch to our ``ECH-experimental`` branch:
+Then you need nginx:
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/sftcd/nginx.git
+    $ git clone https://github.com/defo-project/nginx.git
     $ cd nginx
-    $ git checkout ECH-experimental
     $ ./auto/configure --with-debug --prefix=nginx --with-http_ssl_module --with-stream --with-stream_ssl_module --with-stream_ssl_preread_module --with-openssl=$HOME/code/openssl-for-nginx --with-openssl-opt="--debug" --with-http_v2_module
     $ make
     ... go for coffee ...
