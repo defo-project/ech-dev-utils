@@ -19,12 +19,9 @@ Nothing remarkable here really:
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/sftcd/lighttpd1.4 
+    $ git clone https://github.com/defo-project/lighttpd1.4 
     ...
     $ cd lighttpd1.4
-    $ git checkout ECH-experimental
-    Branch 'ECH-experimental' set up to track remote branch 'ECH-experimental' from 'origin'.
-    Switched to a new branch 'ECH-experimental'
     $ ./autogen.sh 
     ... stuff ...
     $ ./configure --with-openssl=$HOME/code/openssl --with-openssl-libs=$HOME/code/openssl
@@ -106,15 +103,15 @@ With out test configuration, the ECH PEM files are re-loaded every 60 seconds,
 so you'll see error log lines like the following accumulating:
 
 ```bash
-    2023-12-06 01:39:12: (mod_openssl.c.603) SSL: SSL_CTX_ech_server_enable_dir() worked for /home/stephen/lt/echkeydir/echconfig.pem.ech
+    2023-12-06 01:39:12: (mod_openssl.c.603) SSL: SSL_CTX_ech_server_enable_dir() worked for /home/user/lt/echkeydir/echconfig.pem.ech
 ```
 
 You can then use our wrapper for ``openssl s_client`` to access a web page:
 
 ```bash
     $ ~/code/ech-dev-utils/scripts/echcli.sh  -p 3443 -s localhost -H foo.example.com -P echconfig.pem -f index.html
-    Running /home/stephen/code/ech-dev-utils/scripts/echcli.sh at 20231206-011943
-    /home/stephen/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231206-011943
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $ 
@@ -296,9 +293,6 @@ Here's a PHP snippet that will display those:
 
 ## Code changes
 
-- Code changes can be examined
-  [here](https://github.com/lighttpd/lighttpd1.4/compare/master...sftcd:lighttpd1.4:ECH-experimental).
-
 - ALl code changes are within the ``src/mod_openssl.c`` file.
 
 - Significant new code is protected via ``#ifndef OPENSSL_NO_ECH`` as is done
@@ -347,7 +341,7 @@ To start lighttpd in a debugger, and break when loading ECH PEM files:
     Make breakpoint pending on future shared library load? (y or [n]) y
     Breakpoint 1 (mod_openssl_refresh_ech_keys_ctx) pending.
     (gdb) r -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
-    Starting program: /home/stephen/code/lighttpd1.4/src/lighttpd -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
+    Starting program: /home/user/code/lighttpd1.4/src/lighttpd -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
     [Thread debugging using libthread_db enabled]
     Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
     

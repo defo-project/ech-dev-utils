@@ -4,9 +4,8 @@ First step is to have an openssl build that works, e.g.:
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/sftcd/openssl
+    $ git clone https://github.com/defo-project/openssl
     $ cd openssl
-    $ git checkout ECH-draft-13c
     $ ./config
     ...stuff...
     $ make -j8

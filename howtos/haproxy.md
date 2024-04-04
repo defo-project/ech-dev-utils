@@ -16,9 +16,8 @@ so...
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/sftcd/haproxy.git
+    $ git clone https://github.com/defo-project/haproxy.git
     $ cd haproxy
-    $ git checkout ECH-experimental
     $ export OSSL=$HOME/code/openssl
     $ export LD_LIBRARY_PATH=$OSSL
     $ make V=1  SSL_INC=$OSSL/include/ SSL_LIB=$OSSL TARGET=linux-glibc \
@@ -129,7 +128,7 @@ To run the test:
     $ cd $HOME/lt
     $ $HOME/code/ech-dev-utils/scripts/testhaproxy.sh
     haproxy: no process found
-    Executing: /home/stephen/code/haproxy/haproxy -f /home/stephen/code/ech-dev-utils/configs/haproxymin.conf  -DdV  >/home/stephen/lt/haproxy/logs/haproxy.log 2>&1
+    Executing: /home/user/code/haproxy/haproxy -f /home/user/code/ech-dev-utils/configs/haproxymin.conf  -DdV  >/home/user/lt/haproxy/logs/haproxy.log 2>&1
     Doing shared-mode client calls...
     Testing grease 7443
     Testing grease 7444

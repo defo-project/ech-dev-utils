@@ -63,7 +63,7 @@ You should run that from the directory we used before for
     $ cd $HOME/lt
     $ $HOME/code/ech-dev-utils/scripts/testapache.sh
     httpd: no process found
-    Executing: /home/stephen/code/httpd/httpd -d /home/stephen/lt -f /home/stephen/code/ech-dev-utils/configs/apachemin.conf
+    Executing: /home/user/code/httpd/httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf
     Testing grease 9443
     Testing public 9443
     Testing real 9443

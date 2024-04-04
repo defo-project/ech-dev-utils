@@ -4,40 +4,39 @@ This is a [DEfO](https://defo.ie) project production.
 
 The current development branch of our Encrypted ClientHello (ECH) enabled fork
 of OpenSSL is
-[ECH-draft-13c](https://github.com/sftcd/openssl/tree/ECH-draft-13c). That
-branch also contains this material, but now that we've turned that branch into
-a [PR for upstream OpenSSL](https://github.com/openssl/openssl/pull/22938),
-this stuff no longer belongs there, so we've moved it here.
+[ECH-draft-13c](https://github.com/sftcd/openssl/tree/ECH-draft-13c), under the
+github ``sftcd`` account, but you can use the one
+[here](https://github.com/defo-project/openssl), which is less likely to
+undergo changes. That ``sftcd`` branch also contains some of this material, but
+now that we've submitted a [PR for upstream
+OpenSSL](https://github.com/openssl/openssl/pull/22938), this material needs
+somewhere else to live in the longer term, so we've moved it here.
 
-The content includes scripts for doing ECH things, sample configurations and
-HOWTOs for building and testing ECH-enabled things.
+The content here includes scripts for doing ECH things, sample configurations
+and HOWTOs for building and testing ECH-enabled things.
 
-We also include CI builds and basic tests of the various packages here, to
-check for whenever we get a mismatch between upstream and our ECH-enabled
-forks. Those CI jobs are in the ``.github/workflows/packages.yaml`` and
-a further described [here](howtos/CI-builds.md).
+We also include new CI workflows and that do a merge with upstream, build and
+run basic tests of the various packages here, to check for whenever we get a
+mismatch between upstream and our ECH-enabled forks. Those CI jobs are in the
+``.github/workflows/packages.yaml`` of each repo, and are further described
+[here](howtos/CI-builds.md).
 
-These have been used in an Ubuntu 23.04 development environment and as a
-default assume that you have other code repos installed and built in e.g.
-``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. 
-
-These are also used in a debian unstable packaging environment that we
-are in the process of setting up as a generic set of CI workflows for
-all of the software artefacts described here. That's a work-in-progress
-at the moment.
+These scripts and howtos have been tested in an Ubuntu 23.04 development
+environment and as a default assume that you have other code repos installed
+and built in e.g.  ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. 
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
-- [localhost-tests.md](howtos/localhost-tests.md) is a HOWTO for using the 
+- [localhost-tests.md](howtos/localhost-tests.md) is a HOWTO for using the
   scripts below
-- [echcli.sh](scripts/echcli.sh) is a relatively comprehensive wrapper for ``openssl
-  s_client`` that allows one to play with lots of ECH options
-- [echsvr.sh](scripts/echsvr.sh) is a relatively comprehensive wrapper for ``openssl
-  s_server`` that allows one to play with lots of ECH options
-- [make-example-ca.sh](./scripts/make-example-ca.sh) creates fake x.509 certs for
-  example.com and the likes of foo.example.com so we can use the scripts and
-  configs here for localhost tests - you have to have gotten that to work before
-  ``echsvr.sh`` can be used for localhost tests
+- [echcli.sh](scripts/echcli.sh) is a relatively comprehensive wrapper for
+  ``openssl s_client`` that allows one to play with lots of ECH options
+- [echsvr.sh](scripts/echsvr.sh) is a relatively comprehensive wrapper for
+  ``openssl s_server`` that allows one to play with lots of ECH options
+- [make-example-ca.sh](./scripts/make-example-ca.sh) creates fake x.509 certs
+  for example.com and the likes of foo.example.com so we can use the scripts
+and configs here for localhost tests - you have to have gotten that to work
+before ``echsvr.sh`` can be used for localhost tests
 
 ## Pure test scripts
 
@@ -57,24 +56,24 @@ run these. Note these are deliberately sedate, but that's ok.
 We defined a new PEM file format for ECH key pairs, specified in
 [draft-farrell-tls-pemesni/](https://datatracker.ietf.org/doc/draft-farrell-tls-pemesni/).
 (That's an individual Internet-draft and doesn't currently have any standing in
-terms of IETF process, but it works and our code uses it.) 
-Some of the scripts below depend on that.
+terms of IETF process, but it works and our code uses it.) Some of the scripts
+below depend on that.
 
-- [mergepems.sh](scripts/mergepems.sh) merges the ECHConfigList values from two ECH PEM
-  files
-- [pem2rr.sh](scripts/pem2rr.sh) encodes the ECHConfigList from an ECH PEM file into a
-  validly (ascii-hex) encoded HTTPS resource record value
-- [splitechconfiglist.sh](scripts/splitechconfiglist.sh) splits the ECHConfigList found
-  in a PEM file into constituent parts (if that has more than one ECHConfig) -
-  the output for each is a base64 encoded ECHConfigList with one ECHConfig entry
-  (i.e., one public name/key)
-- [makecatexts.sh](scripts/makecatexts.sh) allows one to create a file with a set of cat
-  pictures suited for use as the set of extensions for an ECHConfigList
-  that can be added to a PEM file via the ``openssl ech`` command - those
-  need to be *very* small cat pictures though if you want the resulting 
-  HTTPS RR to be usable in the DNS - note that as nobody yet has any real use
-  for ECHConfig extensions (and they're a bad idea anyway;-) this is really
-  just used to try, but hopefully fail, to break things
+- [mergepems.sh](scripts/mergepems.sh) merges the ECHConfigList values from two
+  ECH PEM files
+- [pem2rr.sh](scripts/pem2rr.sh) encodes the ECHConfigList from an ECH PEM file
+  into a validly (ascii-hex) encoded HTTPS resource record value
+- [splitechconfiglist.sh](scripts/splitechconfiglist.sh) splits the
+  ECHConfigList found in a PEM file into constituent parts (if that has more
+than one ECHConfig) - the output for each is a base64 encoded ECHConfigList
+with one ECHConfig entry (i.e., one public name/key)
+- [makecatexts.sh](scripts/makecatexts.sh) allows one to create a file with a
+  set of cat pictures suited for use as the set of extensions for an
+ECHConfigList that can be added to a PEM file via the ``openssl ech`` command -
+those need to be *very* small cat pictures though if you want the resulting
+HTTPS RR to be usable in the DNS - note that as nobody yet has any real use for
+ECHConfig extensions (and they're a bad idea anyway;-) this is really just used
+to try, but hopefully fail, to break things
 
 ## Client HOWTOs
 
@@ -105,7 +104,7 @@ with stale DNS caches or where some DNS TTL fun has been experienced. You can
 then reload the server config without having to change the config file which
 seems like a reasonably good thing.
 
-The model I use in test servers is to publish new ECH keys hourly, but for the
+The model we use in test servers is to publish new ECH keys hourly, but for the
 most recent three keys to still be usable for ECH decryption in the server.
 That's done via a cron job that handles all the key rotation stuff with a bit
 of orchestration between the key generator, ECH-enabled TLS server and DNS
@@ -113,7 +112,7 @@ of orchestration between the key generator, ECH-enabled TLS server and DNS
 draft](https://datatracker.ietf.org/doc/html/draft-ietf-tls-wkech) that
 describes a way to do all that, and a [bash script
 implementation](https://github.com/sftcd/wkesni/blob/master/wkech-04.sh) that's
-what I use as the cron job for my test servers.)
+what we use as the cron job for our test servers.)
 
 The upshot of all that is that servers want to load all the ECH PEM files from
 a named directory, but it's also possible that other PEM files may exist in the
@@ -122,10 +121,10 @@ servers will attempt to load/parse all files from the named directory that are
 called ``*.ech`` rather than the more obvious ``*.pem``.
 
 For these configs and test scripts then, and assuming you've already gotten the
-[localhost test](howtos/localhost-tests.md) described above working and are using the
-same directory you setup before, (with the fake x.50 CA ``cadir`` etc.), you
-should do the following (or similar) before trying to run the various
-server-specific tests:
+[localhost test](howtos/localhost-tests.md) described above working and are
+using the same directory you setup before, (with the fake x.50 CA ``cadir``
+etc.), you should do the following (or similar) before trying to run the
+various server-specific tests:
 
 ```bash
     cd $HOME/lt
@@ -133,9 +132,8 @@ server-specific tests:
     cp echconfig,pem echkeydir/echconfig.pem.ech
 ```
 
-That's a bit convoluted, sorry;-) I'm also not entirely sure it's done fully
-consistently for all servers, but if not, I'll fix it as I get the stuff below
-working.
+That's a bit convoluted, sorry;-) We're also not entirely sure it's done fully
+consistently for all servers, but if not, we'll fix it.
 
 ### ECH for browsers is currently unreliable for ports other than 443
 
