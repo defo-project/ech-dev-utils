@@ -564,9 +564,9 @@ fi
 if [[ "$EARLY_DATA" == "yes" ]]
 then
     httpreq1=${httpreq/foo.example.com/barbar.example.com}
-    ( echo -e "$httpreq1" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $earlystr $tcust $hrrstr >$TMPF 2>&1
+    ( echo -e "$httpreq1" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $earlystr $tcust $hrrstr $@ >$TMPF 2>&1
 else
-    ( echo -e "$httpreq" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $tcust $hrrstr >$TMPF 2>&1
+    ( echo -e "$httpreq" ; sleep $sleepaftr) | $vgcmd $CMDPATH s_client $IP_PROTSEL $dbgstr $certsdb $force13 $target $echstr $snioutercmd $session $alpn $ciphers $tcust $hrrstr $@ >$TMPF 2>&1
 fi
 
 c200=`grep -c "200 OK" $TMPF` || true
