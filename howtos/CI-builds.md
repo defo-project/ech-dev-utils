@@ -64,6 +64,7 @@ repo would be:
 ```bash
 $ cd $HOME/code
 $ git clone git@github.com:defo-project/apache-httpd.git apache-httpd-rebase
+$ cd apache-httpd-rebase
 $ git remote add upstream https://github.com/apache/httpd.git
 $ git fetch upstream
 $ git rebase -i upstream/trunk trunk
