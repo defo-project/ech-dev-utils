@@ -30,6 +30,10 @@ Nothing remarkable here really:
     ... stuff ...
 ```
 
+We did recently see that ``autogen.sh`` recommended running ``autoupdate`` but
+that seems to break things, so we'll let upstream fix that as they get to it.
+So: don't run ``autoupdate`` even if told you should:-)
+
 ## Configuration
 
 We added new server configuration settings, under ssl.ech-opts:
