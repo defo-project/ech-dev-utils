@@ -177,7 +177,7 @@ client_tech=[
 # (tstclnt), should be here too, maybe rusttls and woflssl as well
 
 # we accumulate a list of URLs based on the targets
-urls_to_test=[]
+targets_to_test=[]
 
 # the set of good PEM files, all servers can load all of these
 pemfiles_to_use = [ good_pemfile, other_pemfile ]
@@ -199,8 +199,7 @@ def donsupdate(tech, target, hp):
                 encoding='"' + enc + '"'
                 print("update add " + target + " " + str(ttl) + " HTTPS", encoding )
         print("send")
-        url="https://" + target + "/" + pathname
-        urls_to_test.append(url)
+        targets_to_test.append({'tech': tech, 'target':target})
 
 # prototype for a bit of bind nsupdate scripting
 def donsupdates(tech):
@@ -212,13 +211,32 @@ def donsupdates(tech):
             target=targ['id'] + "-" + tech['id'] + "." + base_domain
         donsupdate(tech, target, targ)
 
+# print lines that haproxy needs to forward port 443 traffic to the
+# correct client-facing server - note: haproxy in this mode is only
+# a TCP de-muxer and is doing no ECH nor TLS processing
+def haproxy_fe_config():
+    for t in targets_to_test:
+        print("use-server " + t['target'] + " if { req.ssl_sni -i " + t['target'] + " }")
+        print("server " + t['target'] + " 127.0.0.1:" + str(t['tech']['altport']) + " check")
+
 if __name__ == "__main__":
     print("DNS commands:")
+    # do all the oddball tests with 1st named tech
     donsupdates(server_tech[0])
+    # only do nominal cases for other techs
+    for tech in server_tech:
+        if server_tech.index(tech) == 0:
+            continue
+        target=tech['id'] + "." + base_domain
+        donsupdate(tech, target, targets_to_make[0])
+
+
     print("URLs to test:")
-    for u in urls_to_test:
-        print(u)
+    for t in targets_to_test:
+        print("https://" + t['target'] + "/" + pathname)
     print("PEM files:")
     for p in pemfiles_to_use:
         print(p)
+    print("haproxy config lines")
+    haproxy_fe_config()
 
