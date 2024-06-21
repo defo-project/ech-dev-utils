@@ -23,6 +23,9 @@ args=parser.parse_args()
 # all DNS names mapping to tests will be one label below this name
 base_domain='test.defo.ie'
 
+# CAA record value to put (back) after deletion
+caa_value="128 issue letsencrypt.org"
+
 # TTL to use for all test RRs
 ttl=10
 
@@ -182,6 +185,16 @@ targets_to_test=[]
 # the set of good PEM files, all servers can load all of these
 pemfiles_to_use = [ good_pemfile, other_pemfile ]
 
+# a set of nsupdate commands to throw away everything and
+# get set for adding new tests - but we need to make sure
+# that there's A/AAAA/CAA RRs 
+def resetdnscommands():
+    print("update delete " + base_domain)
+    print("update add " + base_domain + "10 A " + good_ipv4)
+    # add IPv6 below once the VM has that setup
+    # print("update add " + base_domain + "10 AAAA " + good_ipv6)
+    print("update add " + base_domain + "10 CAA " + caa_value)
+
 # produce a set of nsupdate commands for one target
 def donsupdate(tech, target, hp):
         description='"' + tech['description'] + '/' +hp['description'] + '"'
@@ -220,6 +233,8 @@ def haproxy_fe_config():
         print("server " + t['target'] + " 127.0.0.1:" + str(t['tech']['altport']) + " check")
 
 if __name__ == "__main__":
+    print("Reset DNS commands:")
+    resetdnscommands()
     print("DNS commands:")
     # do all the oddball tests with 1st named tech
     donsupdates(server_tech[0])
