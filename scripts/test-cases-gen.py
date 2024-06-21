@@ -20,6 +20,9 @@ args=parser.parse_args()
 # Singular settings... likely put these in other files and import
 # 'em as they get bigger
 
+# default output dir
+outdir="dt"
+
 # all DNS names mapping to tests will be one label below this name
 base_domain='test.defo.ie'
 
@@ -43,7 +46,6 @@ good_alpn="http/1.1,h2"
 bad_alpn="+"
 
 # good key pairs
-
 # generated with openssl ech -public_name public.test.defo.ie
 good_pemfile='-----BEGIN PRIVATE KEY-----\n' + \
         'MC4CAQAwBQYDK2VuBCIEIACiPF1jkmMxwNuEBX9Epyci4hGBo/BuQjpmMOGz3B58\n'+ \
@@ -99,11 +101,12 @@ server_tech=[
     { 'id': 'ng', 'description': 'nginx server', 'altport' : 15443 },
     { 'id': 'ap', 'description': 'apache server', 'altport' : 15444 },
     { 'id': 'ly', 'description': 'lighttpd server', 'altport' : 15445 },
-    { 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446  },
     { 'id': 'ss', 'description': 'OpenSSL s_server', 'altport' : 15447 },
-    { 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448 },
-    { 'id': 'ngsp', 'description': 'split-mode nginx server', 'altport' : 15449 },
-    { 'id': 'pf', 'description': 'postfix', 'altport' : 25 },
+    { 'id': 'sshrr', 'description': 'OpenSSL s_server forcing HRR', 'altport' : 15448 },
+    { 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446  },
+    #{ 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448 },
+    #{ 'id': 'ngsp', 'description': 'split-mode nginx server', 'altport' : 15449 },
+    #{ 'id': 'pf', 'description': 'postfix', 'altport' : 25 },
 ]
 # could add NSS, boringssl and wolfssl server test tools maybe
 # a filename for a temlpate we can fill via envsubst may be good
@@ -182,34 +185,77 @@ client_tech=[
 targets_to_test=[]
 
 # the set of good PEM files, all servers can load all of these
-pemfiles_to_use = [ good_pemfile, other_pemfile ]
+pemfiles_to_use = [ { 'id': 'good.pem', 'content': good_pemfile },
+                    { 'id': 'other.pem', 'content': other_pemfile }]
+
+# haproxy.cfg preamble
+haproxy_cfg_preamble='global\n' + \
+'       log /dev/log    local0\n' + \
+'       log /dev/log    local1 notice\n' + \
+'       chroot /var/lib/haproxy\n' + \
+'       stats socket /run/haproxy/admin.sock mode 660 level admin\n' + \
+'       stats timeout 30s\n' + \
+'       user haproxy\n' + \
+'       group haproxy\n' + \
+'       daemon\n' + \
+'       # Default SSL material locations\n' + \
+'       ca-base /etc/ssl/certs\n' + \
+'       crt-base /etc/ssl/private\n' + \
+'       # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate\n' + \
+'       ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384\n' + \
+'       ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256\n' + \
+'       ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets\n' + \
+'defaults\n' + \
+'       log     global\n' + \
+'       mode    http\n' + \
+'       option  httplog\n' + \
+'       option  dontlognull\n' + \
+'       timeout connect 5000\n' + \
+'       timeout client  50000\n' + \
+'       timeout server  50000\n' + \
+'       errorfile 400 /etc/haproxy/errors/400.http\n' + \
+'       errorfile 403 /etc/haproxy/errors/403.http\n' + \
+'       errorfile 408 /etc/haproxy/errors/408.http\n' + \
+'       errorfile 500 /etc/haproxy/errors/500.http\n' + \
+'       errorfile 502 /etc/haproxy/errors/502.http\n' + \
+'       errorfile 503 /etc/haproxy/errors/503.http\n' + \
+'       errorfile 504 /etc/haproxy/errors/504.http\n' + \
+'frontend defotest\n' + \
+'       mode tcp\n' + \
+'       option tcplog\n' + \
+'       bind :443\n' + \
+'       use_backend defotestservers\n' + \
+'backend defotestservers\n' + \
+'       mode tcp\n' + \
+'       tcp-request inspect-delay 5s\n' + \
+'       tcp-request content accept if { req_ssl_hello_type 1 }\n'
 
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
 # that there's A/AAAA/CAA RRs 
 def resetdnscommands():
-    print("update delete " + base_domain)
-    print("update add " + base_domain + "10 A " + good_ipv4)
-    print("update add " + base_domain + "10 AAAA " + good_ipv6)
-    print("update add " + base_domain + "10 CAA " + caa_value)
+    print("update delete " + base_domain, file=outf)
+    print("update add " + base_domain + "10 A " + good_ipv4, file=outf)
+    print("update add " + base_domain + "10 AAAA " + good_ipv6, file=outf)
+    print("update add " + base_domain + "10 CAA " + caa_value, file=outf)
 
 # produce a set of nsupdate commands for one target
 def donsupdate(tech, target, hp):
         description='"' + tech['description'] + '/' +hp['description'] + '"'
-        print("update delete " + target + " A")
-        print("update add " + target + " " + str(ttl) + " A", good_ipv4 )
-        print("update delete " + target + " TXT")
-        print("update add " + target + " " + str(ttl) + " TXT", description )
-        print("update delete " + target + " HTTPS")
+        print("update delete " + target + " A", file=outf)
+        print("update add " + target + " " + str(ttl) + " A", good_ipv4 , file=outf)
+        print("update delete " + target + " TXT", file=outf)
+        print("update add " + target + " " + str(ttl) + " TXT", description , file=outf)
+        print("update delete " + target + " HTTPS", file=outf)
         # if encoding is an array then we want multiple HTTPS RR values
         if isinstance(hp['encoding'],str):
             encoding='"' + hp['encoding'] + '"'
-            print("update add " + target + " " + str(ttl) + " HTTPS", encoding )
+            print("update add " + target + " " + str(ttl) + " HTTPS", encoding , file=outf)
         else:
             for enc in hp['encoding']:
                 encoding='"' + enc + '"'
-                print("update add " + target + " " + str(ttl) + " HTTPS", encoding )
-        print("send")
+                print("update add " + target + " " + str(ttl) + " HTTPS", encoding , file=outf)
+        print("send", file=outf)
         targets_to_test.append({'tech': tech, 'target':target})
 
 # prototype for a bit of bind nsupdate scripting
@@ -226,15 +272,24 @@ def donsupdates(tech):
 # correct client-facing server - note: haproxy in this mode is only
 # a TCP de-muxer and is doing no ECH nor TLS processing
 def haproxy_fe_config():
+    print(haproxy_cfg_preamble, file=outf)
     for t in targets_to_test:
-        print("use-server " + t['target'] + " if { req.ssl_sni -i " + t['target'] + " }")
-        print("server " + t['target'] + " 127.0.0.1:" + str(t['tech']['altport']) + " check")
+        print("       use-server " + t['target'] + " if { req.ssl_sni -i " + t['target'] + " }", file=outf)
+        print("       server " + t['target'] + " 127.0.0.1:" + str(t['tech']['altport']) + " check", file=outf)
+    # default on last line? TODO: check also TODO: consider a special default server
+    print("       server default 127.0.0.1:" + str(targets_to_test[0]['tech']['altport']), file=outf)
 
 if __name__ == "__main__":
-    print("Reset DNS commands:")
+    if args.outdir != None:
+        outdir=args.outdir
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    # print("Reset DNS commands:")
+    outf=open(outdir+'/resetdns.commands','w')
     resetdnscommands()
-    print("DNS commands:")
+    # print("DNS commands:")
     # do all the oddball tests with 1st named tech
+    outf=open(outdir+'/dnsupate.commands','w')
     donsupdates(server_tech[0])
     # only do nominal cases for other techs
     for tech in server_tech:
@@ -244,12 +299,17 @@ if __name__ == "__main__":
         donsupdate(tech, target, targets_to_make[0])
 
 
-    print("URLs to test:")
+    # print("URLs to test:")
+    outf=open(outdir+'/urls_to_test','w')
     for t in targets_to_test:
-        print("https://" + t['target'] + "/" + pathname)
-    print("PEM files:")
+        print("https://" + t['target'] + "/" + pathname, file=outf)
+    # print("PEM files:")
+    if not os.path.exists(outdir+"/echkeydir"):
+        os.makedirs(outdir+"/echkeydir")
     for p in pemfiles_to_use:
-        print(p)
-    print("haproxy config lines")
+        outf=open(outdir+'/echkeydir/'+p['id'],'w')
+        print(p['content'], file=outf)
+    # print("haproxy config lines:")
+    outf=open(outdir+'/haproxy.cfg','w')
     haproxy_fe_config()
 
