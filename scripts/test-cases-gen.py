@@ -31,8 +31,7 @@ ttl=10
 
 # IP addresses
 good_ipv4='185.88.140.5'
-# the v6 below is for defo.ie TODO: enable v6 on test.defo.ie
-good_ipv6='2a00:c6c0:0:116:5::10'
+good_ipv6='2a00:c6c0:0:134:2::1'
 
 # URL pathname for tests
 pathname="ech-check.php"
@@ -191,8 +190,7 @@ pemfiles_to_use = [ good_pemfile, other_pemfile ]
 def resetdnscommands():
     print("update delete " + base_domain)
     print("update add " + base_domain + "10 A " + good_ipv4)
-    # add IPv6 below once the VM has that setup
-    # print("update add " + base_domain + "10 AAAA " + good_ipv6)
+    print("update add " + base_domain + "10 AAAA " + good_ipv6)
     print("update add " + base_domain + "10 CAA " + caa_value)
 
 # produce a set of nsupdate commands for one target
