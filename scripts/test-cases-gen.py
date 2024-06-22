@@ -185,8 +185,9 @@ client_tech=[
 targets_to_test=[]
 
 # the set of good PEM files, all servers can load all of these
-pemfiles_to_use = [ { 'id': 'good.pem', 'content': good_pemfile },
-                    { 'id': 'other.pem', 'content': other_pemfile }]
+# note that some servers need the ".ech" file extension for loading
+pemfiles_to_use = [ { 'id': 'good.pem.ech', 'content': good_pemfile },
+                    { 'id': 'other.pem.ech', 'content': other_pemfile }]
 
 # haproxy.cfg preamble
 haproxy_cfg_preamble='global\n' + \
@@ -235,28 +236,33 @@ haproxy_cfg_preamble='global\n' + \
 # that there's A/AAAA/CAA RRs 
 def resetdnscommands():
     print("update delete " + base_domain, file=outf)
-    print("update add " + base_domain + "10 A " + good_ipv4, file=outf)
-    print("update add " + base_domain + "10 AAAA " + good_ipv6, file=outf)
-    print("update add " + base_domain + "10 CAA " + caa_value, file=outf)
+    print("update add " + base_domain + " " + str(ttl) + " A " + good_ipv4, file=outf)
+    print("update add " + base_domain + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
+    print("update add " + base_domain + " " + str(ttl) + " CAA " + caa_value, file=outf)
+    # make address RRs for the public names
+    print("update add " + good_kp['public_name'] + " " + str(ttl) + " A " + good_ipv4, file=outf)
+    print("update add " + good_kp['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
+    print("update add " + good_kp2['public_name'] + " " + str(ttl) + " A " + good_ipv4, file=outf)
+    print("update add " + good_kp2['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
 
 # produce a set of nsupdate commands for one target
 def donsupdate(tech, target, hp):
-        description='"' + tech['description'] + '/' +hp['description'] + '"'
-        print("update delete " + target + " A", file=outf)
-        print("update add " + target + " " + str(ttl) + " A", good_ipv4 , file=outf)
-        print("update delete " + target + " TXT", file=outf)
-        print("update add " + target + " " + str(ttl) + " TXT", description , file=outf)
-        print("update delete " + target + " HTTPS", file=outf)
-        # if encoding is an array then we want multiple HTTPS RR values
-        if isinstance(hp['encoding'],str):
-            encoding='"' + hp['encoding'] + '"'
-            print("update add " + target + " " + str(ttl) + " HTTPS", encoding , file=outf)
-        else:
-            for enc in hp['encoding']:
-                encoding='"' + enc + '"'
-                print("update add " + target + " " + str(ttl) + " HTTPS", encoding , file=outf)
-        print("send", file=outf)
-        targets_to_test.append({'tech': tech, 'target':target})
+    description='"' + tech['description'] + '/' +hp['description'] + '"'
+    print("update delete " + target + " A", file=outf)
+    print("update add " + target + " " + str(ttl) + " A", good_ipv4 , file=outf)
+    print("update delete " + target + " AAAA", file=outf)
+    print("update add " + target + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
+    print("update delete " + target + " TXT", file=outf)
+    print("update add " + target + " " + str(ttl) + " TXT", description , file=outf)
+    print("update delete " + target + " HTTPS", file=outf)
+    # if encoding is an array then we want multiple HTTPS RR values
+    if isinstance(hp['encoding'],str):
+        print("update add " + target + " " + str(ttl) + " HTTPS", hp['encoding'] , file=outf)
+    else:
+        for enc in hp['encoding']:
+            print("update add " + target + " " + str(ttl) + " HTTPS", enc, file=outf)
+    print("send", file=outf)
+    targets_to_test.append({'tech': tech, 'target':target})
 
 # prototype for a bit of bind nsupdate scripting
 def donsupdates(tech):
@@ -279,6 +285,10 @@ def haproxy_fe_config():
     # default on last line? TODO: check also TODO: consider a special default server
     print("       server default 127.0.0.1:" + str(targets_to_test[0]['tech']['altport']), file=outf)
 
+# print out a sites-enabled config file for nginx
+def nginx_site():
+    print(nginx_conf_preamble, file=outf)
+
 if __name__ == "__main__":
     if args.outdir != None:
         outdir=args.outdir
@@ -289,7 +299,7 @@ if __name__ == "__main__":
     resetdnscommands()
     # print("DNS commands:")
     # do all the oddball tests with 1st named tech
-    outf=open(outdir+'/dnsupate.commands','w')
+    outf=open(outdir+'/addRRs.commands','w')
     donsupdates(server_tech[0])
     # only do nominal cases for other techs
     for tech in server_tech:
@@ -298,12 +308,11 @@ if __name__ == "__main__":
         target=tech['id'] + "." + base_domain
         donsupdate(tech, target, targets_to_make[0])
 
-
     # print("URLs to test:")
     outf=open(outdir+'/urls_to_test','w')
     for t in targets_to_test:
         print("https://" + t['target'] + "/" + pathname, file=outf)
-    # print("PEM files:")
+    # print("ECH PEM files:")
     if not os.path.exists(outdir+"/echkeydir"):
         os.makedirs(outdir+"/echkeydir")
     for p in pemfiles_to_use:
@@ -312,4 +321,20 @@ if __name__ == "__main__":
     # print("haproxy config lines:")
     outf=open(outdir+'/haproxy.cfg','w')
     haproxy_fe_config()
+    print("On zone factory:")
+    print("   To reset test.defo.ie DNS from sratch:")
+    print("        $ sudo nsupdate -l <" + outdir + "/resetdns.commands")
+    print("   To add DNS RRs for tests:")
+    print("        $ sudo nsupdate -l <" + outdir + "/addRRs.commands")
+    print("On the " + base_domain + " VM:")
+    print("   To replace old ECH PEM files:")
+    print("        $ sudo rm -rf /etc/echkeydir")
+    print("        $ sudo cp -r " + outdir + "/echkeydir /etc")
+    print("   To replace the nginx config:")
+    print("        $ sudo cp " + outdir + "/ng-site.conf /etc/nginx/sites-enabled/")
+    print("   If new \"virtualhost\"'s added by the above you may need to re-run cerbot")
+    print("        $ sudo certbot --nginx")
+    print("   To replace haproxy TCP mux'er config:")
+    print("        $ sudo cp " + outdir + "/haproxy.cfg /etc/haproxy")
+    print("        $ sudo service haproxy restart")
 
