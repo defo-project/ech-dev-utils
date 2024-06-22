@@ -37,7 +37,7 @@ good_ipv4='185.88.140.5'
 good_ipv6='2a00:c6c0:0:134:2::1'
 
 # URL pathname for tests
-pathname="ech-check.php"
+pathname=""
 
 # ALPNs
 good_alpn="http/1.1,h2"
@@ -325,6 +325,7 @@ if __name__ == "__main__":
     outf=open(outdir+'/urls_to_test','w')
     for t in targets_to_test:
         print("https://" + t['target'] + "/" + pathname, file=outf)
+        print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname, file=outf)
     # print("ECH PEM files:")
     if not os.path.exists(outdir+"/echkeydir"):
         os.makedirs(outdir+"/echkeydir")
