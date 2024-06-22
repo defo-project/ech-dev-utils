@@ -48,19 +48,19 @@ bad_alpn="+"
 # good key pairs
 # generated with openssl ech -public_name public.test.defo.ie
 good_pemfile='-----BEGIN PRIVATE KEY-----\n' + \
-        'MC4CAQAwBQYDK2VuBCIEIACiPF1jkmMxwNuEBX9Epyci4hGBo/BuQjpmMOGz3B58\n'+ \
-        '-----END PRIVATE KEY-----\n' + \
-        '-----BEGIN ECHCONFIG-----\n' + \
-        'AEb+DQBCmQAgACBrf4D75W04lOLJ4RVtJYz7lFamxDjiETWJA4KLCXeFUAAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA\n' + \
-        '-----END ECHCONFIG-----'
+    'MC4CAQAwBQYDK2VuBCIEIOCiDSigzHBNxUlCkWsEXd8JFTqTi6CREnxNM2vMiMlk\n' + \
+    '-----END PRIVATE KEY-----\n' + \
+    '-----BEGIN ECHCONFIG-----\n' + \
+    'AEb+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA\n' + \
+    '-----END ECHCONFIG-----'
 
 # generated with openssl ech -public_name otherpublic.test.defo.ie
 other_pemfile='-----BEGIN PRIVATE KEY-----\n' + \
-        'MC4CAQAwBQYDK2VuBCIEIHAxrYK93ytX/vnj912RlvRM3hMrAmG00hsU3jEgxUpy\n' + \
-        '-----END PRIVATE KEY-----\n' + \
-        '-----BEGIN ECHCONFIG-----\n' + \
-        'AEv+DQBHdAAgACCCU49qdxKOUXJPs3wlsM06v/t42sMH5xQOL37MAd3HaAAEAAEAAQAYb3RoZXJwdWJsaWMudGVzdC5kZWZvLmllAAA=\n' + \
-        '-----END ECHCONFIG-----'
+    'MC4CAQAwBQYDK2VuBCIEIHAxrYK93ytX/vnj912RlvRM3hMrAmG00hsU3jEgxUpy\n' + \
+    '-----END PRIVATE KEY-----\n' + \
+    '-----BEGIN ECHCONFIG-----\n' + \
+    'AEv+DQBHdAAgACCCU49qdxKOUXJPs3wlsM06v/t42sMH5xQOL37MAd3HaAAEAAEAAQAYb3RoZXJwdWJsaWMudGVzdC5kZWZvLmllAAA=\n' + \
+    '-----END ECHCONFIG-----'
 
 # For all structures:
 # - The 'id' field should be unique per array (doesn't need global uniqueness)
@@ -71,7 +71,7 @@ good_kp={
     'id': 'good_kp',
     'description': 'A good ECH key pair with public.test.defo.ie',
     'public_name': 'public.test.defo.ie',
-    'b64ecl': 'AEb+DQBCmQAgACBrf4D75W04lOLJ4RVtJYz7lFamxDjiETWJA4KLCXeFUAAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA',
+    'b64ecl': 'AEb+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA',
 }
 good_kp2={
     'id': 'good_kp2',
@@ -263,6 +263,19 @@ def donsupdate(tech, target, hp):
             print("update add " + target + " " + str(ttl) + " HTTPS", enc, file=outf)
     print("send", file=outf)
     targets_to_test.append({'tech': tech, 'target':target})
+
+    # handle altport access
+    alttarg="_" + str(tech['altport']) + "._https." + target
+    if isinstance(hp['encoding'],str):
+        altenc = hp['encoding'].replace(" . "," " + target + " ")
+        print("update delete " + alttarg + " HTTPS", file=outf)
+        print("update add " + alttarg + " " + str(ttl) + " HTTPS " + altenc, file=outf )
+    else:
+        for enc in hp['encoding']:
+            altenc = enc.replace(" . "," " + target + " ")
+            print("update delete " + alttarg + " https", file=outf)
+            print("update add " + alttarg + " " + str(ttl) + " HTTPS " + altenc, file=outf )
+    print("send", file=outf)
 
 # prototype for a bit of bind nsupdate scripting
 def donsupdates(tech):
