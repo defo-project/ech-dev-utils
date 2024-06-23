@@ -9,7 +9,7 @@
 # installed one
 : ${OSSL:=$(which openssl)}
 # local build
-: ${OBUILD:=$HOME/code/openssl}
+: ${OBUILD:=$HOME/code/defo-project-org/openssl}
 
 $OSSL ech -help >/dev/null 2>&1
 res=$?

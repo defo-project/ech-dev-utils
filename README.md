@@ -205,4 +205,7 @@ used in some time:
   tests, as used (for now) in package testing - may well be enhanced soon.
 - [test-cases-gen.py](scripts/test-cases-gen.py) is a work-in-progress script we use
   to generate test cases as part of the (upcoming) refresh of the defo.ie web site.
+- [makeech.sh](scripts/makeech.sh) is a wrapper for "openssl ech" that works based
+  on whichever of the installed openssl or a local build has ECH support. (This is
+  used by [test-cases-gen.py](scripts/test-cases-gen..py).
 
