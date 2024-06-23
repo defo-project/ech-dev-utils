@@ -6,10 +6,11 @@
 # Eventual plan is to be able to spit out server configs, bind
 # nsupdate scripts (if we stick with bind) and client scripts
 # for selenium and command line tools (curl/s_client)
-# We also need some way to report on tests, that's TBD for now
+# We also need some way to report on tests, that's a TODO: for now
 
 import os, sys, argparse, gc
 import json
+import subprocess
 
 # command line arg handling
 parser=argparse.ArgumentParser(description='prepare DEfO test artefacts')
@@ -97,16 +98,18 @@ bad_kp2={
 
 # ECH-enabled server technology dimension array,
 # the port is the non-443 port on which this technology is also listening
+# epub is a placeholder for an ECH public key generated when this script
+# is run (not quite ephemeral though, as we don't run this often)
 server_tech=[
-    { 'id': 'ng', 'description': 'nginx server', 'altport' : 15443 },
-    { 'id': 'ap', 'description': 'apache server', 'altport' : 15444 },
-    { 'id': 'ly', 'description': 'lighttpd server', 'altport' : 15445 },
-    { 'id': 'ss', 'description': 'OpenSSL s_server', 'altport' : 15447 },
-    { 'id': 'sshrr', 'description': 'OpenSSL s_server forcing HRR', 'altport' : 15448 },
-    { 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446  },
-    #{ 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448 },
-    #{ 'id': 'ngsp', 'description': 'split-mode nginx server', 'altport' : 15449 },
-    #{ 'id': 'pf', 'description': 'postfix', 'altport' : 25 },
+        { 'id': 'ng', 'description': 'nginx server', 'altport' : 15443, 'epub':'' },
+        { 'id': 'ap', 'description': 'apache server', 'altport' : 15444, 'epub':'' },
+        { 'id': 'ly', 'description': 'lighttpd server', 'altport' : 15445, 'epub':'' },
+        { 'id': 'ss', 'description': 'OpenSSL s_server', 'altport' : 15447, 'epub':'' },
+        { 'id': 'sshrr', 'description': 'OpenSSL s_server forcing HRR', 'altport' : 15448, 'epub':'' },
+        { 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446, 'epub':''  },
+        #{ 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448, 'epub':'' },
+        #{ 'id': 'ngsp', 'description': 'split-mode nginx server', 'altport' : 15449, 'epub':'' },
+        #{ 'id': 'pf', 'description': 'postfix', 'altport' : 25, 'epub': '' },
 ]
 # could add NSS, boringssl and wolfssl server test tools maybe
 # a filename for a temlpate we can fill via envsubst may be good
@@ -246,6 +249,27 @@ def resetdnscommands():
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
 
 # produce a set of nsupdate commands for one target
+def dobasensupdate(tech):
+    description='"' + tech['description'] + '"'
+    target=tech['id'] + "." + base_domain
+    print("update delete " + target + " A", file=outf)
+    print("update add " + target + " " + str(ttl) + " A", good_ipv4 , file=outf)
+    print("update delete " + target + " AAAA", file=outf)
+    print("update add " + target + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
+    print("update delete " + target + " TXT", file=outf)
+    print("update add " + target + " " + str(ttl) + " TXT", description , file=outf)
+    print("update delete " + target + " HTTPS", file=outf)
+    print("update add " + target + " " + str(ttl) + " HTTPS", "1 . ech=" + tech['epub'] , file=outf)
+    print("send", file=outf)
+    targets_to_test.append({'tech': tech, 'target':target})
+    # handle altport access
+    alttarg="_" + str(tech['altport']) + "._https." + target
+    altenc = "1 " + target + " ech=" + tech['epub']
+    print("update delete " + alttarg + " HTTPS", file=outf)
+    print("update add " + alttarg + " " + str(ttl) + " HTTPS " + altenc, file=outf )
+    print("send", file=outf)
+
+# produce a set of nsupdate commands for one target
 def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' +hp['description'] + '"'
     print("update delete " + target + " A", file=outf)
@@ -280,11 +304,7 @@ def donsupdate(tech, target, hp):
 # prototype for a bit of bind nsupdate scripting
 def donsupdates(tech):
     for targ in targets_to_make:
-        # use shorter name for base-case
-        if targets_to_make.index(targ) == 0:
-            target=tech['id'] + "." + base_domain
-        else:
-            target=targ['id'] + "-" + tech['id'] + "." + base_domain
+        target=targ['id'] + "-" + tech['id'] + "." + base_domain
         donsupdate(tech, target, targ)
 
 # print lines that haproxy needs to forward port 443 traffic to the
@@ -292,11 +312,15 @@ def donsupdates(tech):
 # a TCP de-muxer and is doing no ECH nor TLS processing
 def haproxy_fe_config():
     print(haproxy_cfg_preamble, file=outf)
-    for t in targets_to_test:
-        print("       use-server " + t['target'] + " if { req.ssl_sni -i " + t['target'] + " }", file=outf)
-        print("       server " + t['target'] + " 127.0.0.1:" + str(t['tech']['altport']) + " check", file=outf)
-    # default on last line? TODO: check also TODO: consider a special default server
-    print("       server default 127.0.0.1:" + str(targets_to_test[0]['tech']['altport']), file=outf)
+    # de-mux rules for our main server
+    print("       use-server " + server_tech[0]['id'] + " if { req.ssl_sni -i public.test.defo.ie  }", file=outf)
+    print("       use-server " + server_tech[0]['id'] + " if { req.ssl_sni -i otherpublic.test.defo.ie  }", file=outf)
+    # de-mux rules for other servers
+    for s in server_tech:
+        print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + "-pub." + base_domain + " }", file=outf)
+        print("       server " + s['id'] + " 127.0.0.1:" + str(s['altport']) + " check", file=outf)
+    # default on last line?
+    print("       server default 127.0.0.1:" + str(server_tech[0]['altport']), file=outf)
 
 # print out a sites-enabled config file for nginx
 def nginx_site():
@@ -310,31 +334,48 @@ if __name__ == "__main__":
     # print("Reset DNS commands:")
     outf=open(outdir+'/resetdns.commands','w')
     resetdnscommands()
+
+    # print("ECH PEM files:")
+    if not os.path.exists(outdir+"/echkeydir"):
+        os.makedirs(outdir+"/echkeydir")
+    # built-in keys for server_tech[0]
+    s0dir= outdir+"/echkeydir/" + server_tech[0]['id']
+    if not os.path.exists(s0dir):
+        os.makedirs(s0dir)
+    for p in pemfiles_to_use:
+        outf=open(s0dir + "/" + p['id'],'w')
+        print(p['content'], file=outf)
+    # make keys per client-facing server too 
+    for t in server_tech:
+        s0dir= outdir+"/echkeydir/" + t['id']
+        if not os.path.exists(s0dir):
+            os.makedirs(s0dir)
+        pemname=s0dir + "/" + t['id'] + "-pub.pem.ech"
+        subprocess.run(["bash", "-c", "./makeech.sh -public_name " + t['id'] + "-pub." + base_domain + \
+                        " -pemout " + pemname + " >/dev/null 2>&1"])
+        t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read()
+        #print(t)
+
     # print("DNS commands:")
-    # do all the oddball tests with 1st named tech
+    # do all the oddball tests with 1st named server_tech
     outf=open(outdir+'/addRRs.commands','w')
     donsupdates(server_tech[0])
     # only do nominal cases for other techs
     for tech in server_tech:
-        if server_tech.index(tech) == 0:
-            continue
         target=tech['id'] + "." + base_domain
-        donsupdate(tech, target, targets_to_make[0])
+        dobasensupdate(tech)
 
     # print("URLs to test:")
     outf=open(outdir+'/urls_to_test','w')
     for t in targets_to_test:
         print("https://" + t['target'] + "/" + pathname, file=outf)
         print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname, file=outf)
-    # print("ECH PEM files:")
-    if not os.path.exists(outdir+"/echkeydir"):
-        os.makedirs(outdir+"/echkeydir")
-    for p in pemfiles_to_use:
-        outf=open(outdir+'/echkeydir/'+p['id'],'w')
-        print(p['content'], file=outf)
+
     # print("haproxy config lines:")
     outf=open(outdir+'/haproxy.cfg','w')
     haproxy_fe_config()
+
+    # instructions...
     print("On zone factory:")
     print("   To reset test.defo.ie DNS from sratch:")
     print("        $ sudo nsupdate -l <" + outdir + "/resetdns.commands")
