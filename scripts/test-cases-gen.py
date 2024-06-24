@@ -193,46 +193,69 @@ pemfiles_to_use = [ { 'id': 'good.pem.ech', 'content': good_pemfile },
                     { 'id': 'other.pem.ech', 'content': other_pemfile }]
 
 # haproxy.cfg preamble
-haproxy_cfg_preamble='global\n' + \
-'       log /dev/log    local0\n' + \
-'       log /dev/log    local1 notice\n' + \
-'       chroot /var/lib/haproxy\n' + \
-'       stats socket /run/haproxy/admin.sock mode 660 level admin\n' + \
-'       stats timeout 30s\n' + \
-'       user haproxy\n' + \
-'       group haproxy\n' + \
-'       daemon\n' + \
-'       # Default SSL material locations\n' + \
-'       ca-base /etc/ssl/certs\n' + \
-'       crt-base /etc/ssl/private\n' + \
-'       # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate\n' + \
-'       ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384\n' + \
-'       ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256\n' + \
-'       ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets\n' + \
-'defaults\n' + \
-'       log     global\n' + \
-'       mode    http\n' + \
-'       option  httplog\n' + \
-'       option  dontlognull\n' + \
-'       timeout connect 5000\n' + \
-'       timeout client  50000\n' + \
-'       timeout server  50000\n' + \
-'       errorfile 400 /etc/haproxy/errors/400.http\n' + \
-'       errorfile 403 /etc/haproxy/errors/403.http\n' + \
-'       errorfile 408 /etc/haproxy/errors/408.http\n' + \
-'       errorfile 500 /etc/haproxy/errors/500.http\n' + \
-'       errorfile 502 /etc/haproxy/errors/502.http\n' + \
-'       errorfile 503 /etc/haproxy/errors/503.http\n' + \
-'       errorfile 504 /etc/haproxy/errors/504.http\n' + \
-'frontend defotest\n' + \
-'       mode tcp\n' + \
-'       option tcplog\n' + \
-'       bind :443\n' + \
-'       use_backend defotestservers\n' + \
-'backend defotestservers\n' + \
-'       mode tcp\n' + \
-'       tcp-request inspect-delay 5s\n' + \
-'       tcp-request content accept if { req_ssl_hello_type 1 }\n'
+haproxy_cfg_preamble='''
+global
+       log /dev/log    local0
+       log /dev/log    local1 notice
+       chroot /var/lib/haproxy
+       stats socket /run/haproxy/admin.sock mode 660 level admin
+       stats timeout 30s
+       user haproxy
+       group haproxy
+       daemon
+       # Default SSL material locations
+       ca-base /etc/ssl/certs
+       crt-base /etc/ssl/private
+       # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate
+       ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+       ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+       ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+defaults
+       log     global
+       mode    http
+       option  httplog
+       option  dontlognull
+       timeout connect 5000
+       timeout client  50000
+       timeout server  50000
+       errorfile 400 /etc/haproxy/errors/400.http
+       errorfile 403 /etc/haproxy/errors/403.http
+       errorfile 408 /etc/haproxy/errors/408.http
+       errorfile 500 /etc/haproxy/errors/500.http
+       errorfile 502 /etc/haproxy/errors/502.http
+       errorfile 503 /etc/haproxy/errors/503.http
+       errorfile 504 /etc/haproxy/errors/504.http
+frontend defotest
+       mode tcp
+       option tcplog
+       bind :443
+       use_backend defotestservers
+backend defotestservers
+       mode tcp
+       tcp-request inspect-delay 5s
+       tcp-request content accept if { req_ssl_hello_type 1 }
+'''
+
+# nginx sites-enabled config template
+nginx_template='''
+server {
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html index.php;
+    server_name SERVER_NAMES;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location ~ \\.php$ {
+        fastcgi_pass 127.0.0.9:9000;
+    }
+    listen [::]:ALTPORT ssl; # managed by Certbot
+    listen ALTPORT ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/hoba.ie/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/hoba.ie/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+'''
 
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
@@ -265,7 +288,8 @@ def up_instrs(name, ttl, a, aaaa, desc, https_rr):
                 print("update add " + name + " " + str(ttl) + " HTTPS", enc , file=outf)
     print("send", file=outf)
 
-# produce a set of nsupdate commands for one target
+# produce a set of nsupdate commands for a basic target
+# such as ng.test.defo.ie or ap.test.defo.ie
 def dobasensupdate(tech):
     description='"' + tech['description'] + '"'
     target=tech['id'] + "." + base_domain
@@ -279,7 +303,8 @@ def dobasensupdate(tech):
     alttarg=tech['id'] + "-pub." + base_domain
     up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, None)
 
-# produce a set of nsupdate commands for one target
+# produce a set of nsupdate commands for a target that's uses a 
+# specific HTTPS test configuration (often a broken one)
 def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' +hp['description'] + '"'
     https_rr=hp['encoding']
@@ -294,7 +319,8 @@ def donsupdate(tech, target, hp):
         altenc=[sub.replace(" . "," " + target + " ") for sub in altenc]
     up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, altenc)
 
-# prototype for a bit of bind nsupdate scripting
+# produce a set of nsupdate commands for all targets that use a 
+# specific HTTPS test configuration (often a broken one)
 def donsupdates(tech):
     for targ in targets_to_make:
         target=targ['id'] + "-" + tech['id'] + "." + base_domain
@@ -316,8 +342,11 @@ def haproxy_fe_config():
     print("       server default 127.0.0.1:" + str(server_tech[0]['altport']), file=outf)
 
 # print out a sites-enabled config file for nginx
-def nginx_site():
-    print(nginx_conf_preamble, file=outf)
+def nginx_site(tech):
+    tmp=nginx_template.replace('ALTPORT',str(tech['altport']))
+    snames="public.test.defo.ie otherpublic.test.defo.ie ng-pub.test.defo.ie ng.test.defo.ie"
+    tmp=tmp.replace('SERVER_NAMES',snames)
+    print(tmp, file=outf)
 
 if __name__ == "__main__":
     if args.outdir != None:
@@ -368,6 +397,10 @@ if __name__ == "__main__":
     outf=open(outdir+'/haproxy.cfg','w')
     haproxy_fe_config()
 
+    # nginx site enabled
+    outf=open(outdir+'/ng.test.defo.ie.conf','w')
+    nginx_site(server_tech[0])
+
     # instructions...
     print("On zone factory:")
     print("   To reset test.defo.ie DNS from sratch:")
@@ -378,11 +411,11 @@ if __name__ == "__main__":
     print("   To replace old ECH PEM files:")
     print("        $ sudo rm -rf /etc/echkeydir")
     print("        $ sudo cp -r " + outdir + "/echkeydir /etc")
-    print("   To replace the nginx config:")
-    print("        $ sudo cp " + outdir + "/ng-site.conf /etc/nginx/sites-enabled/")
-    print("   If new \"virtualhost\"'s added by the above you may need to re-run cerbot")
-    print("        $ sudo certbot --nginx")
     print("   To replace haproxy TCP mux'er config:")
     print("        $ sudo cp " + outdir + "/haproxy.cfg /etc/haproxy")
     print("        $ sudo service haproxy restart")
+    print("   To replace the nginx site config:")
+    print("        $ sudo cp " + outdir + "/ng.test.defo.ie.conf /etc/nginx/sites-enabled/")
+    print("   If any new \"virtualhost\"'s added by the above you may need to re-run cerbot")
+    print("        $ sudo certbot --nginx")
 
