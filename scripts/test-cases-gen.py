@@ -248,58 +248,51 @@ def resetdnscommands():
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " A " + good_ipv4, file=outf)
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
 
+def up_instrs(name, ttl, a, aaaa, desc, https_rr):
+    # print commands to delete then update the various records
+    print("update delete " + name + " A", file=outf)
+    print("update add " + name + " " + str(ttl) + " A", a , file=outf)
+    print("update delete " + name + " AAAA", file=outf)
+    print("update add " + name + " " + str(ttl) + " AAAA " + aaaa, file=outf)
+    print("update delete " + name + " TXT", file=outf)
+    print("update add " + name + " " + str(ttl) + " TXT", desc , file=outf)
+    print("update delete " + name + " HTTPS", file=outf)
+    if (https_rr is not None):
+        if isinstance(https_rr, str):
+            print("update add " + name + " " + str(ttl) + " HTTPS", https_rr , file=outf)
+        else:
+            for enc in https_rr:
+                print("update add " + name + " " + str(ttl) + " HTTPS", enc , file=outf)
+    print("send", file=outf)
+
 # produce a set of nsupdate commands for one target
 def dobasensupdate(tech):
     description='"' + tech['description'] + '"'
     target=tech['id'] + "." + base_domain
-    print("update delete " + target + " A", file=outf)
-    print("update add " + target + " " + str(ttl) + " A", good_ipv4 , file=outf)
-    print("update delete " + target + " AAAA", file=outf)
-    print("update add " + target + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
-    print("update delete " + target + " TXT", file=outf)
-    print("update add " + target + " " + str(ttl) + " TXT", description , file=outf)
-    print("update delete " + target + " HTTPS", file=outf)
-    print("update add " + target + " " + str(ttl) + " HTTPS", "1 . ech=" + tech['epub'] , file=outf)
-    print("send", file=outf)
+    https_rr="1 . ech=" + tech['epub']
+    up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
     targets_to_test.append({'tech': tech, 'target':target})
     # handle altport access
     alttarg="_" + str(tech['altport']) + "._https." + target
     altenc = "1 " + target + " ech=" + tech['epub']
-    print("update delete " + alttarg + " HTTPS", file=outf)
-    print("update add " + alttarg + " " + str(ttl) + " HTTPS " + altenc, file=outf )
-    print("send", file=outf)
+    up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, altenc)
+    alttarg=tech['id'] + "-pub." + base_domain
+    up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, None)
 
 # produce a set of nsupdate commands for one target
 def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' +hp['description'] + '"'
-    print("update delete " + target + " A", file=outf)
-    print("update add " + target + " " + str(ttl) + " A", good_ipv4 , file=outf)
-    print("update delete " + target + " AAAA", file=outf)
-    print("update add " + target + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
-    print("update delete " + target + " TXT", file=outf)
-    print("update add " + target + " " + str(ttl) + " TXT", description , file=outf)
-    print("update delete " + target + " HTTPS", file=outf)
-    # if encoding is an array then we want multiple HTTPS RR values
-    if isinstance(hp['encoding'],str):
-        print("update add " + target + " " + str(ttl) + " HTTPS", hp['encoding'] , file=outf)
-    else:
-        for enc in hp['encoding']:
-            print("update add " + target + " " + str(ttl) + " HTTPS", enc, file=outf)
-    print("send", file=outf)
+    https_rr=hp['encoding']
+    up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
     targets_to_test.append({'tech': tech, 'target':target})
-
     # handle altport access
     alttarg="_" + str(tech['altport']) + "._https." + target
-    if isinstance(hp['encoding'],str):
-        altenc = hp['encoding'].replace(" . "," " + target + " ")
-        print("update delete " + alttarg + " HTTPS", file=outf)
-        print("update add " + alttarg + " " + str(ttl) + " HTTPS " + altenc, file=outf )
+    altenc = hp['encoding']
+    if (isinstance(altenc, str)):
+        altenc.replace(" . "," " + target + " ")
     else:
-        for enc in hp['encoding']:
-            altenc = enc.replace(" . "," " + target + " ")
-            print("update delete " + alttarg + " https", file=outf)
-            print("update add " + alttarg + " " + str(ttl) + " HTTPS " + altenc, file=outf )
-    print("send", file=outf)
+        altenc=[sub.replace(" . "," " + target + " ") for sub in altenc]
+    up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, altenc)
 
 # prototype for a bit of bind nsupdate scripting
 def donsupdates(tech):
