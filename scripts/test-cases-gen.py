@@ -38,7 +38,7 @@ good_ipv4='185.88.140.5'
 good_ipv6='2a00:c6c0:0:134:2::1'
 
 # URL pathname for tests
-pathname=""
+pathname="echstat.php?format=json"
 
 # ALPNs
 good_alpn="http/1.1,h2"
@@ -424,6 +424,20 @@ if __name__ == "__main__":
         print("https://" + t['target'] + "/" + pathname, file=outf)
         print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname, file=outf)
 
+    # print("Web page running tests in iframe
+    outf=open(outdir+'/iframe_tests.html','w')
+    print("<html>", file=outf)
+    print("<h1>test.defo.ie iframe based tests</h1>", file=outf)
+    for t in targets_to_test:
+        url="https://" + t['target'] + "/" + pathname
+        print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
+        print('<iframe src=\"' + url + '\" width=\"80%\" title=\"testframe\"></iframe>', file=outf)
+        url="https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname
+        print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
+        print('<iframe src=\"' + url + '\" width=\"80%\" title=\"testframe\"></iframe>', file=outf)
+    print("</html>", file=outf)
+
+
     # print("haproxy config lines:")
     outf=open(outdir+'/haproxy.cfg','w')
     haproxy_fe_config()
@@ -449,4 +463,8 @@ if __name__ == "__main__":
     print("        $ sudo cp " + outdir + "/ng.test.defo.ie.conf /etc/nginx/sites-enabled/")
     print("   If any new \"virtualhost\"'s added by the above you may need to re-run cerbot")
     print("        $ sudo certbot --nginx")
+    print("   To update the iframe based test web page:")
+    print("        $ scp " + outdir + "/iframe_tests.html test.defo.ie:")
+    print("        ...then on the test.defo.ie VM...")
+    print("        $ sudo mv ~/iframe_tests.html /var/www/html")
 
