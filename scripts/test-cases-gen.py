@@ -118,25 +118,25 @@ server_tech=[
 # the first of these will get a shorter target name
 targets_to_make=[
     {
-      'id': 'min',
+      'id': 'min', 'expected': 'success',
       'description': 'minimal HTTPS RR',
       'encoding':
         '1 . ech=' + good_kp['b64ecl'],
     },
     {
-      'id': 'v1',
+      'id': 'v1', 'expected': 'success',
       'description': 'nominal, HTTPS RR',
       'encoding':
         '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'v2',
+      'id': 'v2', 'expected': 'success',
       'description': 'nominal, HTTPS RR',
       'encoding':
         '1 . alpn="' + good_alpn + '" ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'v3',
+      'id': 'v3', 'expected': 'success',
       'description': 'two RRvals for nominal, minimal, HTTPS RR',
       'encoding':
         [
@@ -145,22 +145,32 @@ targets_to_make=[
         ],
     },
     {
-      'id': 'bk1',
+      'id': 'v4', 'expected': 'error, but maybe arguable',
+      'description': 'three RRvals, 1st bad, 2nd good, 3rd bad, HTTPS RR',
+      'encoding':
+        [
+            '1 . ech=' + bad_kp1['b64ecl'],
+            '2 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '3 . ech=' + bad_kp1['b64ecl'],
+        ],
+    },
+    {
+      'id': 'bk1', 'expected': 'error',
       'description': 'ECHConfigList with bad alg type (0xcccc) for ech kem',
       'encoding': '1 . ech=' + bad_kp1['b64ecl'],
     },
     {
-     'id': 'bk2',
+     'id': 'bk2', 'expected': 'error',
      'description': 'zero-length ECHConfig within ECHConfigList',
      'encoding': '1 . ech=' + bad_kp2['b64ecl'],
     },
     {
-      'id': 'bv',
+      'id': 'bv', 'expected': 'error',
       'description': 'ECHConfigList with bad ECH version (0xcccc)',
       'encoding': '1 . ech=AEbMzABCmQAgACBrf4D75W04lOLJ4RVtJYz7lFamxDjiETWJA4KLCXeFUAAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA',
     },
     {
-      'id': 'badalpn',
+      'id': 'badalpn', 'expected': 'client-dependent',
       'description': 'nominal, HTTPS RR, bad alpn',
       'encoding':
         '1 . alpn="' + bad_alpn + '" ech=' + good_kp['b64ecl'],
@@ -322,7 +332,9 @@ def dobasensupdate(tech):
     target=tech['id'] + "." + base_domain
     https_rr="1 . ech=" + tech['epub']
     up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
-    targets_to_test.append({'tech': tech, 'target':target})
+    targets_to_test.append({'tech': tech, 'target':target,
+                            'description': description, 'https_rr': https_rr,
+                            'expected': "success"})
     # handle altport access
     alttarg="_" + str(tech['altport']) + "._https." + target
     altenc = "1 " + target + " ech=" + tech['epub']
@@ -336,7 +348,9 @@ def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' + hp['description'] + '"'
     https_rr=hp['encoding']
     up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
-    targets_to_test.append({'tech': tech, 'target':target})
+    targets_to_test.append({'tech': tech, 'target':target,
+                            'description': description, 'https_rr': https_rr,
+                            'expected': hp['expected']})
     # handle altport access
     alttarg="_" + str(tech['altport']) + "._https." + target
     altenc = hp['encoding']
@@ -428,13 +442,26 @@ if __name__ == "__main__":
     outf=open(outdir+'/iframe_tests.html','w')
     print("<html>", file=outf)
     print("<h1>test.defo.ie iframe based tests</h1>", file=outf)
+    print("<ol>", file=outf)
     for t in targets_to_test:
+        print("<li>", file=outf)
+        print("<p>Test: " + t['description'] + "</p>", file=outf)
+        print("<p>Expected result: " + t['expected'] + "</p>", file=outf)
+        if (isinstance(t['https_rr'],str)):
+            print("<p>HTTPS RR: <pre>" + t['https_rr'] + "</pre></p>", file=outf)
+        else:
+            print("<p>HTTPS RRs: <pre>", file=outf)
+            for r in t['https_rr']:
+                print(r, file=outf)
+            print("</pre></p>", file=outf)
         url="https://" + t['target'] + "/" + pathname
         print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-        print('<iframe src=\"' + url + '\" width=\"80%\" title=\"testframe\"></iframe>', file=outf)
+        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe\"></iframe>', file=outf)
         url="https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname
         print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-        print('<iframe src=\"' + url + '\" width=\"80%\" title=\"testframe\"></iframe>', file=outf)
+        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe\"></iframe>', file=outf)
+        print("</li>", file=outf)
+    print("</ol>", file=outf)
     print("</html>", file=outf)
 
 
