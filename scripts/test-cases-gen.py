@@ -186,6 +186,7 @@ client_tech=[
 
 # we accumulate a list of URLs based on the targets
 targets_to_test=[]
+nginx_targets=[]
 
 # the set of good PEM files, all servers can load all of these
 # note that some servers need the ".ech" file extension for loading
@@ -257,6 +258,14 @@ server {
 }
 '''
 
+# names we always want as nginx servers
+nginx_usual_server_names='''dodgy.test.defo.ie
+                public.test.defo.ie
+                otherpublic.test.defo.ie
+                ng-pub.test.defo.ie 
+                ng.test.defo.ie\
+'''
+
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
 # that there's A/AAAA/CAA RRs 
@@ -270,23 +279,41 @@ def resetdnscommands():
     print("update add " + good_kp['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " A " + good_ipv4, file=outf)
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
+    # add dodgy.test.defo.ie just for use as an example
+    dodgy='dogdy.test.def.ie'
+    print("update add " + dodgy + " " + str(ttl) + " A " + good_ipv4, file=outf)
+    print("update add " + dodgy + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
+    print("update add " + dodgy + " " + str(ttl) + " HTTPS", '1 . ech=eHl6dwo=' , file=outf)
+    print("update add " + dodgy + " " + str(ttl) + " HTTPS", '1 . ech=Cg==' , file=outf)
+    print("update add " + dodgy + " " + str(ttl) + " HTTPS", '1 . ech=YWJjCg==' , file=outf)
+    print("update add " + dodgy + " " + str(ttl) + " HTTPS", '1 . ech' , file=outf)
+    print("update add " + dodgy + " " + str(ttl) + " HTTPS", '10000 . ech=dG90YWwtY3JhcAo=' , file=outf)
 
 def up_instrs(name, ttl, a, aaaa, desc, https_rr):
     # print commands to delete then update the various records
-    print("update delete " + name + " A", file=outf)
-    print("update add " + name + " " + str(ttl) + " A", a , file=outf)
-    print("update delete " + name + " AAAA", file=outf)
-    print("update add " + name + " " + str(ttl) + " AAAA " + aaaa, file=outf)
-    print("update delete " + name + " TXT", file=outf)
-    print("update add " + name + " " + str(ttl) + " TXT", desc , file=outf)
-    print("update delete " + name + " HTTPS", file=outf)
+    didsomething = 0
+    if a is not None:
+        print("update delete " + name + " A", file=outf)
+        print("update add " + name + " " + str(ttl) + " A", a , file=outf)
+        didsomething = 1
+    if aaaa is not None:
+        print("update delete " + name + " AAAA", file=outf)
+        print("update add " + name + " " + str(ttl) + " AAAA " + aaaa, file=outf)
+        didsomething = 1
+    if desc is not None:
+        print("update delete " + name + " TXT", file=outf)
+        print("update add " + name + " " + str(ttl) + " TXT", desc , file=outf)
+        didsomething = 1
     if (https_rr is not None):
+        print("update delete " + name + " HTTPS", file=outf)
+        didsomething = 1
         if isinstance(https_rr, str):
             print("update add " + name + " " + str(ttl) + " HTTPS", https_rr , file=outf)
         else:
             for enc in https_rr:
                 print("update add " + name + " " + str(ttl) + " HTTPS", enc , file=outf)
-    print("send", file=outf)
+    if didsomething == 1:
+        print("send", file=outf)
 
 # produce a set of nsupdate commands for a basic target
 # such as ng.test.defo.ie or ap.test.defo.ie
@@ -299,14 +326,14 @@ def dobasensupdate(tech):
     # handle altport access
     alttarg="_" + str(tech['altport']) + "._https." + target
     altenc = "1 " + target + " ech=" + tech['epub']
-    up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, altenc)
+    up_instrs(alttarg, ttl, None, None, description, altenc)
     alttarg=tech['id'] + "-pub." + base_domain
     up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, None)
 
 # produce a set of nsupdate commands for a target that's uses a 
 # specific HTTPS test configuration (often a broken one)
 def donsupdate(tech, target, hp):
-    description='"' + tech['description'] + '/' +hp['description'] + '"'
+    description='"' + tech['description'] + '/' + hp['description'] + '"'
     https_rr=hp['encoding']
     up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
     targets_to_test.append({'tech': tech, 'target':target})
@@ -317,13 +344,14 @@ def donsupdate(tech, target, hp):
         altenc.replace(" . "," " + target + " ")
     else:
         altenc=[sub.replace(" . "," " + target + " ") for sub in altenc]
-    up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, altenc)
+    up_instrs(alttarg, ttl, None, None, description, altenc)
 
 # produce a set of nsupdate commands for all targets that use a 
 # specific HTTPS test configuration (often a broken one)
 def donsupdates(tech):
     for targ in targets_to_make:
         target=targ['id'] + "-" + tech['id'] + "." + base_domain
+        nginx_targets.append(target)
         donsupdate(tech, target, targ)
 
 # print lines that haproxy needs to forward port 443 traffic to the
@@ -344,7 +372,10 @@ def haproxy_fe_config():
 # print out a sites-enabled config file for nginx
 def nginx_site(tech):
     tmp=nginx_template.replace('ALTPORT',str(tech['altport']))
-    snames="public.test.defo.ie otherpublic.test.defo.ie ng-pub.test.defo.ie ng.test.defo.ie"
+    snames = ""
+    for t in nginx_targets:
+        snames += t + "\n                " # spaces make a nicer sites-enabled file
+    snames += nginx_usual_server_names
     tmp=tmp.replace('SERVER_NAMES',snames)
     print(tmp, file=outf)
 
