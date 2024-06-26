@@ -418,7 +418,9 @@ if __name__ == "__main__":
         if not os.path.exists(s0dir):
             os.makedirs(s0dir)
         pemname=s0dir + "/" + t['id'] + "-pub.pem.ech"
-        subprocess.run(["bash", "-c", "./makeech.sh -public_name " + t['id'] + "-pub." + base_domain + \
+        # don't replace if not needed, avoiding unneeded DNS updates
+        if not os.path.exists(pemname):
+            subprocess.run(["bash", "-c", "./makeech.sh -public_name " + t['id'] + "-pub." + base_domain + \
                         " -pemout " + pemname + " >/dev/null 2>&1"])
         t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read()
         #print(t)
@@ -443,6 +445,7 @@ if __name__ == "__main__":
     print("<html>", file=outf)
     print("<h1>test.defo.ie iframe based tests</h1>", file=outf)
     print("<ol>", file=outf)
+    ind = 0
     for t in targets_to_test:
         print("<li>", file=outf)
         print("<p>Test: " + t['description'] + "</p>", file=outf)
@@ -456,11 +459,12 @@ if __name__ == "__main__":
             print("</pre></p>", file=outf)
         url="https://" + t['target'] + "/" + pathname
         print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe\"></iframe>', file=outf)
+        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe' + str(ind) + '\"></iframe>', file=outf)
         url="https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname
         print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe\"></iframe>', file=outf)
+        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe-alt-' + str(ind) + '\"></iframe>', file=outf)
         print("</li>", file=outf)
+        ind+=1
     print("</ol>", file=outf)
     print("</html>", file=outf)
 
