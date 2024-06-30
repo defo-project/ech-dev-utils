@@ -208,4 +208,6 @@ used in some time:
 - [makeech.sh](scripts/makeech.sh) is a wrapper for "openssl ech" that works based
   on whichever of the installed openssl or a local build has ECH support. (This is
   used by [test-cases-gen.py](scripts/test-cases-gen..py).
+- [ech-check.php](scripts/ech-check.php) is a version of the PHP code at
+  [defo.ie/ech-check.php](https://defo.ie/ech-check.php)
 
