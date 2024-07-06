@@ -261,19 +261,10 @@ server {
     }
     listen [::]:ALTPORT ssl; # managed by Certbot
     listen ALTPORT ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/hoba.ie/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/hoba.ie/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    ssl_certificate /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/fullchain.pem;
+    ssl_certificate_key /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/test.defo.ie.key;
+    include /etc/letsencrypt/live/hoba.ie/options-ssl-nginx.conf;
 }
-'''
-
-# names we always want as nginx servers
-nginx_usual_server_names='''dodgy.test.defo.ie
-                public.test.defo.ie
-                otherpublic.test.defo.ie
-                ng-pub.test.defo.ie 
-                ng.test.defo.ie\
 '''
 
 # a set of nsupdate commands to throw away everything and
@@ -389,7 +380,6 @@ def nginx_site(tech):
     snames = ""
     for t in nginx_targets:
         snames += t + "\n                " # spaces make a nicer sites-enabled file
-    snames += nginx_usual_server_names
     tmp=tmp.replace('SERVER_NAMES',snames)
     print(tmp, file=outf)
 
@@ -492,8 +482,6 @@ if __name__ == "__main__":
     print("        $ sudo service haproxy restart")
     print("   To replace the nginx site config:")
     print("        $ sudo cp " + outdir + "/ng.test.defo.ie.conf /etc/nginx/sites-enabled/")
-    print("   If any new \"virtualhost\"'s added by the above you may need to re-run cerbot")
-    print("        $ sudo certbot --nginx")
     print("   To update the iframe based test web page:")
     print("        $ scp " + outdir + "/iframe_tests.html test.defo.ie:")
     print("        ...then on the test.defo.ie VM...")
