@@ -11,6 +11,7 @@
 import os, sys, argparse, gc
 import json
 import subprocess
+from datetime import datetime, timezone
 
 # command line arg handling
 parser=argparse.ArgumentParser(description='prepare DEfO test artefacts')
@@ -110,6 +111,7 @@ server_tech=[
         #{ 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448, 'epub':'' },
         #{ 'id': 'ngsp', 'description': 'split-mode nginx server', 'altport' : 15449, 'epub':'' },
         #{ 'id': 'pf', 'description': 'postfix', 'altport' : 25, 'epub': '' },
+        { 'id': 'nb', 'description': 'nobody at all listening here', 'altport' : 15450, 'epub':''  },
 ]
 # could add NSS, boringssl and wolfssl server test tools maybe
 # a filename for a temlpate we can fill via envsubst may be good
@@ -245,6 +247,9 @@ backend defotestservers
        mode tcp
        tcp-request inspect-delay 5s
        tcp-request content accept if { req_ssl_hello_type 1 }
+       # hoba is not part of these tests, just co-located for a different test
+       use-server ng if { req.ssl_sni -i hoba.ie }
+       use-server ng if { req.ssl_sni -i hidden.hoba.ie }
 '''
 
 # nginx sites-enabled config template
@@ -266,6 +271,70 @@ server {
     include /etc/letsencrypt/live/hoba.ie/options-ssl-nginx.conf;
 }
 '''
+
+documentation_template='''
+
+## Rationale
+
+Having written this test-case generation script and left it alone for a week or
+two, I realised I'd forgotten details of the setups and had to reverse-engineer
+those from the code. That probably indicates that some documentation is needed
+- so this is that documentation, also produced as an output from running the
+  test generator.
+
+## Setup
+
+Test servers are run on test.defo.ie which runs debian testing ("trixie").
+That has an haproxy listener on port 443 that sits in front of other web
+servers (nginx, apache etc.) and routes connection (in "tcp" mode) to those
+based on the (outer) SNI. That front-end haproxy instance does not crypto - no
+TLS and no ECH - it only routes connections so that we can use stadard installs
+for the other packages, based on our DEfO CI setup.
+
+All names used are of the form: <name>.test.defo.ie and we have a wildcard
+certificate for "*.test.defo.ie" acquired via acme.sh that is used for all TLS
+servers.
+
+## Running the generator
+
+This only needs to be done when new tests are added.
+
+Usage:
+
+        $ ./test-cases-gen.py [-o <dir>]
+
+The optional <dir> specifies a directory into which output files will be
+written. The default for <dir> is "dt".
+
+The files output to that directory are:
+
+    - README.md, this file
+    - resetdns.commands, nsupdate commands to clear and reset DNS RRs
+      for test.defo.ie
+    - addRRs.commands, nsupdate commands to make test-specific DNS RRs
+    - echkeydir, directory containing ECH PEM key files for test servers
+    - haproxy.cfg, file to configure the frontned haproxy listener
+    - ng.test.defo.ie.conf, nginx config for the main test server
+    - iframe_tests.html, HTML page that runs all our browsers tests in 
+      an iframe for each test (and describes tests)
+    - urls_to_test, the set of URLs used in iframe tests
+
+## Modus Operandi
+
+
+'''
+
+def makereadme():
+    print("# DEfO generated-tests Documentation\n", file=outf)
+
+    print(documentation_template, file=outf)
+
+    print("## Run identification\n", file=outf)
+    print("Run Date: " + str(datetime.now(timezone.utc)), file=outf)
+    print("Git info for " + sys.argv[0], file=outf)
+    gitlines = subprocess.check_output(["git", "log", str(-1), sys.argv[0]])
+    for line in gitlines.decode("utf-8").split('\n'):
+        print("\t" + line, file=outf)
 
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
@@ -370,6 +439,7 @@ def haproxy_fe_config():
     # de-mux rules for other servers
     for s in server_tech:
         print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + "-pub." + base_domain + " }", file=outf)
+        print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + base_domain + " }", file=outf)
         print("       server " + s['id'] + " 127.0.0.1:" + str(s['altport']) + " check", file=outf)
     # default on last line?
     print("       server default 127.0.0.1:" + str(server_tech[0]['altport']), file=outf)
@@ -388,6 +458,7 @@ if __name__ == "__main__":
         outdir=args.outdir
     if not os.path.exists(outdir):
         os.makedirs(outdir)
+
     # print("Reset DNS commands:")
     outf=open(outdir+'/resetdns.commands','w')
     resetdnscommands()
@@ -467,7 +538,12 @@ if __name__ == "__main__":
     outf=open(outdir+'/ng.test.defo.ie.conf','w')
     nginx_site(server_tech[0])
 
+    # print documentation
+    outf=open(outdir+'/README.md','w')
+    makereadme()
+
     # instructions...
+    print("Documentation is in " + outdir + "/README.me")
     print("On zone factory:")
     print("   To reset test.defo.ie DNS from sratch:")
     print("        $ sudo nsupdate -l <" + outdir + "/resetdns.commands")
