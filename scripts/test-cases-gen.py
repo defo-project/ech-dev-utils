@@ -272,28 +272,38 @@ server {
 }
 '''
 
-documentation_template='''
-
+documentation_preamble='''
 ## Rationale
 
 Having written this test-case generation script and left it alone for a week or
 two, I realised I'd forgotten details of the setups and had to reverse-engineer
-those from the code. That probably indicates that some documentation is needed
-- so this is that documentation, also produced as an output from running the
-  test generator.
+those from the code. That probably indicates that some documentation is needed.
+This is that documentation, also produced as an output from running the test
+generator.
 
 ## Setup
 
-Test servers are run on test.defo.ie which runs debian testing ("trixie").
+Test servers are run on `test.defo.ie` which runs debian testing ("trixie").
 That has an haproxy listener on port 443 that sits in front of other web
 servers (nginx, apache etc.) and routes connection (in "tcp" mode) to those
 based on the (outer) SNI. That front-end haproxy instance does not crypto - no
 TLS and no ECH - it only routes connections so that we can use stadard installs
-for the other packages, based on our DEfO CI setup.
+for the other packages, based on our DEfO CI setup. The default server for
+haproxy (if no SNI matches) is our nginx installation. The default server for
+our nginx server is actually `hidden.hoba.ie` which is not really related to
+this test setup, but should cause an error:-)
 
-All names used are of the form: <name>.test.defo.ie and we have a wildcard
-certificate for "*.test.defo.ie" acquired via acme.sh that is used for all TLS
+All names used are of the form: `<name>.test.defo.ie` and we have a wildcard
+certificate for `*.test.defo.ie` acquired via acme.sh that is used for all TLS
 servers.
+
+The `test.defo.ie` VM is accessible both via IPv4 and IPv6, that ought not make
+any difference for our tests, but we publish both A and AAAA RRs for each test
+name.
+
+Each test uses a specific DNS name, e.g. `min-ng.test.defo.ie`. Most of those
+have a first label of the form "<test>-ng" where "ng" indicates TLS connections
+for that name are routed to our nginx installation.
 
 ## Running the generator
 
@@ -310,27 +320,117 @@ The files output to that directory are:
 
     - README.md, this file
     - resetdns.commands, nsupdate commands to clear and reset DNS RRs
-      for test.defo.ie
+      for test.defo.ie, including some not involved in these tests
+      (e.g. dodgy.test.defo.ie)
     - addRRs.commands, nsupdate commands to make test-specific DNS RRs
     - echkeydir, directory containing ECH PEM key files for test servers
     - haproxy.cfg, file to configure the frontned haproxy listener
     - ng.test.defo.ie.conf, nginx config for the main test server
+      containing test-specific server_name values
     - iframe_tests.html, HTML page that runs all our browsers tests in 
       an iframe for each test (and describes tests)
     - urls_to_test, the set of URLs used in iframe tests
 
-## Modus Operandi
+# Test-Specific Names
 
+The following test-specific DNS names are used, each corresponding to
+a server configured on our nginx install:
+'''
 
+documentation_part2='''
+For all nominal tests, the ECH public_name used is ng-pub.test.defo.ie
+
+# Other servers
+
+In addition to the test-specific names that map to our nginx install, we have
+also installed other servers as listed below, in case we need to investigate
+server-specific issues.
+
+The ECH public_name for ap.test.defo.ie will be e.g. ap-pub.test.defo.ie and
+similarly for other technologies.
+
+Those are as follows:
+'''
+
+documentation_part3='''
+# Adding a new test
+
+The `targets_to_make` array contains the list of tests and their parameters.
+The fields in this array are:
+
+- id: a short name to differentiate the test
+- expected: the output expected from the test, one of: success, error, arguable
+- description: string decscribing the test, intended for human consumption but
+  for those familiar with ECH
+- encoding: this is string or array of strings representing the HTTPS RR(s) in
+  presentation form, but typically, in error cases, using other python
+  variables e.g. for a badly encoded ECHconfigList
+
+The nominal case is as shown below;
+
+    {
+      'id': 'min', 'expected': 'success',
+      'description': 'minimal HTTPS RR',
+      'encoding':
+        '1 . ech=' + good_kp['b64ecl'],
+    },
+
+A case with multiple HTTPS RRs is: 
+
+    {
+      'id': 'v4', 'expected': 'error, but maybe arguable',
+      'description': 'three RRvals, 1st bad, 2nd good, 3rd bad, HTTPS RR',
+      'encoding':
+        [
+            '1 . ech=' + bad_kp1['b64ecl'],
+            '2 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '3 . ech=' + bad_kp1['b64ecl'],
+        ],
+    },
+
+For the test above, as the server is on nginx, the name `v4-ng.test.defo.ie`
+will be used and DNS records will be created for that, for A, AAAA and HTTPS.
+The additional name will be added to the nginx and haproxy configuations and a
+stanza will be added to the `iframe-tests.html` page.
+
+One should then run the test generator.
+
+If new ECH keys are required for new namess, then those will be generated. If
+some ECH key pair exists for a test name, that won't be overwritten.
+
+# Installing tests
+
+The following steps may need to be taken after re-running the test generator:
+
+- Extract the lines for the newly-added name from `addRRs.commands` and feed
+  those to `nsupdate` on the relevant authoritative server
+- copy files from `echkeydir` into `/etc/echkeydir` on test.defo.ie
+- copy `haproxy.cfg` to `/etc/haproxy/` on `test.defo.ie`
+- copy `ng.test.defo.ie.conf` to `/etc/nginx/sites-enabled` on `test.defo.ie`
+- copy `iframe_tests.html` to `/var/www/html` on `test.defo.ie`
+- restart services, e.g.:
+
+                $ sudo service nginx restart
+                $ sudo service haproxy restart
+
+If you make major changes or mess up you can zap everything and start from
+using the commands in `resetdns.commands` following by doing all the above.
 '''
 
 def makereadme():
-    print("# DEfO generated-tests Documentation\n", file=outf)
-
-    print(documentation_template, file=outf)
+    print("# DEfO generated-tests Documentation", file=outf)
+    print(documentation_preamble, file=outf)
+    for targ in targets_to_make:
+        tline="- " + targ['id'] + "-" + server_tech[0]['id'] + "." + base_domain + ": " + targ['description']
+        print(tline, file=outf)
+    print(documentation_part2, file=outf)
+    for tech in server_tech:
+        tline="- " + tech['id'] + "." + base_domain + ": " + tech['description']
+        print(tline, file=outf)
+    print(documentation_part3, file=outf)
 
     print("## Run identification\n", file=outf)
-    print("Run Date: " + str(datetime.now(timezone.utc)), file=outf)
+    print("Run Date: " + str(datetime.now(timezone.utc)) + " UTC", file=outf)
     print("Git info for " + sys.argv[0], file=outf)
     gitlines = subprocess.check_output(["git", "log", str(-1), sys.argv[0]])
     for line in gitlines.decode("utf-8").split('\n'):
