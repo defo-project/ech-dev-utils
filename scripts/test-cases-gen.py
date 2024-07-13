@@ -765,6 +765,6 @@ if __name__ == "__main__":
     print("        $ sudo mkdir -p /var/log/s_server")
     print("        $ chmod u+x ./" + outdir + "/s_server_15446.sh")
     print("        $ chmod u+x ./" + outdir + "/s_server_15447.sh")
-    print("        $ sudo sh -c '/" + outdir + "/s_server_15446.sh >/var/log/s_server/15446.log 2>&1' &")
+    print("        $ sudo sh -c './" + outdir + "/s_server_15446.sh >/var/log/s_server/15446.log 2>&1' &")
     print("        $ sudo sh -c './" + outdir + "/s_server_15447.sh >/var/log/s_server/15447.log 2>&1' &")
 
