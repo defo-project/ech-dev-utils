@@ -272,6 +272,73 @@ server {
 }
 '''
 
+apache_config='''
+<VirtualHost *:15444>
+    ServerAdmin defo@defo.ie
+    DocumentRoot /var/www/html
+    ServerName ap.test.defo.ie
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+    SSLEngine on
+    SSLProtocol TLSv1.3
+    SSLECHKeyDir /etc/echkeydir/ap
+    <FilesMatch "\\.php$">
+        SetHandler "proxy:fcgi://127.0.0.9:9000"
+    </FilesMatch>
+    Options +ExecCGI
+    <FilesMatch "\\.(?:cgi|shtml|phtml|php)$">
+        SSLOptions +StdEnvVars
+    </FilesMatch>
+    SSLCertificateFile  /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/fullchain.pem;
+    SSLCertificateKeyFile /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/test.defo.ie.key;
+</VirtualHost>
+'''
+
+lighttpd_config='''
+# you probably also need to comment out the server.port line in /etc/lighttpd/lighttpd.conf
+server.port         = 15445
+server.modules += ( "mod_openssl" )
+ssl.engine          = "enable"
+ssl.pemfile         = "/etc/acme.sh/test.defo.ie//test.defo.ie_ecc/test.defo.ie.both.pem"
+ssl.ech-opts = (
+  "keydir" => "/etc/echkeydir/ly",
+
+  "refresh" => 3600, # reload hourly
+  # "refresh" => 60,    # reload every minute (testing)
+  #"refresh" => 0,            # never reload
+  # (minimum check interval is actually 64 seconds (2^6))
+
+  # trial decryption allows clients to hide better by not sending real digests
+  # that is turned on by default (as we're likely a small server so no harm and
+  # better privacy), but you can disable it...
+  #"trial-decrypt" => "disable",
+)
+
+$HTTP["host"] == "ly.test.defo.ie" {
+    server.name                 = "ly.test.defo.ie"
+}
+$HTTP["host"] == "ly-pub.test.defo.ie" {
+    ssl.non-ech-host            = "ly-pub.test.defo.ie"
+}
+'''
+
+s_server_bash='''
+#!/bin/bash
+
+# set -x
+
+cd /var/www/html/
+openssl s_server -WWW -ign_eof -tls1_3 -port PORT \\
+    -CApath /etc/ssl/certs \\
+    -cert_chain /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/fullchain.cer \\
+    -key /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key \\
+    -cert /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.cer \\
+    -key2 /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key \\
+    -cert2 /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.cer \\
+    -ech_dir /etc/echkeydir/ss \\
+    -servername NAME -alpn http/1.1,h2 HRRTRIGGER
+'''
+
 documentation_preamble='''
 ## Rationale
 
@@ -553,11 +620,28 @@ def nginx_site(tech):
     tmp=tmp.replace('SERVER_NAMES',snames)
     print(tmp, file=outf)
 
+def make_openssl_scripts(): 
+    tmp=s_server_bash.replace('PORT', '15446')
+    tmp=tmp.replace('NAME','ss.test.defo.ie')
+    tmp=tmp.replace('HRRTRIGGER','')
+    outf=open(outdir+'/s_server_15446.sh','w')
+    print(tmp, file=outf)
+    hrrstr=s_server_bash.replace('PORT', '15447')
+    hrrstr=hrrstr.replace('NAME','sshrr.test.defo.ie')
+    # if we only enable p-384 for the server that'll almost 
+    # certainly trigger an HRR
+    hrrstr=hrrstr.replace('HRRTRIGGER',' -groups P-384 ')
+    outf=open(outdir+'/s_server_15447.sh','w')
+    print(hrrstr, file=outf)
+
 if __name__ == "__main__":
     if args.outdir != None:
         outdir=args.outdir
     if not os.path.exists(outdir):
         os.makedirs(outdir)
+
+    # where are we running from? (needed to find makeech.sh)
+    runpath = os.path.dirname(__file__)
 
     # print("Reset DNS commands:")
     outf=open(outdir+'/resetdns.commands','w')
@@ -581,8 +665,11 @@ if __name__ == "__main__":
         pemname=s0dir + "/" + t['id'] + "-pub.pem.ech"
         # don't replace if not needed, avoiding unneeded DNS updates
         if not os.path.exists(pemname):
-            subprocess.run(["bash", "-c", "./makeech.sh -public_name " + t['id'] + "-pub." + base_domain + \
+            subprocess.run(["bash", "-c", runpath + "/makeech.sh -public_name " + t['id'] + "-pub." + base_domain + \
                         " -pemout " + pemname + " >/dev/null 2>&1"])
+        if not os.path.exists(pemname):
+            print("Can't read " + pemname + " - exiting")
+            sys.exit(1)
         t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read()
         #print(t)
 
@@ -638,6 +725,15 @@ if __name__ == "__main__":
     outf=open(outdir+'/ng.test.defo.ie.conf','w')
     nginx_site(server_tech[0])
 
+    # other sites-enabled like files - these don't currently need any
+    # test-related changes, but that could change...
+    outf=open(outdir+'/ap.test.defo.ie.conf','w')
+    print(apache_config, file=outf)
+    outf=open(outdir+'/ly.test.defo.ie.conf','w')
+    print(lighttpd_config, file=outf)
+    # create the two openssl s_server scripts needed
+    make_openssl_scripts()
+
     # print documentation
     outf=open(outdir+'/README.md','w')
     makereadme()
@@ -662,4 +758,13 @@ if __name__ == "__main__":
     print("        $ scp " + outdir + "/iframe_tests.html test.defo.ie:")
     print("        ...then on the test.defo.ie VM...")
     print("        $ sudo mv ~/iframe_tests.html /var/www/html")
+    print("   To update the apache or lighttpd configs:")
+    print("        $ sudo cp " + outdir + "/ap.test.defo.ie /etc/apache2/sites-enabled")
+    print("        $ sudo cp " + outdir + "/ly.test.defo.ie /etc/lighttpd/conf-enabled")
+    print("   To run the openssl s_server scripts:")
+    print("        $ sudo mkdir -p /var/log/s_server")
+    print("        $ chmod u+x ./" + outdir + "/s_server_15446.sh")
+    print("        $ chmod u+x ./" + outdir + "/s_server_15447.sh")
+    print("        $ sudo sh -c '/" + outdir + "/s_server_15446.sh >/var/log/s_server/15446.log 2>&1' &")
+    print("        $ sudo sh -c './" + outdir + "/s_server_15447.sh >/var/log/s_server/15447.log 2>&1' &")
 
