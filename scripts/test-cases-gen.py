@@ -266,8 +266,8 @@ server {
     }
     listen [::]:ALTPORT ssl; # managed by Certbot
     listen ALTPORT ssl; # managed by Certbot
-    ssl_certificate /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/fullchain.pem;
-    ssl_certificate_key /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/test.defo.ie.key;
+    ssl_certificate /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/fullchain.cer;
+    ssl_certificate_key /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key;
     include /etc/letsencrypt/live/hoba.ie/options-ssl-nginx.conf;
 }
 '''
@@ -289,8 +289,28 @@ apache_config='''
     <FilesMatch "\\.(?:cgi|shtml|phtml|php)$">
         SSLOptions +StdEnvVars
     </FilesMatch>
-    SSLCertificateFile  /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/fullchain.pem;
-    SSLCertificateKeyFile /etc/acme.sh/test.defo.ie//test.defo.ie_ecc/test.defo.ie.key;
+    SSLCertificateFile  /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/fullchain.cer
+    SSLCertificateKeyFile /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key
+</VirtualHost>
+
+<VirtualHost *:15444>
+    ServerAdmin defo@defo.ie
+    DocumentRoot /var/www/html
+    ServerName ap-pub.test.defo.ie
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+    SSLEngine on
+    SSLProtocol TLSv1.3
+    SSLECHKeyDir /etc/echkeydir/ap
+    <FilesMatch "\\.php$">
+        SetHandler "proxy:fcgi://127.0.0.9:9000"
+    </FilesMatch>
+    Options +ExecCGI
+    <FilesMatch "\\.(?:cgi|shtml|phtml|php)$">
+        SSLOptions +StdEnvVars
+    </FilesMatch>
+    SSLCertificateFile  /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/fullchain.cer
+    SSLCertificateKeyFile /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key
 </VirtualHost>
 '''
 
@@ -606,8 +626,10 @@ def haproxy_fe_config():
     # de-mux rules for other servers
     for s in server_tech:
         print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + "-pub." + base_domain + " }", file=outf)
-        print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + base_domain + " }", file=outf)
+        print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + "." + base_domain + " }", file=outf)
         print("       server " + s['id'] + " 127.0.0.1:" + str(s['altport']) + " check", file=outf)
+    for targ in targets_to_make:
+        print("       use-server ng if { req.ssl_sni -i " + targ['id'] + "-ng." + base_domain + " }", file=outf)
     # default on last line?
     print("       server default 127.0.0.1:" + str(server_tech[0]['altport']), file=outf)
 
@@ -715,7 +737,6 @@ if __name__ == "__main__":
         ind+=1
     print("</ol>", file=outf)
     print("</html>", file=outf)
-
 
     # print("haproxy config lines:")
     outf=open(outdir+'/haproxy.cfg','w')
