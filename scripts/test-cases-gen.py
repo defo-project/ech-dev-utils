@@ -247,9 +247,6 @@ backend defotestservers
        mode tcp
        tcp-request inspect-delay 5s
        tcp-request content accept if { req_ssl_hello_type 1 }
-       # hoba is not part of these tests, just co-located for a different test
-       use-server ng if { req.ssl_sni -i hoba.ie }
-       use-server ng if { req.ssl_sni -i hidden.hoba.ie }
 '''
 
 # nginx sites-enabled config template
@@ -421,7 +418,7 @@ The files output to that directory are:
 # Test-Specific Names
 
 The following test-specific DNS names are used, each corresponding to
-a server configured on our nginx install:
+a (virtual) server configured on our nginx install:
 '''
 
 documentation_part2='''
@@ -482,7 +479,7 @@ stanza will be added to the `iframe-tests.html` page.
 
 One should then run the test generator.
 
-If new ECH keys are required for new namess, then those will be generated. If
+If new ECH keys are required for new names, then those will be generated. If
 some ECH key pair exists for a test name, that won't be overwritten.
 
 # Installing tests
