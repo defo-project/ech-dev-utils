@@ -104,6 +104,13 @@ targets_to_make=[
       'encoding':
         '1 . alpn="' + bad_alpn + '" ech=' + good_kp['b64ecl'],
     },
+    {
+      'id': 'noaddr', 'expected': 'error',
+      'description': 'HTTPS RR, with hints but no A/AAAA',
+      'encoding':
+        '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
+      'noaddr': 1,
+    },
 ]
 # there are many, many ways to extend this, e.g. bad lengths, though note
 # that not all of those will be accepted by an authoritative DNS server
@@ -500,22 +507,22 @@ def resetdnscommands():
     print("update add " + dodgy + " " + str(ttl) + " HTTPS", '10000 . ech=dG90YWwtY3JhcAo=' , file=outf)
 
 def up_instrs(name, ttl, a, aaaa, desc, https_rr):
-    # print commands to delete then update the various records
+    # print commands to delete then, if needed, add the various records
     didsomething = 0
+    print("update delete " + name + " A", file=outf)
     if a is not None:
-        print("update delete " + name + " A", file=outf)
         print("update add " + name + " " + str(ttl) + " A", a , file=outf)
         didsomething = 1
+    print("update delete " + name + " AAAA", file=outf)
     if aaaa is not None:
-        print("update delete " + name + " AAAA", file=outf)
         print("update add " + name + " " + str(ttl) + " AAAA " + aaaa, file=outf)
         didsomething = 1
+    print("update delete " + name + " TXT", file=outf)
     if desc is not None:
-        print("update delete " + name + " TXT", file=outf)
         print("update add " + name + " " + str(ttl) + " TXT", desc , file=outf)
         didsomething = 1
+    print("update delete " + name + " HTTPS", file=outf)
     if (https_rr is not None):
-        print("update delete " + name + " HTTPS", file=outf)
         didsomething = 1
         if isinstance(https_rr, str):
             print("update add " + name + " " + str(ttl) + " HTTPS", https_rr , file=outf)
@@ -547,7 +554,13 @@ def dobasensupdate(tech):
 def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' + hp['description'] + '"'
     https_rr=hp['encoding']
-    up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
+    the_ipv4=good_ipv4
+    the_ipv6=good_ipv4
+    if 'noaddr' in hp and hp['noaddr']==1:
+        print("not adding addrs for " + hp['id'])
+        the_ipv4=None
+        the_ipv6=None
+    up_instrs(target, ttl, the_ipv4, the_ipv6, description, https_rr)
     targets_to_test.append({'tech': tech, 'target':target,
                             'description': description, 'https_rr': https_rr,
                             'expected': hp['expected']})
