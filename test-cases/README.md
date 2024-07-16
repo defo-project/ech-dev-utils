@@ -30,7 +30,7 @@ The other files here are:
   to generate test cases as part of the (upcoming) refresh of the defo.ie web site.
 - [test_cases_settings.py](./test_cases_settings.py) has general settings for 
   the above and isn't expected to be modified (much)
-- [more_test_cases.py](./more_test_cases.py) has additional test cases and is
+- [more_targets_to_make.py](./more_targets_to_make.py) has additional test cases and is
   expected to grow over time, as tests are added
 - [makeech.sh](scripts/makeech.sh) is a wrapper for "openssl ech" that works based
   on whichever of the installed openssl or a local build has ECH support. (This is
