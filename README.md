@@ -203,10 +203,7 @@ used in some time:
   currently used, but was, and may be again sometime)
 - [localhost-tests.sh](scripts/localhost-tests.sh) runs a couple of the localhost 
   tests, as used (for now) in package testing - may well be enhanced soon.
-- [test-cases-gen.py](scripts/test-cases-gen.py) is a work-in-progress script we use
-  to generate test cases as part of the (upcoming) refresh of the defo.ie web site.
-- [makeech.sh](scripts/makeech.sh) is a wrapper for "openssl ech" that works based
-  on whichever of the installed openssl or a local build has ECH support. (This is
+- [test-cases](./test-cases) has scripts to generate test cases for ECH
   used by [test-cases-gen.py](scripts/test-cases-gen..py).
 - [ech-check.php](scripts/ech-check.php) is a version of the PHP code at
   [defo.ie/ech-check.php](https://defo.ie/ech-check.php)
