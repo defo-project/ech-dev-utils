@@ -47,25 +47,25 @@ server_tech=[
 # the first of these will get a shorter target name
 targets_to_make=[
     {
-      'id': 'min', 'expected': 'success',
+      'id': 'min', 'expected': 'success', 'curl_expected': 0,
       'description': 'minimal HTTPS RR',
       'encoding':
         '1 . ech=' + good_kp['b64ecl'],
     },
     {
-      'id': 'v1', 'expected': 'success',
+      'id': 'v1', 'expected': 'success', 'curl_expected': 0,
       'description': 'nominal, HTTPS RR',
       'encoding':
         '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'v2', 'expected': 'success',
+      'id': 'v2', 'expected': 'success', 'curl_expected': 0,
       'description': 'nominal, HTTPS RR',
       'encoding':
         '1 . alpn="' + good_alpn + '" ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'v3', 'expected': 'success',
+      'id': 'v3', 'expected': 'success', 'curl_expected': 0,
       'description': 'two RRvals for nominal, minimal, HTTPS RR',
       'encoding':
         [
@@ -74,7 +74,7 @@ targets_to_make=[
         ],
     },
     {
-      'id': 'v4', 'expected': 'error, but maybe arguable',
+      'id': 'v4', 'expected': 'error, but maybe arguable', 'curl_expected': 35,
       'description': 'three RRvals, 1st bad, 2nd good, 3rd bad, HTTPS RR',
       'encoding':
         [
@@ -84,28 +84,28 @@ targets_to_make=[
         ],
     },
     {
-      'id': 'bk1', 'expected': 'error',
+      'id': 'bk1', 'expected': 'error', 'curl_expected': 35,
       'description': 'ECHConfigList with bad alg type (0xcccc) for ech kem',
       'encoding': '1 . ech=' + bad_kp1['b64ecl'],
     },
     {
-     'id': 'bk2', 'expected': 'error',
+     'id': 'bk2', 'expected': 'error', 'curl_expected': 35,
      'description': 'zero-length ECHConfig within ECHConfigList',
      'encoding': '1 . ech=' + bad_kp2['b64ecl'],
     },
     {
-      'id': 'bv', 'expected': 'error',
+      'id': 'bv', 'expected': 'error', 'curl_expected': 35,
       'description': 'ECHConfigList with bad ECH version (0xcccc)',
       'encoding': '1 . ech=AEbMzABCmQAgACBrf4D75W04lOLJ4RVtJYz7lFamxDjiETWJA4KLCXeFUAAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA',
     },
     {
-      'id': 'badalpn', 'expected': 'client-dependent',
+      'id': 'badalpn', 'expected': 'client-dependent', 'curl_expected': 0,
       'description': 'nominal, HTTPS RR, bad alpn',
       'encoding':
         '1 . alpn="' + bad_alpn + '" ech=' + good_kp['b64ecl'],
     },
     {
-      'id': 'noaddr', 'expected': 'error',
+      'id': 'noaddr', 'expected': 'error', 'curl_expected': 6,
       'description': 'HTTPS RR, with hints but no A/AAAA',
       'encoding':
         '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
@@ -337,6 +337,8 @@ written. The default for <dir> is "dt".
 The files output to that directory are:
 
     - README.md, this file
+    - curl-tests.sh, a script to run curl tests against our nginx-served
+      targets
     - resetdns.commands, nsupdate commands to clear and reset DNS RRs
       for test.defo.ie, including some not involved in these tests
       (e.g. dodgy.test.defo.ie)
@@ -345,7 +347,7 @@ The files output to that directory are:
     - haproxy.cfg, file to configure the frontned haproxy listener
     - ng.test.defo.ie.conf, nginx config for the main test server
       containing test-specific server_name values
-    - iframe_tests.html, HTML page that runs all our browsers tests in 
+    - iframe_tests.html, HTML page that runs all our browsers tests in
       an iframe for each test (and describes tests)
     - urls_to_test, the set of URLs used in iframe tests
 
@@ -387,16 +389,16 @@ The fields in this array are:
 The nominal case is as shown below;
 
     {
-      'id': 'min', 'expected': 'success',
+      'id': 'min', 'expected': 'success', 'curl_expected': 0,
       'description': 'minimal HTTPS RR',
       'encoding':
         '1 . ech=' + good_kp['b64ecl'],
     },
 
-A case with multiple HTTPS RRs is: 
+A case with multiple HTTPS RRs is:
 
     {
-      'id': 'v4', 'expected': 'error, but maybe arguable',
+      'id': 'v4', 'expected': 'error, but maybe arguable', 'curl_expected': 6,
       'description': 'three RRvals, 1st bad, 2nd good, 3rd bad, HTTPS RR',
       'encoding':
         [
@@ -411,6 +413,9 @@ will be used and DNS records will be created for that, for A, AAAA and HTTPS.
 The additional name will be added to the nginx and haproxy configuations and a
 stanza will be added to the `iframe-tests.html` page.
 
+When we run curl against the resulting test URL, we expect a fail and for the
+command line too to return the value 6.
+
 One should then run the test generator.
 
 If new ECH keys are required for new names, then those will be generated. If
@@ -420,6 +425,7 @@ some ECH key pair exists for a test name, that won't be overwritten.
 
 The following steps may need to be taken after re-running the test generator:
 
+- Make the curl tests executable via: `$ chmod u+x curl-tests`
 - Extract the lines for the newly-added name from `addRRs.commands` and feed
   those to `nsupdate` on the relevant authoritative server
 - copy files from `echkeydir` into `/etc/echkeydir` on test.defo.ie
@@ -449,6 +455,8 @@ def makereadme():
     # instructions...
     print("# Cheat-sheet\n", file=outf)
     print("On zone factory:", file=outf)
+    print("   To make curl-tests.sh executable:", file=outf)
+    print("        $ chmod u+x " + outdir + "/curl-tests.sh", file=outf)
     print("   To reset test.defo.ie DNS from sratch:", file=outf)
     print("        $ sudo nsupdate -l <" + outdir + "/resetdns.commands", file=outf)
     print("   To add DNS RRs for tests:", file=outf)
@@ -485,7 +493,7 @@ def makereadme():
 
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
-# that there's A/AAAA/CAA RRs 
+# that there's A/AAAA/CAA RRs
 def resetdnscommands():
     print("update delete " + base_domain, file=outf)
     print("update add " + base_domain + " " + str(ttl) + " A " + good_ipv4, file=outf)
@@ -549,7 +557,7 @@ def dobasensupdate(tech):
     alttarg=tech['id'] + "-pub." + base_domain
     up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, None)
 
-# produce a set of nsupdate commands for a target that's uses a 
+# produce a set of nsupdate commands for a target that's uses a
 # specific HTTPS test configuration (often a broken one)
 def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' + hp['description'] + '"'
@@ -557,7 +565,6 @@ def donsupdate(tech, target, hp):
     the_ipv4=good_ipv4
     the_ipv6=good_ipv4
     if 'noaddr' in hp and hp['noaddr']==1:
-        print("not adding addrs for " + hp['id'])
         the_ipv4=None
         the_ipv6=None
     up_instrs(target, ttl, the_ipv4, the_ipv6, description, https_rr)
@@ -573,7 +580,7 @@ def donsupdate(tech, target, hp):
         altenc=[sub.replace(" . "," " + target + " ") for sub in altenc]
     up_instrs(alttarg, ttl, None, None, description, altenc)
 
-# produce a set of nsupdate commands for all targets that use a 
+# produce a set of nsupdate commands for all targets that use a
 # specific HTTPS test configuration (often a broken one)
 def donsupdates(tech):
     for targ in targets_to_make:
@@ -608,7 +615,7 @@ def nginx_site(tech):
     tmp=tmp.replace('SERVER_NAMES',snames)
     print(tmp, file=outf)
 
-def make_openssl_scripts(): 
+def make_openssl_scripts():
     tmp=s_server_bash.replace('PORT', '15446')
     tmp=tmp.replace('NAME','ss.test.defo.ie')
     tmp=tmp.replace('HRRTRIGGER','')
@@ -616,11 +623,76 @@ def make_openssl_scripts():
     print(tmp, file=outf)
     hrrstr=s_server_bash.replace('PORT', '15447')
     hrrstr=hrrstr.replace('NAME','sshrr.test.defo.ie')
-    # if we only enable p-384 for the server that'll almost 
+    # if we only enable p-384 for the server that'll almost
     # certainly trigger an HRR
     hrrstr=hrrstr.replace('HRRTRIGGER',' -groups P-384 ')
     outf=open(outdir+'/s_server_15447.sh','w')
     print(hrrstr, file=outf)
+
+curl_bash_template='''#!/bin/bash
+
+# Script to run curl tests against targets
+
+# set -x
+
+# structure is host:port mapped to pathname
+declare -A targets=(
+TARGETS
+)
+
+# where we expect a local ECH-enabled curl build
+: ${BUILTCURL:="$HOME/code/curl/src/curl"}
+# set to yes to run valgrind
+: ${VG:="no"}
+
+tout="5s"
+if [ -f $BUILTCURL ]
+then
+    curlcmd="$BUILTCURL"
+fi
+vgcmd=""
+if [[ "$VG" == "yes" ]]
+then
+    #vgcmd="valgrind --leak-check=full "
+    vgcmd="valgrind --leak-check=full --error-limit=no --track-origins=yes "
+    # allow more time if using valgrind
+    tout="10s"
+fi
+
+curlargs=" --ech true --doh-url https://one.one.one.one/dns-query "
+
+for targ in "${!targets[@]}"
+do
+    tmpf=$(mktemp)
+    expected=${targets[$targ]}
+    timeout $tout $vgcmd $curlcmd $curlargs $targ -o $tmpf
+    res=$?
+    if [[ "$res" != "$expected" ]]
+    then
+        echo "Problam with $targ - expected $expected but got $res"
+    else
+        echo "$targ as expected"
+    fi
+    # not yet using returned content, might in future
+    rm -f $tmpf
+done
+'''
+
+'''
+Output a bash script that calls curl with for our
+target URLs, and reports on success/fails
+We'll only go after the nginx served URLs for now
+as those are our main test targets.
+'''
+def make_curl_script():
+    tlist = ""
+    for targ in targets_to_make:
+        url="https://" + targ['id'] + "-ng." + base_domain \
+            + "/echstat.php?format=json"
+        expected=targ['curl_expected']
+        tlist += "    [" + url + "]=\"" + str(expected) + "\"\n"
+    sout = curl_bash_template.replace('TARGETS',tlist)
+    print(sout, file=outf)
 
 if __name__ == "__main__":
     if args.outdir != None:
@@ -654,7 +726,7 @@ if __name__ == "__main__":
     for p in pemfiles_to_use:
         outf=open(s0dir + "/" + p['id'],'w')
         print(p['content'], file=outf)
-    # make keys per client-facing server too 
+    # make keys per client-facing server too
     for t in server_tech:
         s0dir= outdir+"/echkeydir/" + t['id']
         if not os.path.exists(s0dir):
@@ -729,6 +801,11 @@ if __name__ == "__main__":
     print(lighttpd_config, file=outf)
     # create the two openssl s_server scripts needed
     make_openssl_scripts()
+
+    # make a curl script
+
+    outf=open(outdir+'/curl-tests.sh','w')
+    make_curl_script()
 
     # print documentation
     outf=open(outdir+'/README.md','w')

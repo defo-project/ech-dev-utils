@@ -14,6 +14,7 @@ The fields that can be used for each test case are:
     - id - short string (don't include any "-") used in DNS label
     - expected - whether we think this should work (for human consumption, so
       text is ok here)
+    - curl_expected - value we expect command line invocation of curl to return
     - description - a string that'll be published in the DNS as a TXT RR (and
       elsewhere) to help remember what the test does
     - encoding: presentation syntax for an HTTPS RR, or, an array of such, if
@@ -28,7 +29,7 @@ bind's `nsupdate -l` command.
 '''
 more_targets_to_make=[
     {
-      'id': 'many10', 'expected': 'success',
+      'id': 'many', 'expected': 'success', 'curl_expected': 0,
       'description': '10 values in HTTPS RR',
       'encoding':
         [
@@ -42,6 +43,26 @@ more_targets_to_make=[
             '8 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
             '9 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
             '10 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '11 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '12 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '13 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '14 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '15 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '16 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '17 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '18 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '19 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '20 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
         ],
+    },
+    {
+      'id': 'mixedmode', 'expected': 'error, but likely ignored', 'curl_expected': 6,
+      'description': 'AliasMode (0) and ServiceMode (!=0) are not allowed together',
+      'encoding':
+        [
+            '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '0 . test.defo.ie'
+        ]
     }
+
 ]
