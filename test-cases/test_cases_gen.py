@@ -594,6 +594,7 @@ def donsupdates(tech):
 def haproxy_fe_config():
     print(haproxy_cfg_preamble, file=outf)
     # de-mux rules for our main server
+    print("       use-server " + server_tech[0]['id'] + " if { req.ssl_sni -i test.defo.ie  }", file=outf)
     print("       use-server " + server_tech[0]['id'] + " if { req.ssl_sni -i public.test.defo.ie  }", file=outf)
     print("       use-server " + server_tech[0]['id'] + " if { req.ssl_sni -i otherpublic.test.defo.ie  }", file=outf)
     # de-mux rules for other servers
