@@ -195,8 +195,8 @@ server {
     location ~ \\.php$ {
         fastcgi_pass 127.0.0.9:9000;
     }
-    listen [::]:ALTPORT ssl; # managed by Certbot
-    listen ALTPORT ssl; # managed by Certbot
+    listen [::]:ALTPORT default_server ssl;
+    listen ALTPORT default_server ssl;
     ssl_certificate /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/fullchain.cer;
     ssl_certificate_key /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key;
     include /etc/letsencrypt/live/hoba.ie/options-ssl-nginx.conf;
