@@ -563,7 +563,7 @@ def donsupdate(tech, target, hp):
     description='"' + tech['description'] + '/' + hp['description'] + '"'
     https_rr=hp['encoding']
     the_ipv4=good_ipv4
-    the_ipv6=good_ipv4
+    the_ipv6=good_ipv6
     if 'noaddr' in hp and hp['noaddr']==1:
         the_ipv4=None
         the_ipv6=None
@@ -646,11 +646,14 @@ TARGETS
 : ${VG:="no"}
 
 tout="5s"
+curlcmd="curl -s "
+vgcmd=""
+
 if [ -f $BUILTCURL ]
 then
-    curlcmd="$BUILTCURL"
+    curlcmd="$BUILTCURL -s "
 fi
-vgcmd=""
+
 if [[ "$VG" == "yes" ]]
 then
     #vgcmd="valgrind --leak-check=full "
@@ -669,7 +672,7 @@ do
     res=$?
     if [[ "$res" != "$expected" ]]
     then
-        echo "Problam with $targ - expected $expected but got $res"
+        echo "Problem with $targ - expected $expected but got $res"
     else
         echo "$targ as expected"
     fi

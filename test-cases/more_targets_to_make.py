@@ -61,8 +61,7 @@ more_targets_to_make=[
       'encoding':
         [
             '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
-            '0 . test.defo.ie'
+            '0 test.defo.ie'
         ]
     }
-
 ]
