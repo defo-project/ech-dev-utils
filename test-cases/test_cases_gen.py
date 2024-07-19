@@ -34,11 +34,12 @@ server_tech=[
         { 'id': 'ly', 'description': 'lighttpd server', 'altport' : 15445, 'epub':'' },
         { 'id': 'ss', 'description': 'OpenSSL s_server', 'altport' : 15447, 'epub':'' },
         { 'id': 'sshrr', 'description': 'OpenSSL s_server forcing HRR', 'altport' : 15448, 'epub':'' },
-        { 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446, 'epub':''  },
+        # we won't deploy all these yet
+        #{ 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446, 'epub':''  },
         #{ 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448, 'epub':'' },
         #{ 'id': 'ngsp', 'description': 'split-mode nginx server', 'altport' : 15449, 'epub':'' },
         #{ 'id': 'pf', 'description': 'postfix', 'altport' : 25, 'epub': '' },
-        { 'id': 'nb', 'description': 'nobody at all listening here', 'altport' : 15450, 'epub':''  },
+        #{ 'id': 'nb', 'description': 'nobody at all listening here', 'altport' : 15450, 'epub':''  },
 ]
 # could add NSS, boringssl and wolfssl server test tools maybe
 # a filename for a temlpate we can fill via envsubst may be good
@@ -286,8 +287,8 @@ openssl s_server -WWW -ign_eof -tls1_3 -port PORT \\
     -cert /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.cer \\
     -key2 /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.key \\
     -cert2 /etc/acme.sh/test.defo.ie/test.defo.ie_ecc/test.defo.ie.cer \\
-    -ech_dir /etc/echkeydir/ss \\
-    -servername NAME -alpn http/1.1,h2 HRRTRIGGER
+    -ech_dir /etc/echkeydir/NAME \\
+    -servername NAME.test.defo.ie -alpn http/1.1 HRRTRIGGER
 '''
 
 documentation_preamble='''
@@ -618,12 +619,12 @@ def nginx_site(tech):
 
 def make_openssl_scripts():
     tmp=s_server_bash.replace('PORT', '15447')
-    tmp=tmp.replace('NAME','ss.test.defo.ie')
+    tmp=tmp.replace('NAME','ss')
     tmp=tmp.replace('HRRTRIGGER','')
     outf=open(outdir+'/s_server_15447.sh','w')
     print(tmp, file=outf)
     hrrstr=s_server_bash.replace('PORT', '15448')
-    hrrstr=hrrstr.replace('NAME','sshrr.test.defo.ie')
+    hrrstr=hrrstr.replace('NAME','sshrr')
     # if we only enable p-384 for the server that'll almost
     # certainly trigger an HRR
     hrrstr=hrrstr.replace('HRRTRIGGER',' -groups P-384 ')
