@@ -779,16 +779,19 @@ if __name__ == "__main__":
             for r in t['https_rr']:
                 print(r, file=outf)
             print("</pre></p>", file=outf)
-        if t['tech']['id'] == 'ss' or t['tech']['id'] == 'sshhr':
+        pn=pathname
+        height=60
+        if t['tech']['id'] == 'ss' or t['tech']['id'] == 'sshrr':
             # special case for OpenSSL s_server listeners
-            pathname = "stats"
-        url="https://" + t['target'] + "/" + pathname
+            pn=s_pathname
+            height=120
+        url="https://" + t['target'] + "/" + pn
         print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe' + str(ind) + '\"></iframe>', file=outf)
-        url="https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname
+        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"'+str(height)+'\" title=\"testframe' + str(ind) + '\"></iframe>', file=outf)
         if t['tech']['id'] == 'ng':
+            url="https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pn
             print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-            print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe-alt-' + str(ind) + '\"></iframe>', file=outf)
+            print('<iframe src=\"' + url + '\" width=\"80%\" height=\"'+str(height)+'\" title=\"testframe-alt-' + str(ind) + '\"></iframe>', file=outf)
         print("</li>", file=outf)
         ind+=1
     print("</ol>", file=outf)

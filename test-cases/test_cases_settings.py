@@ -18,8 +18,11 @@ ttl=10
 good_ipv4='185.88.140.5'
 good_ipv6='2a00:c6c0:0:134:2::1'
 
-# URL pathname for tests
+# URL pathname for (most) tests
 pathname="echstat.php?format=json"
+
+# URL pathname for s_server tests
+s_pathname="stats"
 
 # ALPNs
 good_alpn="http/1.1,h2"
