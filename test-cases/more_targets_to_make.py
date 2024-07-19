@@ -30,7 +30,7 @@ bind's `nsupdate -l` command.
 more_targets_to_make=[
     {
       'id': 'many', 'expected': 'success', 'curl_expected': 0,
-      'description': '10 values in HTTPS RR',
+      'description': '20 values in HTTPS RR',
       'encoding':
         [
             '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
