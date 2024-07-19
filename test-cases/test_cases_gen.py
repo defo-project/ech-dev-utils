@@ -479,10 +479,10 @@ def makereadme():
     print("        $ sudo cp " + outdir + "/ly.test.defo.ie /etc/lighttpd/conf-enabled", file=outf)
     print("   To run the openssl s_server scripts:", file=outf)
     print("        $ sudo mkdir -p /var/log/s_server", file=outf)
-    print("        $ chmod u+x ./" + outdir + "/s_server_15446.sh", file=outf)
     print("        $ chmod u+x ./" + outdir + "/s_server_15447.sh", file=outf)
-    print("        $ sudo sh -c './" + outdir + "/s_server_15446.sh >/var/log/s_server/15446.log 2>&1' &", file=outf)
+    print("        $ chmod u+x ./" + outdir + "/s_server_15448.sh", file=outf)
     print("        $ sudo sh -c './" + outdir + "/s_server_15447.sh >/var/log/s_server/15447.log 2>&1' &", file=outf)
+    print("        $ sudo sh -c './" + outdir + "/s_server_15448.sh >/var/log/s_server/15448.log 2>&1' &", file=outf)
     print("", file=outf)
     print("## Run identification\n", file=outf)
     print("Run Date: " + str(datetime.now(timezone.utc)) + " UTC", file=outf)
@@ -617,17 +617,17 @@ def nginx_site(tech):
     print(tmp, file=outf)
 
 def make_openssl_scripts():
-    tmp=s_server_bash.replace('PORT', '15446')
+    tmp=s_server_bash.replace('PORT', '15447')
     tmp=tmp.replace('NAME','ss.test.defo.ie')
     tmp=tmp.replace('HRRTRIGGER','')
-    outf=open(outdir+'/s_server_15446.sh','w')
+    outf=open(outdir+'/s_server_15447.sh','w')
     print(tmp, file=outf)
-    hrrstr=s_server_bash.replace('PORT', '15447')
+    hrrstr=s_server_bash.replace('PORT', '15448')
     hrrstr=hrrstr.replace('NAME','sshrr.test.defo.ie')
     # if we only enable p-384 for the server that'll almost
     # certainly trigger an HRR
     hrrstr=hrrstr.replace('HRRTRIGGER',' -groups P-384 ')
-    outf=open(outdir+'/s_server_15447.sh','w')
+    outf=open(outdir+'/s_server_15448.sh','w')
     print(hrrstr, file=outf)
 
 curl_bash_template='''#!/bin/bash
@@ -778,12 +778,16 @@ if __name__ == "__main__":
             for r in t['https_rr']:
                 print(r, file=outf)
             print("</pre></p>", file=outf)
+        if t['tech']['id'] == 'ss' or t['tech']['id'] == 'sshhr':
+            # special case for OpenSSL s_server listeners
+            pathname = "stats"
         url="https://" + t['target'] + "/" + pathname
         print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
         print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe' + str(ind) + '\"></iframe>', file=outf)
         url="https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname
-        print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
-        print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe-alt-' + str(ind) + '\"></iframe>', file=outf)
+        if t['tech']['id'] == 'ng':
+            print('<p><a href=\"' + url + '\">' + url + '</a></p>', file=outf)
+            print('<iframe src=\"' + url + '\" width=\"80%\" height=\"60\" title=\"testframe-alt-' + str(ind) + '\"></iframe>', file=outf)
         print("</li>", file=outf)
         ind+=1
     print("</ol>", file=outf)
