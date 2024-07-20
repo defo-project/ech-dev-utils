@@ -138,7 +138,8 @@ nginx_targets=[]
 # the set of good PEM files, all servers can load all of these
 # note that some servers need the ".ech" file extension for loading
 pemfiles_to_use = [ { 'id': 'good.pem.ech', 'content': good_pemfile },
-                    { 'id': 'other.pem.ech', 'content': other_pemfile }]
+                    { 'id': 'other.pem.ech', 'content': other_pemfile },
+                    { 'id': 'p256.pem.ech', 'content': p256_pemfile }]
 
 # haproxy.cfg preamble
 haproxy_cfg_preamble='''

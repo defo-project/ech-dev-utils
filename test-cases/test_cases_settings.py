@@ -32,20 +32,34 @@ bad_alpn="+"
 
 # good key pairs
 # generated with openssl ech -public_name public.test.defo.ie
-good_pemfile='-----BEGIN PRIVATE KEY-----\n' + \
-    'MC4CAQAwBQYDK2VuBCIEIOCiDSigzHBNxUlCkWsEXd8JFTqTi6CREnxNM2vMiMlk\n' + \
-    '-----END PRIVATE KEY-----\n' + \
-    '-----BEGIN ECHCONFIG-----\n' + \
-    'AEb+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA\n' + \
-    '-----END ECHCONFIG-----'
+good_pemfile='''-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VuBCIEIOCiDSigzHBNxUlCkWsEXd8JFTqTi6CREnxNM2vMiMlk
+-----END PRIVATE KEY-----
+-----BEGIN ECHCONFIG-----
+AEb+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA
+-----END ECHCONFIG-----
+'''
 
 # generated with openssl ech -public_name otherpublic.test.defo.ie
-other_pemfile='-----BEGIN PRIVATE KEY-----\n' + \
-    'MC4CAQAwBQYDK2VuBCIEIHAxrYK93ytX/vnj912RlvRM3hMrAmG00hsU3jEgxUpy\n' + \
-    '-----END PRIVATE KEY-----\n' + \
-    '-----BEGIN ECHCONFIG-----\n' + \
-    'AEv+DQBHdAAgACCCU49qdxKOUXJPs3wlsM06v/t42sMH5xQOL37MAd3HaAAEAAEAAQAYb3RoZXJwdWJsaWMudGVzdC5kZWZvLmllAAA=\n' + \
-    '-----END ECHCONFIG-----'
+other_pemfile='''-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VuBCIEIHAxrYK93ytX/vnj912RlvRM3hMrAmG00hsU3jEgxUpy
+-----END PRIVATE KEY-----
+-----BEGIN ECHCONFIG-----
+AEv+DQBHdAAgACCCU49qdxKOUXJPs3wlsM06v/t42sMH5xQOL37MAd3HaAAEAAEAAQAYb3RoZXJwdWJsaWMudGVzdC5kZWZvLmllAAA=
+-----END ECHCONFIG-----
+'''
+
+# generated with openssl ech -public_name public.test.defo.ie -suite 0x10,2,3
+# that means p256, hkdf-384 and chacha
+p256_pemfile='''-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgZEy9rEnJRS7I/STb
+rvs/+3gBbyVGHHcWj8PqQqGLEU+hRANCAAQWCQuR0dL63PXw9eZ1ilgFl0obGMGb
+5Y0b0Cwo1o4KPhuYNu4XgrK8cRkaPr5aWzVUF7U5eJ6umMaJg4SuI5ac
+-----END PRIVATE KEY-----
+-----BEGIN ECHCONFIG-----
+AGf+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA
+-----END ECHCONFIG-----
+'''
 
 # For all structures:
 # - The 'id' field should be unique per array (doesn't need global uniqueness)
@@ -63,6 +77,12 @@ good_kp2={
     'description': 'A good ECH key pair with otherpublic.test.defo.ie',
     'public_name': 'otherpublic.test.defo.ie',
     'b64ecl': 'AEv+DQBHdAAgACCCU49qdxKOUXJPs3wlsM06v/t42sMH5xQOL37MAd3HaAAEAAEAAQAYb3RoZXJwdWJsaWMudGVzdC5kZWZvLmllAAA=',
+}
+good_kp256={
+    'id': 'good_kp256',
+    'description': 'A good ECH key pair with public.test.defo.ie using p256',
+    'public_name': 'public.test.defo.ie',
+    'b64ecl': 'AGf+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA',
 }
 bad_kp1={
     'id': 'bad_kp1',

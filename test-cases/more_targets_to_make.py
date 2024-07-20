@@ -63,5 +63,69 @@ more_targets_to_make=[
             '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
             '0 test.defo.ie'
         ]
-    }
+    },
+    {
+      'id': 'p256', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'description': 'uses p256, hkdf-385 and chacha',
+      'encoding': '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
+    },
+    {
+      'id': 'curves1', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'description': 'two RRVALs one using x25519 and one with p256, same priority',
+      'encoding':
+        [
+            '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
+        ]
+    },
+    {
+      'id': 'curves2', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'description': 'two RRVALs one using x25519 (prioroty=1) and one with p256 (priority=2)',
+      'encoding':
+        [
+            '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '2 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
+        ]
+    },
+    {
+      'id': 'curves3', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'description': 'two RRVALs one using x25519 (prioroty=2) and one with p256 (priority=1)',
+      'encoding':
+        [
+            '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
+            '2 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+        ]
+    },
+    {
+      'id': 'h2alpn', 'expected': 'success', 'curl_expected': 0,
+      'description': 'alpn is only h2',
+      'encoding': '1 . alpn="h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+    },
+    {
+      'id': 'h1alpn', 'expected': 'success', 'curl_expected': 0,
+      'description': 'alpn is only http/1.1',
+      'encoding': '1 . alpn="http/1.1" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+    },
+    {
+      'id': 'mixedalpn', 'expected': 'success', 'curl_expected': 0,
+      'description': 'alpn is http/1.1,foo,bar,bar,bom,h2',
+      'encoding': '1 . alpn="http/1.1,foo,bar,baz,bom,h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+    },
+    {
+      'id': 'longalpn', 'expected': 'success', 'curl_expected': 0,
+      'description': 'alpn is very long ending with http/1.1,h2',
+      'encoding':
+            '1 . alpn="' + \
+            'bogus0,bogus1,bogus2,bogus3,bogus4,bogus5,bogus6,bogus7,bogus8,bogus9,' + \
+            'bogus10,bogus11,bogus12,bogus13,bogus14,bogus15,bogus16,bogus17,bogus18,bogus19,' + \
+            'bogus20,bogus21,bogus22,bogus23,bogus24,bogus25,bogus26,bogus27,bogus28,bogus29,' + \
+            'bogus30,bogus31,bogus32,bogus33,bogus34,bogus35,bogus36,bogus37,bogus38,bogus39,' + \
+            'bogus40,bogus41,bogus42,bogus43,bogus44,bogus45,bogus46,bogus47,bogus48,bogus49,' + \
+            'bogus50,bogus51,bogus52,bogus53,bogus54,bogus55,bogus56,bogus57,bogus58,bogus59,' + \
+            'bogus60,bogus61,bogus62,bogus63,bogus64,bogus65,bogus66,bogus67,bogus68,bogus69,' + \
+            'bogus70,bogus71,bogus72,bogus73,bogus74,bogus75,bogus76,bogus77,bogus78,bogus79,' + \
+            'bogus80,bogus81,bogus82,bogus83,bogus84,bogus85,bogus86,bogus87,bogus88,bogus89,' + \
+            'bogus90,bogus91,bogus92,bogus93,bogus94,bogus95,bogus96,bogus97,bogus98,bogus99,' + \
+            'http/1.1,h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
+    },
 ]
