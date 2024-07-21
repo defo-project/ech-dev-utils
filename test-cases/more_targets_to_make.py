@@ -1,8 +1,8 @@
 
 from test_cases_settings import *
 
-
-''' Each element of the array specifies a test case. The first one maps to the
+'''
+Each element of the array specifies a test case. The first one maps to the
 DNS name `many-ng.test.defo.ie` - the "-ng" indicates we run the server part of
 this test on an nginx instance. Accessing the URL below should give info on
 whether ECH happened (if the test is such that things ought work):
