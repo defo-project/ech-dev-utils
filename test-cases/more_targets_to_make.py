@@ -2,16 +2,16 @@
 from test_cases_settings import *
 
 
-'''
-Each element of the array specifies a test case. The first one will map to the
-DNS name many10-ng.test.defo.ie and accessing the URL below shoulo give info on
+''' Each element of the array specifies a test case. The first one maps to the
+DNS name `many-ng.test.defo.ie` - the "-ng" indicates we run the server part of
+this test on an nginx instance. Accessing the URL below should give info on
 whether ECH happened (if the test is such that things ought work):
 
-            https://many10.test.defo.ie/echstat.php?format=json
+            https://many-ng.test.defo.ie/echstat.php?format=json
 
 The fields that can be used for each test case are:
 
-    - id - short string (don't include any "-") used in DNS label
+    - id - short string (don't include any "-") used in first DNS label
     - expected - whether we think this should work (for human consumption, so
       text is ok here)
     - curl_expected - value we expect command line invocation of curl to return
@@ -80,7 +80,7 @@ more_targets_to_make=[
     },
     {
       'id': 'curves2', 'expected': 'success, but client-dependent', 'curl_expected': 0,
-      'description': 'two RRVALs one using x25519 (prioroty=1) and one with p256 (priority=2)',
+      'description': 'two RRVALs one using x25519 (priority=1) and one with p256 (priority=2)',
       'encoding':
         [
             '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
@@ -89,7 +89,7 @@ more_targets_to_make=[
     },
     {
       'id': 'curves3', 'expected': 'success, but client-dependent', 'curl_expected': 0,
-      'description': 'two RRVALs one using x25519 (prioroty=2) and one with p256 (priority=1)',
+      'description': 'two RRVALs one using x25519 (priority=2) and one with p256 (priority=1)',
       'encoding':
         [
             '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
@@ -129,12 +129,12 @@ more_targets_to_make=[
             'http/1.1,h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'pthen2', 'expected': 'success', 'curl_expected': 0,
+      'id': '2thenp', 'expected': 'success', 'curl_expected': 0,
       'description': 'ECHConfiglist with 2 entries a 25519 one then a p256 one (both good keys)',
       'encoding': '1 . ech=AK3+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AY54AEABBBBYJC5HR0vrc9fD15nWKWAWXShsYwZvljRvQLCjWjgo+G5g27heCsrxxGRo+vlpbNVQXtTl4nq6YxomDhK4jlpwABAACAAMAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
     },
     {
-      'id': '2thenp', 'expected': 'success', 'curl_expected': 0,
+      'id': 'pthen2', 'expected': 'success', 'curl_expected': 0,
       'description': 'ECHConfiglist with 2 entries a p256 one then a 25519 one (both good keys)',
       'encoding': '1 . ech=AK3+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AQqkAIAAgZZu3Hw8f4CrlAMEU3vmPTBMWyMri6S3IEzkSHYuvbnsABAABAAEAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
     },
