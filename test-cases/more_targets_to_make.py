@@ -128,4 +128,14 @@ more_targets_to_make=[
             'bogus90,bogus91,bogus92,bogus93,bogus94,bogus95,bogus96,bogus97,bogus98,bogus99,' + \
             'http/1.1,h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
+    {
+      'id': 'pthen2', 'expected': 'success', 'curl_expected': 0,
+      'description': 'ECHConfiglist with 2 entries a 25519 one then a p256 one (both good keys)',
+      'encoding': '1 . ech=AK3+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AY54AEABBBBYJC5HR0vrc9fD15nWKWAWXShsYwZvljRvQLCjWjgo+G5g27heCsrxxGRo+vlpbNVQXtTl4nq6YxomDhK4jlpwABAACAAMAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
+    },
+    {
+      'id': '2thenp', 'expected': 'success', 'curl_expected': 0,
+      'description': 'ECHConfiglist with 2 entries a p256 one then a 25519 one (both good keys)',
+      'encoding': '1 . ech=AK3+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AQqkAIAAgZZu3Hw8f4CrlAMEU3vmPTBMWyMri6S3IEzkSHYuvbnsABAABAAEAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
+    },
 ]
