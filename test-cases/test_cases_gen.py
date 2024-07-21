@@ -139,7 +139,8 @@ nginx_targets=[]
 # note that some servers need the ".ech" file extension for loading
 pemfiles_to_use = [ { 'id': 'good.pem.ech', 'content': good_pemfile },
                     { 'id': 'other.pem.ech', 'content': other_pemfile },
-                    { 'id': 'p256.pem.ech', 'content': p256_pemfile }]
+                    { 'id': 'p256.pem.ech', 'content': p256_pemfile },
+                    { 'id': 'withext.pem.ech', 'content': withext_pemfile }]
 
 # haproxy.cfg preamble
 haproxy_cfg_preamble='''
@@ -177,7 +178,7 @@ defaults
 frontend defotest
        mode tcp
        option tcplog
-       bind :443
+       bind :::443 v4v6
        use_backend defotestservers
 backend defotestservers
        mode tcp

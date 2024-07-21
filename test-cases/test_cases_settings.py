@@ -61,6 +61,15 @@ AGf+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1
 -----END ECHCONFIG-----
 '''
 
+withext_pemfile='''
+-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VuBCIEIPA4FvtztqGNL+WlBbYOLyCosAbpV2TIa4fPhyRdJstf
+-----END PRIVATE KEY-----
+-----BEGIN ECHCONFIG-----
+ANf+DQDTWwAgACC76HoR3yQax/iwgeViB+vMCfbQ5wG5mT9NOUV26kc+VgAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQCRD8oARjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQoPywBDMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyCg==
+-----END ECHCONFIG-----
+'''
+
 # For all structures:
 # - The 'id' field should be unique per array (doesn't need global uniqueness)
 # - The 'description' field might end up in a TXT RR so try make it useful
@@ -83,6 +92,12 @@ good_kp256={
     'description': 'A good ECH key pair with public.test.defo.ie using p256',
     'public_name': 'public.test.defo.ie',
     'b64ecl': 'AGf+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA',
+}
+good_withext={
+    'id': 'withext',
+    'description': 'A good ECH key pair with public.test.defo.ie with two extensions',
+    'public_name': 'public.test.defo.ie',
+    'b64ecl': 'ANf+DQDTWwAgACC76HoR3yQax/iwgeViB+vMCfbQ5wG5mT9NOUV26kc+VgAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQCRD8oARjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQoPywBDMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyCg=='
 }
 bad_kp1={
     'id': 'bad_kp1',

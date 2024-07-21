@@ -138,4 +138,10 @@ more_targets_to_make=[
       'description': 'ECHConfiglist with 2 entries a p256 one then a 25519 one (both good keys)',
       'encoding': '1 . ech=AK3+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AQqkAIAAgZZu3Hw8f4CrlAMEU3vmPTBMWyMri6S3IEzkSHYuvbnsABAABAAEAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
     },
+    {
+      'id': 'withext', 'expected': 'success', 'curl_expected': 0,
+      'description': 'minimal HTTPS RR but with 2 ECHConfig extensions',
+      'encoding':
+        '1 . ech=' + good_withext['b64ecl'],
+    },
 ]
