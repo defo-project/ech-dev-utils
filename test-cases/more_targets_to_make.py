@@ -56,7 +56,7 @@ more_targets_to_make=[
         ],
     },
     {
-      'id': 'mixedmode', 'expected': 'error, but likely ignored', 'curl_expected': 6,
+      'id': 'mixedmode', 'expected': 'error, but likely ignored', 'curl_expected': 35,
       'description': 'AliasMode (0) and ServiceMode (!=0) are not allowed together',
       'encoding':
         [

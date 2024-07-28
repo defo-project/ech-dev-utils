@@ -666,7 +666,7 @@ then
     tout="10s"
 fi
 
-curlargs=" --ech true --doh-url https://one.one.one.one/dns-query "
+curlargs=" --ech hard --doh-url https://one.one.one.one/dns-query "
 
 for targ in "${!targets[@]}"
 do
