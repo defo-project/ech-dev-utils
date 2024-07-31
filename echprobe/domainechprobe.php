@@ -9,7 +9,30 @@
 <head>
 <title>DEfO ECH Domain Name Check</title>
 </head>
+
+<body bgcolor="#ffffff" width=600>
+<center> <IMG SRC="defologo.png" ALT="DEfO Logo " > </center>
+<hr width=600>
+<br>
+<!-- **************************************** -->
+<!-- End header -->
+<!-- **************************************** -->
+<center>
 <h1>DEfO ECH Domain Name Check</h1>
+
+<p>The script on this page checks whether a given DNS domain 
+publishes an HTTPS resource record, if so, whether there is
+an ECHConfigList published as part of that, and whether or
+not ECH works with the web server at that name.</p>
+
+<form method="POST">
+    Please enter a DNS domain name to check for ECH: Choose your DNS name target: <input name="domain2check" type="text"/>
+    <input type="submit" value="Submit">
+</form>
+
+<p>TODO: optionally accept URL as input, and use provided URL for the ECH check.</p>
+<!-- Related to above: that'll need to work for ports != 443. Unrelated to the above
+if the list gets too long we can just read in the last N lines of the flie-->
 
 <?php
     /*
@@ -156,8 +179,6 @@
     $rparr = filter_var_array($_POST, $postfilter);    
 ?>
 
-<p>Please enter a DNS domain name to check for ECH.</p>
-
 <?php
     // load in our list
     $plist=load_list();
@@ -225,12 +246,8 @@
     
 ?>
 
-<form method="POST">
-    Choose your DNS name target: <input name="domain2check" type="text"/>
-    <input type="submit" value="Submit">
-</form>
 
-<h3>Recent services tested, that have some HTTPS RR:</h3>
+<h1>Recent services tested, that have some HTTPS RR</h1>
 
 <?php
     /* display the file content */
@@ -259,6 +276,10 @@
     }
 
 ?>
+ 
+<br> This fine domain brought to you by <a href="https://defo.ie/">DEfO.ie</a> 
+<br> a <a href="https://tolerantnetworks.com/">Tolerant Networks Limited</a> production.
+<br> Last modified: 2024-07-31, but who cares?</font> 
 
 </body>
 </html>
