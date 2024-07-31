@@ -1,13 +1,14 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
+<style>
+    table {
+        display: block;
+        max-width: 80%;
+        overflow: scroll; <!-- Available options: visible, hidden, scroll, auto -->
+    }
+</style>
 <head>
 <title>DEfO ECH Domain Name Check</title>
 </head>
-<!-- Background white, links blue (unvisited), navy (visited), red
-(active) -->
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#000080" alink="#FF0000">
 <h1>DEfO ECH Domain Name Check</h1>
 
 <?php
@@ -54,7 +55,7 @@ vlink="#000080" alink="#FF0000">
         return TRUE;
     }
 
-    function get_domain_info($d) {
+    function get_https_rr($d) {
         $astr="";
         $cmd="kdig +json https " . escapeshellcmd($d);
         $rdata=shell_exec($cmd);
@@ -158,7 +159,7 @@ vlink="#000080" alink="#FF0000">
 <p>Please enter a DNS domain name to check for ECH.</p>
 
 <?php
-    // load in out list
+    // load in our list
     $plist=load_list();
     if ($plist===FALSE || $plist==FALSE) {
         print("<p>Error 1982, Can't open file</p>\n");
@@ -193,7 +194,7 @@ vlink="#000080" alink="#FF0000">
                 $good2go=false;
             }
             if ($good2go) {
-                $has_https=get_domain_info($dom);
+                $has_https=get_https_rr($dom);
                 if (str_contains($has_https,"ech="))
                     $has_ech=1;
                 else
@@ -217,7 +218,7 @@ vlink="#000080" alink="#FF0000">
                 else if ($has_https!="none")
                     echo "<h3>Has HTTPS but no ech=</h3><p>Added $dom to list </p>";
                 else
-                    echo "<h3>Might or might not be a real DNS name</h3>";
+                    echo "<h3>$dom doesn't seem to publish an HTTPS RR</h3>";
             }
         }
     } 
@@ -229,13 +230,20 @@ vlink="#000080" alink="#FF0000">
     <input type="submit" value="Submit">
 </form>
 
-<h3>Recent services tested:</h3>
+<h3>Recent services tested, that have some HTTPS RR:</h3>
 
 <?php
     /* display the file content */
     if ($entries>1) {
-        echo "<table border=\"1\">\n";
-        echo "<tr><th>Num</th><th>Date</th><th>Domain</th><th>ECH Status</th><th>Has ECH?</th><th>HTTPS RR</th></tr>\n";
+        echo "<table border=\"1\" style=\"width:80%\">\n";
+	echo "<tr>";
+	echo "<th align=\"center\">Num</th>";
+	echo "<th>Date</th>";
+	echo "<th>Domain</th>";
+	echo "<th align=center>ECH Status</th>";
+	echo "<th>Has ECH?</th>";
+	echo "<th align=left>HTTPS RR</th>";
+	echo "</tr>\n";
         for ($row=$entries-1;$row>=1;$row--) {
             $num=count($plist[$row]);
             echo "<tr>";
