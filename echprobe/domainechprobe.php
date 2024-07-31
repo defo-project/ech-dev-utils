@@ -24,7 +24,7 @@ vlink="#000080" alink="#FF0000">
             $thelist=array();
             $row = 0;
             if (($handle = fopen($filename, "r")) !== FALSE) {
-                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, "|")) !== FALSE) {
                     $thelist[$row]=$data;
                     $row++;
                 }
@@ -60,36 +60,36 @@ vlink="#000080" alink="#FF0000">
         $rdata=shell_exec($cmd);
         //var_dump($rdata);
         $jrdata=json_decode($rdata, true);
-        echo "<p></p>\n";
+        //echo "<p></p>\n";
         //var_dump($jrdata);
         if (isset($jrdata['answerRRs'])) {
             $crrds=count($jrdata['answerRRs']);
             if ($crrds==1) {
-            $rrd=$jrdata['answerRRs'][0];
-            if (isset($rrd['rdataHTTPS']))
-            $astr=$rrd['rdataHTTPS'];
+                $rrd=$jrdata['answerRRs'][0];
+                if (isset($rrd['rdataHTTPS']))
+                    $astr=$rrd['rdataHTTPS'];
             } else {
                 $astr="[ ";
                 for ($rrdi=0;$rrdi<$crrds;$rrdi++) {
                     $rrd=$jrdata['answerRRs'][$rrdi];
                     if (isset($rrd['rdataHTTPS']))
                         $astr.=$rrd['rdataHTTPS']." ]";
-            if ($rrdi<$crrds-1)
-                    $astr.=" [";
+                    if ($rrdi<$crrds-1)
+                        $astr.=" [";
                 }
             }
             //var_dump($astr);
             return $astr;
         }
-        return "no";
+        return "none";
     }
 
     function try_ech($u) {
-	$doh_url="https://one.one.one.one/dns-query";
+        $doh_url="https://one.one.one.one/dns-query";
         $cmd="curl -vvv --ech hard --doh-url " .$doh_url . " " . escapeshellcmd($u) . " 2>&1";
-	var_dump($cmd);
+        //var_dump($cmd);
         $cdata=shell_exec($cmd);
-	//var_dump($cdata);
+        //var_dump($cdata);
         if (str_contains($cdata,"ECH: result: status is succeeded"))
             return 1;
         return 0;
@@ -104,7 +104,7 @@ vlink="#000080" alink="#FF0000">
             if ($fp!==false && flock($fp, LOCK_EX | LOCK_NB)) {
                 $gotlock=true;
                 // do your file writes here
-                $rv=fwrite($fp,"$date,$dom,$ech_stat,$has_ech,$https_rr\n");
+                $rv=fwrite($fp,"$date|$dom|$ech_stat|$has_ech|$https_rr\n");
                 fflush($fp);
                 flock($fp, LOCK_UN); // unlock the file
                 fclose($fp);
@@ -140,7 +140,7 @@ vlink="#000080" alink="#FF0000">
 ?>
 
 <?php
-    echo "<p>".date(DATE_ATOM)."</p>";
+    //echo "<p>".date(DATE_ATOM)."</p>";
     // Trim array values using this function "trim_value"
     function trim_value(&$value) {
         $value = trim($value);    // remove whitespace and related from beginning and end of the string
@@ -162,7 +162,7 @@ vlink="#000080" alink="#FF0000">
     $plist=load_list();
     if ($plist===FALSE || $plist==FALSE) {
         print("<p>Error 1982, Can't open file</p>\n");
-    $entries=0;
+        $entries=0;
     } else { 
         $entries=count($plist);
     }
@@ -186,7 +186,7 @@ vlink="#000080" alink="#FF0000">
         }
         // check domain is real
         if ($good2go) {
-            var_dump($dom);
+            //var_dump($dom);
             $domcheck=check_domain($dom);
             if ($domcheck===FALSE || $domcheck==FALSE) {
                 echo "<h3>Error</h3><p>".$dom." doesn't appear to be real.</p>\n";
@@ -200,9 +200,8 @@ vlink="#000080" alink="#FF0000">
                     $has_ech=0;
                 $ech_status=try_ech("https://$dom/");
                 $date=date(DATE_ATOM);
-                $arv=addone($date, $dom, $ech_status, $has_ech, $has_https);
-                if ($arv) {
-                    echo "<h3>Success</h3><p>Added $dom to list </p>";
+                if ($has_https!="none") {
+                    $arv=addone($date, $dom, $ech_status, $has_ech, $has_https);
                     // extend
                     $plist[$entries][0]=$date;
                     $plist[$entries][1]=$dom;
@@ -210,32 +209,34 @@ vlink="#000080" alink="#FF0000">
                     $plist[$entries][3]=$has_ech;
                     $plist[$entries][4]=$has_https;
                     $entries++;
-                } else {
-                    echo "<h3>Error</h3><p>File write failed, try again in a bit.</p>";
                 }
+                if ($ech_status==1)
+                    echo "<h3>ECH success</h3><p>Added $dom to list </p>";
+                else if ($has_ech==1)
+                    echo "<h3>ECH but failed</h3><p>Added $dom to list </p>";
+                else if ($has_https!="none")
+                    echo "<h3>Has HTTPS but no ech=</h3><p>Added $dom to list </p>";
+                else
+                    echo "<h3>Might or might not be a real DNS name</h3>";
             }
         }
     } 
     
 ?>
 
-
-<h3>Choose your target:</h3>
-
 <form method="POST">
-    DNS name: <input name="domain2check" type="text"/>
+    Choose your DNS name target: <input name="domain2check" type="text"/>
     <input type="submit" value="Submit">
 </form>
 
-<p>Here are the services already chosen:</p>
-
+<h3>Recent services tested:</h3>
 
 <?php
     /* display the file content */
     if ($entries>1) {
         echo "<table border=\"1\">\n";
         echo "<tr><th>Num</th><th>Date</th><th>Domain</th><th>ECH Status</th><th>Has ECH?</th><th>HTTPS RR</th></tr>\n";
-        for ($row=1;$row<$entries;$row++) {
+        for ($row=$entries-1;$row>=1;$row--) {
             $num=count($plist[$row]);
             echo "<tr>";
             echo "<td>".$row."</td>";
