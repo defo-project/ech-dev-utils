@@ -207,4 +207,6 @@ used in some time:
   used by [test-cases-gen.py](scripts/test-cases-gen..py).
 - [ech-check.php](scripts/ech-check.php) is a version of the PHP code at
   [defo.ie/ech-check.php](https://defo.ie/ech-check.php)
+- [domainechprobe.php](echprobe/domainechprobe.php) is a version of the 
+  PHP code at [https://test.defo.ie/domainechprobe.php](https://test.defo.ie/domainechprobe.php)
 
