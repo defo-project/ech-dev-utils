@@ -23,17 +23,20 @@
 <center>
 <h1>DEfO ECH Domain Name Check</h1>
 
-<p>The script on this page checks whether a given DNS domain 
-publishes an HTTPS resource record, if so, whether there is
-an ECHConfigList published as part of that, and whether or
-not ECH works with the web server at that name.</p>
+<p>The script on this page checks whether an HTTPS resource record is published
+for a given DNS domain and port (default port being 443), if so, whether there
+is an ECHConfigList published as part of that, and whether or not ECH
+works with the web server at that name.</p>
 
 <form method="POST">
-    Please enter a DNS domain name to check for ECH: Choose your DNS name target: <input name="domain2check" type="text"/>
+<fieldset style="width:60%">
+<legend align="center">DNS name and port (default: 443)</legend>
+    name: <input name="domain2check" type="text" size="20"/>
+    port: <input name="port2check" type="number" size="5" maxlength="5" value="443"/>
     <input type="submit" value="Submit">
+</fieldset>
 </form>
 
-<p>TODO: optionally accept a port as input, for port!=443 checks.</p>
 <!-- Related to above: that'll need to work for ports != 443. Unrelated to the above
 if the list gets too long we can just read in the last N lines of the flie-->
 
@@ -81,7 +84,7 @@ if the list gets too long we can just read in the last N lines of the flie-->
         return TRUE;
     }
 
-    function get_https_rr($d) {
+    function get_https_rr($d,$p) {
         $astr="";
         /*
          * we use 1.1.1.1 here to be consistent with use of DoH
@@ -91,7 +94,12 @@ if the list gets too long we can just read in the last N lines of the flie-->
          * that name. (Because, our local stub might have an
          * negative answer cached for the name for an hour.)
          */
-        $cmd="kdig @1.1.1.1 +json https " . escapeshellcmd($d);
+        if ($p==443) {
+            $qn=$d;
+        } else {
+            $qn="_".$p."._https.".$d;
+        }
+        $cmd="kdig @1.1.1.1 +json https " . escapeshellcmd($qn);
         $rdata=shell_exec($cmd);
         //var_dump($rdata);
         $jrdata=json_decode($rdata, true);
@@ -121,7 +129,7 @@ if the list gets too long we can just read in the last N lines of the flie-->
 
     function try_ech($u) {
         $doh_url="https://one.one.one.one/dns-query";
-        $cmd="curl -vvv --ech hard --doh-url " .$doh_url . " " . escapeshellcmd($u) . " 2>&1";
+        $cmd="curl -svo /dev/null --ech hard --doh-url " .$doh_url . " " . escapeshellcmd($u) . " 2>&1";
         //var_dump($cmd);
         $cdata=shell_exec($cmd);
         //var_dump($cdata);
@@ -185,6 +193,7 @@ if the list gets too long we can just read in the last N lines of the flie-->
         array(
             // we are using this in the url
             'domain2check' => array('filter' => FILTER_SANITIZE_STRING, 'flags' => FILTER_FLAG_STRIP_LOW),    
+            'port2check' => array('filter' => FILTER_SANITIZE_NUMBER_INT, 'flags' => FILTER_FLAG_STRIP_LOW),    
         );
     // must be referenced via a variable which is now an array that takes the place of $_POST[]
     $rparr = filter_var_array($_POST, $postfilter);    
@@ -202,6 +211,7 @@ if the list gets too long we can just read in the last N lines of the flie-->
     /*
      * If handling a POST... then handle the POST data...
      */
+    $port=443;
     if ($entries<100 && isset($rparr["domain2check"])) {
         // overall check of goodness
         $good2go=true;
@@ -217,6 +227,15 @@ if the list gets too long we can just read in the last N lines of the flie-->
                 $good2go=false;
             }
         }
+        if (isset($rparr['port2check'])) {
+            $portchosen=(int)$rparr['port2check'];
+            if (!is_int($portchosen) || $portchosen <= 0 || $portchosen > 65536) {
+                echo "<h3>Error</h3><p>\"".$portchosen."\" is out of range (0,65535].</p>\n";
+                $good2go=false;
+            } else {
+                $port=$portchosen;
+            }
+        }
         // check domain is real
         if ($good2go) {
             //var_dump($dom);
@@ -226,31 +245,35 @@ if the list gets too long we can just read in the last N lines of the flie-->
                 $good2go=false;
             }
             if ($good2go) {
-                $has_https=get_https_rr($dom);
+                $has_https=get_https_rr($dom, $port);
                 if (str_contains($has_https,"ech="))
                     $has_ech=1;
                 else
                     $has_ech=0;
-                $ech_status=try_ech("https://$dom/");
+                $domstr=$dom;
+                if ($port!=443)
+                    $domstr=$dom.":".$port;
+		$url="https://$domstr/";
+                $ech_status=try_ech($url);
                 $date=date(DATE_ATOM);
                 if ($has_https!="none") {
-                    $arv=addone($date, $dom, $ech_status, $has_ech, $has_https);
+                    $arv=addone($date, $domstr, $ech_status, $has_ech, $has_https);
                     // extend
                     $plist[$entries][0]=$date;
-                    $plist[$entries][1]=$dom;
+                    $plist[$entries][1]=$domstr;
                     $plist[$entries][2]=$ech_status;
                     $plist[$entries][3]=$has_ech;
                     $plist[$entries][4]=$has_https;
                     $entries++;
                 }
                 if ($ech_status==1)
-                    echo "<h3>ECH success</h3><p>Added $dom to list </p>";
+                    echo "<h3>ECH success</h3><p>Added $domstr to list </p>";
                 else if ($has_ech==1)
-                    echo "<h3>ECH but failed</h3><p>Added $dom to list </p>";
+                    echo "<h3>ECH but failed</h3><p>Added $domstr to list </p>";
                 else if ($has_https!="none")
-                    echo "<h3>Has HTTPS but no ech=</h3><p>Added $dom to list </p>";
+                    echo "<h3>Has HTTPS but no ech=</h3><p>Added $domstr to list </p>";
                 else
-                    echo "<h3>$dom doesn't seem to publish an HTTPS RR</h3>";
+                    echo "<h3>$domstr doesn't seem to publish an HTTPS RR</h3>";
             }
         }
     } 
