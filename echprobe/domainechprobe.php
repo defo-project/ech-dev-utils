@@ -3,7 +3,7 @@
 <style>
     table {
         display: block;
-        max-width: 80%;
+        max-width: 90%;
         overflow: scroll; <!-- Available options: visible, hidden, scroll, auto -->
     }
 </style>
@@ -33,7 +33,7 @@ not ECH works with the web server at that name.</p>
     <input type="submit" value="Submit">
 </form>
 
-<p>TODO: optionally accept URL as input, and use provided URL for the ECH check.</p>
+<p>TODO: optionally accept a port as input, for port!=443 checks.</p>
 <!-- Related to above: that'll need to work for ports != 443. Unrelated to the above
 if the list gets too long we can just read in the last N lines of the flie-->
 
@@ -280,7 +280,7 @@ if the list gets too long we can just read in the last N lines of the flie-->
             echo "<td>".$plist[$row][1]."</td>";
             echo "<td>".$plist[$row][2]."</td>";
             echo "<td>".$plist[$row][3]."</td>";
-            echo "<td>".$plist[$row][4]."</td>";
+            echo "<td align=left>".$plist[$row][4]."</td>";
             echo "</tr>\n";
         }
         echo "</table>\n";
