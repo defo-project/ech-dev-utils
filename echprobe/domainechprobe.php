@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <style>
     table {
         display: block;
@@ -7,7 +8,9 @@
     }
 </style>
 <head>
+<meta charset="utf-8">
 <title>DEfO ECH Domain Name Check</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body bgcolor="#ffffff" width=600>
