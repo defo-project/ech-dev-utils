@@ -80,7 +80,15 @@ if the list gets too long we can just read in the last N lines of the flie-->
 
     function get_https_rr($d) {
         $astr="";
-        $cmd="kdig +json https " . escapeshellcmd($d);
+        /*
+         * we use 1.1.1.1 here to be consistent with use of DoH
+         * for curl below - without that we might get no HTTPS RR
+         * from kdig but see ECH with curl work, if the HTTPS RR
+         * has been published between a 1st and 2nd probe for
+         * that name. (Because, our local stub might have an
+         * negative answer cached for the name for an hour.)
+         */
+        $cmd="kdig @1.1.1.1 +json https " . escapeshellcmd($d);
         $rdata=shell_exec($cmd);
         //var_dump($rdata);
         $jrdata=json_decode($rdata, true);
@@ -253,14 +261,14 @@ if the list gets too long we can just read in the last N lines of the flie-->
     /* display the file content */
     if ($entries>1) {
         echo "<table border=\"1\" style=\"width:80%\">\n";
-	echo "<tr>";
-	echo "<th align=\"center\">Num</th>";
-	echo "<th>Date</th>";
-	echo "<th>Domain</th>";
-	echo "<th align=center>ECH Status</th>";
-	echo "<th>Has ECH?</th>";
-	echo "<th align=left>HTTPS RR</th>";
-	echo "</tr>\n";
+        echo "<tr>";
+        echo "<th align=\"center\">Num</th>";
+        echo "<th>Date</th>";
+        echo "<th>Domain</th>";
+        echo "<th align=center>ECH Status</th>";
+        echo "<th>Has ECH?</th>";
+        echo "<th align=left>HTTPS RR</th>";
+        echo "</tr>\n";
         for ($row=$entries-1;$row>=1;$row--) {
             $num=count($plist[$row]);
             echo "<tr>";
