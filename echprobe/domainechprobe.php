@@ -129,6 +129,8 @@ if the list gets too long we can just read in the last N lines of the flie-->
 
     function try_ech($u) {
         $doh_url="https://one.one.one.one/dns-query";
+        // send an HTTP HEAD request - nicer but doesn't work everywhere...
+        // $cmd="curl -I -H \"Connection: close\"-sv --ech hard --doh-url " .$doh_url . " " . escapeshellcmd($u) . " 2>&1";
         $cmd="curl -svo /dev/null --ech hard --doh-url " .$doh_url . " " . escapeshellcmd($u) . " 2>&1";
         //var_dump($cmd);
         $cdata=shell_exec($cmd);
@@ -253,7 +255,7 @@ if the list gets too long we can just read in the last N lines of the flie-->
                 $domstr=$dom;
                 if ($port!=443)
                     $domstr=$dom.":".$port;
-		$url="https://$domstr/";
+                $url="https://$domstr/";
                 $ech_status=try_ech($url);
                 $date=date(DATE_ATOM);
                 if ($has_https!="none") {
