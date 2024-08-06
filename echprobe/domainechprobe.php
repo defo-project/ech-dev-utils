@@ -23,10 +23,15 @@
 <center>
 <h1>DEfO ECH Domain Name Check</h1>
 
-<p>The script on this page checks whether an HTTPS resource record is published
-for a given DNS domain and port (default port being 443), if so, whether there
-is an ECHConfigList published as part of that, and whether or not ECH
-works with the web server at that name.</p>
+<p>The (server-side) script on this page checks whether an HTTPS resource
+record (RR) is published for a given DNS domain and port (default port being
+443), if so, whether there is an ECHConfigList published as part of that, and
+whether or not ECH works with the web server at that name. That's done using
+the `kdig` command on the server-side to check for HTTPS RRs, and `curl` with
+our experimental ECH support enabled to test if ECH works.  (Note that `curl`
+supports more ECH options than browsers, but does not support automated
+re-tries via `retry-config` so the behaviour reported here will not quite match
+what browsers exhibit.)</p>
 
 <form method="POST">
 <fieldset style="width:60%">
@@ -37,8 +42,7 @@ works with the web server at that name.</p>
 </fieldset>
 </form>
 
-<!-- Related to above: that'll need to work for ports != 443. Unrelated to the above
-if the list gets too long we can just read in the last N lines of the flie-->
+<!-- if the list gets too long we can just read in the last N lines of the flie-->
 
 <?php
     /*

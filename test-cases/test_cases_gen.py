@@ -687,6 +687,18 @@ do
 done
 '''
 
+iframe_test_description='''\
+This page lists the set of ECH tests we currently generate. Each test aims to
+check whether and how some ECH setup (combination of DNS and web server) works
+with clients. Some tests involve publishing "broken" DNS records, others aim to
+see if clients do/don't support various things allowed in the ECH
+specification. For each test, we have a short description, an (human
+consumable) expected result, the URL(s) to use for the test and then an iframe
+where the URL is de-referenced, performing the test. For most (but not all)
+URLs the test results in a JSON HTTP response saying whether or not ECH
+worked.
+'''
+
 '''
 Output a bash script that calls curl with for our
 target URLs, and reports on success/fails
@@ -769,7 +781,13 @@ if __name__ == "__main__":
     # print("Web page running tests in iframe
     outf=open(outdir+'/iframe_tests.html','w')
     print("<html>", file=outf)
+    print("<meta charset=\"utf-8\">", file=outf)
+    print("<title>DEfO ECH Iframe tests</title>", file=outf)
+    print("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">", file=outf)
+    print("<body bgcolor=\"#ffffff\" width=600>", file=outf)
+    print("<center> <IMG SRC=\"defologo.png\" ALT=\"DEfO Logo\"></center>", file=outf)
     print("<h1>test.defo.ie iframe based tests</h1>", file=outf)
+    print("<p>" + iframe_test_description + "</p>", file=outf)
     print("<ol>", file=outf)
     ind = 0
     for t in targets_to_test:
@@ -799,6 +817,12 @@ if __name__ == "__main__":
         print("</li>", file=outf)
         ind+=1
     print("</ol>", file=outf)
+    print("<center>", file=outf)
+    print("<br> This fine domain brought to you by <a href=\"https://defo.ie/\">DEfO.ie</a> ", file=outf)
+    print("<br> a <a href=\"https://tolerantnetworks.com/\">Tolerant Networks Limited</a> production.", file=outf)
+    print("<br> Last modified: " + str(datetime.now(timezone.utc)) + " UTC, but who cares?</font> ", file=outf)
+    print("</center>", file=outf)
+    print("</body>", file=outf)
     print("</html>", file=outf)
 
     # print("haproxy config lines:")
