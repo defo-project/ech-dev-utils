@@ -1,4 +1,9 @@
 #!/usr/bin/php
+
+/*
+ * This is used as a command line scratchpad for stuff that
+ * ends up in domainechprobe.php, which is the real target.
+ */
 <?php
 
 $doh_url="https://one.one.one.one/dns-query";
@@ -24,11 +29,6 @@ function is_domain($d) {
 }
 
 function get_domain_info($d) {
-    /* // simple/quick check for existence, but fails sometimes
-    $out=dns_get_record($d);
-    if ($out === FALSE || $out == FALSE)
-        return;
-     */
     $cmd="kdig +json https " . escapeshellcmd($d);
     $rdata=shell_exec($cmd);
     return $rdata;

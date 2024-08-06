@@ -517,7 +517,7 @@ def resetdnscommands():
     print("update add " + dodgy + " " + str(ttl) + " HTTPS", '1 . ech' , file=outf)
     print("update add " + dodgy + " " + str(ttl) + " HTTPS", '10000 . ech=dG90YWwtY3JhcAo=' , file=outf)
     # may as well have ECH work for the base domain
-    print("update add " + base_domain + " " + str(ttl) + " HTTPS", "1 . ech=",good_kp['encoding'], file=outf)
+    print("update add " + base_domain + " " + str(ttl) + " HTTPS", "1 . ech=", good_kp['b64ecl'], file=outf)
 
 def up_instrs(name, ttl, a, aaaa, desc, https_rr):
     # print commands to delete then, if needed, add the various records
