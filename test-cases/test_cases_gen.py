@@ -693,10 +693,10 @@ check whether and how some ECH setup (combination of DNS and web server) works
 with clients. Some tests involve publishing "broken" DNS records, others aim to
 see if clients do/don't support various things allowed in the ECH
 specification. For each test, we have a short description, an (human
-consumable) expected result, the URL(s) to use for the test and then an iframe
-where the URL is de-referenced, performing the test. For most (but not all)
-URLs the test results in a JSON HTTP response saying whether or not ECH
-worked.
+consumable) expected result, the HTTPS RRs published for that test, the URL(s)
+to use for the test and then an iframe where the URL is de-referenced,
+performing the test. For most (but not all) URLs the test results in a JSON
+HTTP response saying whether or not ECH worked.
 '''
 
 '''
