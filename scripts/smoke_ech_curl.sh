@@ -158,7 +158,7 @@ echo "Running $0 at $NOW"
 
 # start of HTML
 echo "<table border=\"1\" style=\"width:80%\">" >>$tabfile
-echo "<caption>ECH \"smokeping\" run from $NOW</caption>" >>$tabfile
+#echo "<caption>ECH \"smokeping\" run from $NOW</caption>" >>$tabfile
 echo "<tr>" >>$tabfile
 echo "<th align=\"center\">Num</th>" >>$tabfile
 echo "<th aligh=\"center\">URL</th>" >>$tabfile
