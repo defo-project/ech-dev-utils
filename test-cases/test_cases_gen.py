@@ -31,9 +31,9 @@ from test_cases_settings import *
 server_tech=[
         { 'id': 'ng', 'description': 'nginx server', 'altport' : 15443, 'epub':'' },
         { 'id': 'ap', 'description': 'apache server', 'altport' : 15444, 'epub':'' },
-        { 'id': 'ly', 'description': 'lighttpd server', 'altport' : 15445, 'epub':'' },
-        { 'id': 'ss', 'description': 'OpenSSL s_server', 'altport' : 15447, 'epub':'' },
-        { 'id': 'sshrr', 'description': 'OpenSSL s_server forcing HRR', 'altport' : 15448, 'epub':'' },
+        { 'id': 'ly', 'description': 'lighttpd server', 'epub':'' },
+        { 'id': 'ss', 'description': 'OpenSSL s_server', 'epub':'' },
+        { 'id': 'sshrr', 'description': 'OpenSSL s_server forcing HRR', 'epub':'' },
         # we won't deploy all these yet
         #{ 'id': 'hp', 'description': 'haproxy server with lighttpd back-end', 'altport' : 15446, 'epub':''  },
         #{ 'id': 'hpsp', 'description': 'split-mode haproxy server', 'altport' : 15448, 'epub':'' },
@@ -41,32 +41,46 @@ server_tech=[
         #{ 'id': 'pf', 'description': 'postfix', 'altport' : 25, 'epub': '' },
         #{ 'id': 'nb', 'description': 'nobody at all listening here', 'altport' : 15450, 'epub':''  },
 ]
-# could add NSS, boringssl and wolfssl server test tools maybe
-# a filename for a temlpate we can fill via envsubst may be good
 
 # encoding values are presentation syntax or arrays of those
 # the first of these will get a shorter target name
+# a zero for an "_expected" value indicates we expect success
+# non-zero values expect failures, with the value being a
+# client-specific expectation (how that maps to checking code
+# depends on the client and checking code).
 targets_to_make=[
     {
-      'id': 'min', 'expected': 'success', 'curl_expected': 0,
+      'id': 'min', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected': 0,
+      'curl_expected': 0,
       'description': 'minimal HTTPS RR',
       'encoding':
         '1 . ech=' + good_kp['b64ecl'],
     },
     {
-      'id': 'v1', 'expected': 'success', 'curl_expected': 0,
+      'id': 'v1', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected': 0,
+      'curl_expected': 0,
       'description': 'nominal, HTTPS RR',
       'encoding':
         '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'v2', 'expected': 'success', 'curl_expected': 0,
+      'id': 'v2', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected': 0,
+      'curl_expected': 0,
       'description': 'nominal, HTTPS RR',
       'encoding':
         '1 . alpn="' + good_alpn + '" ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'v3', 'expected': 'success', 'curl_expected': 0,
+      'id': 'v3', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected': 0,
+      'curl_expected': 0,
       'description': 'two RRvals for nominal, minimal, HTTPS RR',
       'encoding':
         [
@@ -75,7 +89,10 @@ targets_to_make=[
         ],
     },
     {
-      'id': 'v4', 'expected': 'error, but maybe arguable', 'curl_expected': 35,
+      'id': 'v4', 'expected': 'error, but maybe arguable',
+      'firefox_expected': 1,
+      'chrome_expected': 1,
+      'curl_expected': 35,
       'description': 'three RRvals, 1st bad, 2nd good, 3rd bad, HTTPS RR',
       'encoding':
         [
@@ -85,28 +102,43 @@ targets_to_make=[
         ],
     },
     {
-      'id': 'bk1', 'expected': 'error', 'curl_expected': 35,
+      'id': 'bk1', 'expected': 'error',
+      'firefox_expected': 1,
+      'chrome_expected': 1,
+      'curl_expected': 35,
       'description': 'ECHConfigList with bad alg type (0xcccc) for ech kem',
       'encoding': '1 . ech=' + bad_kp1['b64ecl'],
     },
     {
-     'id': 'bk2', 'expected': 'error', 'curl_expected': 35,
+     'id': 'bk2', 'expected': 'error',
+     'firefox_expected': 1,
+     'chrome_expected': 1,
+     'curl_expected': 35,
      'description': 'zero-length ECHConfig within ECHConfigList',
      'encoding': '1 . ech=' + bad_kp2['b64ecl'],
     },
     {
-      'id': 'bv', 'expected': 'error', 'curl_expected': 35,
+      'id': 'bv', 'expected': 'error',
+      'firefox_expected': 1,
+      'chrome_expected': 1,
+      'curl_expected': 35,
       'description': 'ECHConfigList with bad ECH version (0xcccc)',
       'encoding': '1 . ech=AEbMzABCmQAgACBrf4D75W04lOLJ4RVtJYz7lFamxDjiETWJA4KLCXeFUAAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA',
     },
     {
-      'id': 'badalpn', 'expected': 'client-dependent', 'curl_expected': 0,
+      'id': 'badalpn', 'expected': 'client-dependent',
+      'firefox_expected': 1,
+      'chrome_expected': 0,
+      'curl_expected': 0,
       'description': 'nominal, HTTPS RR, bad alpn',
       'encoding':
         '1 . alpn="' + bad_alpn + '" ech=' + good_kp['b64ecl'],
     },
     {
-      'id': 'noaddr', 'expected': 'error', 'curl_expected': 6,
+      'id': 'noaddr', 'expected': 'error',
+      'firefox_expected': 1,
+      'chrome_expected': 1,
+      'curl_expected': 6,
       'description': 'HTTPS RR, with hints but no A/AAAA',
       'encoding':
         '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp['b64ecl'] + ' ipv6hint=' + good_ipv6,
@@ -352,7 +384,8 @@ The files output to that directory are:
       containing test-specific server_name values
     - iframe_tests.html, HTML page that runs all our browsers tests in
       an iframe for each test (and describes tests)
-    - urls_to_test, the set of URLs used in iframe tests
+    - urls_to_test.csv, the set of URLs used in tests - some ours some
+      for others' servers along with expected test outcomes
 
 # Test-Specific Names
 
@@ -392,7 +425,10 @@ The fields in this array are:
 The nominal case is as shown below;
 
     {
-      'id': 'min', 'expected': 'success', 'curl_expected': 0,
+      'id': 'min', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected': 0,
+      'curl_expected': 0,
       'description': 'minimal HTTPS RR',
       'encoding':
         '1 . ech=' + good_kp['b64ecl'],
@@ -401,7 +437,10 @@ The nominal case is as shown below;
 A case with multiple HTTPS RRs is:
 
     {
-      'id': 'v4', 'expected': 'error, but maybe arguable', 'curl_expected': 6,
+      'id': 'v4', 'expected': 'error, but maybe arguable',
+      'firefox_expected': 1,
+      'chrome_expected': 1,
+      'curl_expected': 6,
       'description': 'three RRvals, 1st bad, 2nd good, 3rd bad, HTTPS RR',
       'encoding':
         [
@@ -554,13 +593,18 @@ def dobasensupdate(tech):
     up_instrs(target, ttl, good_ipv4, good_ipv6, description, https_rr)
     targets_to_test.append({'tech': tech, 'target':target,
                             'description': description, 'https_rr': https_rr,
-                            'expected': "success"})
+                            'expected': "success", 'c_expect': "0,0,0" })
     # handle altport access
-    alttarg="_" + str(tech['altport']) + "._https." + target
-    altenc = "1 " + target + " ech=" + tech['epub']
-    up_instrs(alttarg, ttl, None, None, description, altenc)
-    alttarg=tech['id'] + "-pub." + base_domain
-    up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, None)
+    if tech.get('altport') is not None:
+        alttarg="_" + str(tech['altport']) + "._https." + target
+        altenc = "1 " + target + " ech=" + tech['epub']
+        up_instrs(alttarg, ttl, None, None, description, altenc)
+        alttarg=tech['id'] + "-pub." + base_domain
+        up_instrs(alttarg, ttl, good_ipv4, good_ipv6, description, None)
+
+def expect_str(hp):
+    outstr=str(hp['curl_expected']) + "," + str(hp['firefox_expected']) + "," + str(hp['chrome_expected'])
+    return outstr
 
 # produce a set of nsupdate commands for a target that's uses a
 # specific HTTPS test configuration (often a broken one)
@@ -575,7 +619,8 @@ def donsupdate(tech, target, hp):
     up_instrs(target, ttl, the_ipv4, the_ipv6, description, https_rr)
     targets_to_test.append({'tech': tech, 'target':target,
                             'description': description, 'https_rr': https_rr,
-                            'expected': hp['expected']})
+                            'expected': hp['expected'],
+                            'c_expect': expect_str(hp) })
     # handle altport access
     alttarg="_" + str(tech['altport']) + "._https." + target
     altenc = hp['encoding']
@@ -606,7 +651,8 @@ def haproxy_fe_config():
     for s in server_tech:
         print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + "-pub." + base_domain + " }", file=outf)
         print("       use-server " + s['id'] + " if { req.ssl_sni -i " + s['id'] + "." + base_domain + " }", file=outf)
-        print("       server " + s['id'] + " 127.0.0.1:" + str(s['altport']) + " check", file=outf)
+        if s.get('altport') is not None:
+            print("       server " + s['id'] + " 127.0.0.1:" + str(s['altport']) + " check", file=outf)
     for targ in targets_to_make:
         print("       use-server ng if { req.ssl_sni -i " + targ['id'] + "-ng." + base_domain + " }", file=outf)
     # default on last line?
@@ -699,6 +745,23 @@ performing the test. For most (but not all) URLs the test results in a JSON
 HTTP response saying whether or not ECH worked.
 '''
 
+other_urls='''url,firefox_expected,chrome_expected,curl_expected,
+https://my-own.net/ech-check.php,0,0,0
+https://my-own.net:8443/ech-check.php,0,0,0
+https://defo.ie/ech-check.php,0,0,0
+https://cover.defo.ie/,0,0,0
+https://draft-13.esni.defo.ie:8413/stats,0,0,0
+https://draft-13.esni.defo.ie:8414/stats,0,0,0
+https://draft-13.esni.defo.ie:9413/,0,0,0
+https://draft-13.esni.defo.ie:10413/,0,0,0
+https://draft-13.esni.defo.ie:11413/,0,0,0
+https://draft-13.esni.defo.ie:12413/,0,0,0
+https://draft-13.esni.defo.ie:12414/,0,0,0
+https://crypto.cloudflare.com/cdn-cgi/trace,0,0,0
+https://tls-ech.dev/,0,0,0
+https://myechtest.site/,0,0,0
+https://hidden.hoba.ie/,0,0,0'''
+
 '''
 Output a bash script that calls curl with for our
 target URLs, and reports on success/fails
@@ -773,10 +836,12 @@ if __name__ == "__main__":
         dobasensupdate(tech)
 
     # print("URLs to test:")
-    outf=open(outdir+'/urls_to_test','w')
+    outf=open(outdir+'/urls_to_test.csv','w')
+    print(other_urls, file=outf);
     for t in targets_to_test:
         print("https://" + t['target'] + "/" + pathname, file=outf)
-        print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname, file=outf)
+        if (t['tech']).get('altport') is not None:
+           print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname + "," + t['c_expect'], file=outf)
 
     # print("Web page running tests in iframe
     outf=open(outdir+'/iframe_tests.html','w')

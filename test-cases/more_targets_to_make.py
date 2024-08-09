@@ -29,7 +29,10 @@ bind's `nsupdate -l` command.
 '''
 more_targets_to_make=[
     {
-      'id': 'many', 'expected': 'success', 'curl_expected': 0,
+      'id': 'many', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': '20 values in HTTPS RR',
       'encoding':
         [
@@ -56,7 +59,10 @@ more_targets_to_make=[
         ],
     },
     {
-      'id': 'mixedmode', 'expected': 'error, but likely ignored', 'curl_expected': 35,
+      'id': 'mixedmode', 'expected': 'error, but likely ignored',
+      'firefox_expected': 1,
+      'chrome_expected' : 1,
+      'curl_expected': 35,
       'description': 'AliasMode (0) and ServiceMode (!=0) are not allowed together',
       'encoding':
         [
@@ -65,12 +71,18 @@ more_targets_to_make=[
         ]
     },
     {
-      'id': 'p256', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'id': 'p256', 'expected': 'success, but client-dependent',
+      'firefox_expected': 1,
+      'chrome_expected' : 1,
+      'curl_expected': 0,
       'description': 'uses p256, hkdf-385 and chacha',
       'encoding': '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'curves1', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'id': 'curves1', 'expected': 'success, but client-dependent',
+      'firefox_expected': 2,
+      'chrome_expected' : 2,
+      'curl_expected': 0,
       'description': 'two RRVALs one using x25519 and one with p256, same priority',
       'encoding':
         [
@@ -79,7 +91,10 @@ more_targets_to_make=[
         ]
     },
     {
-      'id': 'curves2', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'id': 'curves2', 'expected': 'success, but client-dependent',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'two RRVALs one using x25519 (priority=1) and one with p256 (priority=2)',
       'encoding':
         [
@@ -88,7 +103,10 @@ more_targets_to_make=[
         ]
     },
     {
-      'id': 'curves3', 'expected': 'success, but client-dependent', 'curl_expected': 0,
+      'id': 'curves3', 'expected': 'success, but client-dependent',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'two RRVALs one using x25519 (priority=2) and one with p256 (priority=1)',
       'encoding':
         [
@@ -97,22 +115,34 @@ more_targets_to_make=[
         ]
     },
     {
-      'id': 'h2alpn', 'expected': 'success', 'curl_expected': 0,
+      'id': 'h2alpn', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'alpn is only h2',
       'encoding': '1 . alpn="h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'h1alpn', 'expected': 'success', 'curl_expected': 0,
+      'id': 'h1alpn', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'alpn is only http/1.1',
       'encoding': '1 . alpn="http/1.1" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'mixedalpn', 'expected': 'success', 'curl_expected': 0,
+      'id': 'mixedalpn', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'alpn is http/1.1,foo,bar,bar,bom,h2',
       'encoding': '1 . alpn="http/1.1,foo,bar,baz,bom,h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'longalpn', 'expected': 'success', 'curl_expected': 0,
+      'id': 'longalpn', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'alpn is very long ending with http/1.1,h2',
       'encoding':
             '1 . alpn="' + \
@@ -129,17 +159,26 @@ more_targets_to_make=[
             'http/1.1,h2" ipv4hint=' + good_ipv4 + ' ech=' + good_kp2['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': '2thenp', 'expected': 'success', 'curl_expected': 0,
+      'id': '2thenp', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'ECHConfiglist with 2 entries a 25519 one then a p256 one (both good keys)',
       'encoding': '1 . ech=AK3+DQBCqQAgACBlm7cfDx/gKuUAwRTe+Y9MExbIyuLpLcgTORIdi69uewAEAAEAAQATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AY54AEABBBBYJC5HR0vrc9fD15nWKWAWXShsYwZvljRvQLCjWjgo+G5g27heCsrxxGRo+vlpbNVQXtTl4nq6YxomDhK4jlpwABAACAAMAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
     },
     {
-      'id': 'pthen2', 'expected': 'success', 'curl_expected': 0,
+      'id': 'pthen2', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'ECHConfiglist with 2 entries a p256 one then a 25519 one (both good keys)',
       'encoding': '1 . ech=AK3+DQBjngAQAEEEFgkLkdHS+tz18PXmdYpYBZdKGxjBm+WNG9AsKNaOCj4bmDbuF4KyvHEZGj6+Wls1VBe1OXierpjGiYOEriOWnAAEAAIAAwATcHVibGljLnRlc3QuZGVmby5pZQAA/g0AQqkAIAAgZZu3Hw8f4CrlAMEU3vmPTBMWyMri6S3IEzkSHYuvbnsABAABAAEAE3B1YmxpYy50ZXN0LmRlZm8uaWUAAA=='
     },
     {
-      'id': 'withext', 'expected': 'success', 'curl_expected': 0,
+      'id': 'withext', 'expected': 'success',
+      'firefox_expected': 0,
+      'chrome_expected' : 0,
+      'curl_expected': 0,
       'description': 'minimal HTTPS RR but with 2 ECHConfig extensions',
       'encoding':
         '1 . ech=' + good_withext['b64ecl'],
