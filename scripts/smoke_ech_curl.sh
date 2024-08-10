@@ -11,6 +11,7 @@
 
 # structure is URL mapped to expected return value from
 # curl --ech hard for that URL
+# TODO - replace this with reading the urls_to_test.csv file
 declare -A targets=(
     [https://my-own.net/ech-check.php]="0"
     [https://my-own.net:8443/ech-check.php]="0"

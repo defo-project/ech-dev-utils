@@ -839,7 +839,7 @@ if __name__ == "__main__":
     outf=open(outdir+'/urls_to_test.csv','w')
     print(other_urls, file=outf);
     for t in targets_to_test:
-        print("https://" + t['target'] + "/" + pathname, file=outf)
+        print("https://" + t['target'] + "/" + pathname + "," + t['c_expect'], file=outf)
         if (t['tech']).get('altport') is not None:
            print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname + "," + t['c_expect'], file=outf)
 

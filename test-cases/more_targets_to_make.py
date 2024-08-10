@@ -79,9 +79,9 @@ more_targets_to_make=[
       'encoding': '1 . ipv4hint=' + good_ipv4 + ' ech=' + good_kp256['b64ecl'] + ' ipv6hint=' + good_ipv6,
     },
     {
-      'id': 'curves1', 'expected': 'success, but client-dependent',
-      'firefox_expected': 2,
-      'chrome_expected' : 2,
+      'id': 'curves1', 'expected': 'success, but client-dependent in practice may vary',
+      'firefox_expected': 0, # success or fail may depend on order of DNS answers
+      'chrome_expected' : 0,
       'curl_expected': 0,
       'description': 'two RRVALs one using x25519 and one with p256, same priority',
       'encoding':
