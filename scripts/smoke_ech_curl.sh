@@ -9,90 +9,19 @@
 
 # set -x
 
-# structure is URL mapped to expected return value from
-# curl --ech hard for that URL
-# TODO - replace this with reading the urls_to_test.csv file
-declare -A targets=(
-    [https://my-own.net/ech-check.php]="0"
-    [https://my-own.net:8443/ech-check.php]="0"
-    [https://defo.ie/ech-check.php]="0"
-    [https://cover.defo.ie/]="0"
-    [https://draft-13.esni.defo.ie:8413/stats]="0"
-    [https://draft-13.esni.defo.ie:8414/stats]="0"
-    [https://draft-13.esni.defo.ie:9413/]="0"
-    [https://draft-13.esni.defo.ie:10413/]="0"
-    [https://draft-13.esni.defo.ie:11413/]="0"
-    [https://draft-13.esni.defo.ie:12413/]="0"
-    [https://draft-13.esni.defo.ie:12414/]="0"
-    [https://crypto.cloudflare.com/cdn-cgi/trace]="0"
-    [https://tls-ech.dev/]="0"
-    # [https://epochbelt.com/]="0"
-    [https://myechtest.site/]="0"
-    [https://hidden.hoba.ie/]="0"
-    [https://min-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://min-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://v1-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://v1-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://v2-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://v2-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://v3-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://v3-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://v4-ng.test.defo.ie/echstat.php?format=json]="35"
-    [https://v4-ng.test.defo.ie:15443/echstat.php?format=json]="35"
-    [https://bk1-ng.test.defo.ie/echstat.php?format=json]="35"
-    [https://bk1-ng.test.defo.ie:15443/echstat.php?format=json]="35"
-    [https://bk2-ng.test.defo.ie/echstat.php?format=json]="35"
-    [https://bk2-ng.test.defo.ie:15443/echstat.php?format=json]="35"
-    [https://bv-ng.test.defo.ie/echstat.php?format=json]="35"
-    [https://bv-ng.test.defo.ie:15443/echstat.php?format=json]="35"
-    [https://badalpn-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://badalpn-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    # next one has no A/AAAA published so won't work
-    [https://noaddr-ng.test.defo.ie/echstat.php?format=json]="6"
-    [https://noaddr-ng.test.defo.ie:15443/echstat.php?format=json]="6"
-    [https://many-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://many-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://mixedmode-ng.test.defo.ie/echstat.php?format=json]="35"
-    [https://mixedmode-ng.test.defo.ie:15443/echstat.php?format=json]="35"
-    [https://p256-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://p256-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://curves1-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://curves1-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://curves2-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://curves2-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://curves3-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://curves3-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://h2alpn-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://h2alpn-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://h1alpn-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://h1alpn-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://mixedalpn-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://mixedalpn-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://longalpn-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://longalpn-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://2thenp-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://2thenp-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://pthen2-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://pthen2-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://withext-ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://withext-ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://ng.test.defo.ie/echstat.php?format=json]="0"
-    [https://ng.test.defo.ie:15443/echstat.php?format=json]="0"
-    [https://ap.test.defo.ie/echstat.php?format=json]="0"
-    [https://ap.test.defo.ie:15444/echstat.php?format=json]="0"
-    [https://ly.test.defo.ie/echstat.php?format=json]="0"
-    [https://ss.test.defo.ie/echstat.php?format=json]="0"
-    [https://sshrr.test.defo.ie/echstat.php?format=json]="0"
-)
+# main inputs - can be overridden via command line of environment
+: ${RESULTS_DIR:="/var/extra/smokeping/runs"}
+: ${URLS_TO_TEST:="/var/extra/urls_to_test.csv"}
 
 # to pick up correct executables and .so's
-: ${REPTOP:="sreps"}
 : ${CURLTOP:="$HOME/code/curl"}
+: ${GETOPTDIR:=/usr/bin}
 
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="5s"}
 : ${curlparms=" -s --ech hard --doh-url https://one.one.one.one/dns-query"}
 : ${curlbin="$CURLTOP/src/curl"}
+
 
 function url2port()
 {
@@ -128,23 +57,86 @@ allgood="yes"
 
 NOW=$(whenisitagain)
 
-if [ ! -d $REPTOP ]
+function usage()
+{
+    echo "$0 [-hdu] - run ECH tests with curl"
+	echo "  -h print this"
+    echo "  -r <results_dir> - specify the directory below which date stamped results with be put"
+	echo "  -u <urls_to_test> - provide a non-default s4et of URLs and expected outcomes"
+    exit 99
+}
+
+# check we have what looks like a good getopt (the native version on macOS 
+# seems to not be good)
+if [ ! -f $GETOPTDIR/getopt ]
 then
-    mkdir -p $REPTOP
+    echo "No sign of $GETOPTDIR/getopt - exiting"
+    exit 32
 fi
-if [ ! -d $REPTOP ]
+getoptcnt=`$GETOPTDIR/getopt --version | grep -c "util-linux"`
+if [[ "$getoptcnt" != "1" ]]
 then
-    echo "Can't make $REPTOP"
+    echo "$GETOPTDIR/getopt doesn't seem to be gnu-getopt - exiting"
+    exit 32
+fi
+
+# options may be followed by one colon to indicate they have a required argument
+if ! options=$($GETOPTDIR/getopt -s bash -o h,r:,u: -l help,results_dir:,urls_to_test: -- "$@")
+then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+#echo "|$options|"
+eval set -- "$options"
+while [ $# -gt 0 ]
+do
+    case "$1" in
+        -h|--help) usage;;
+        -r|--results_dir) RESULTS_DIR=$2; shift;;
+        -u|--urls_to_test) URLS_TO_TEST=$2; shift;;
+        (--) shift; break;;
+        (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+        (*)  break;;
+    esac
+    shift
+done
+
+if [ ! -d $RESULTS_DIR ]
+then
+    mkdir -p $RESULTS_DIR
+fi
+if [ ! -d $RESULTS_DIR ]
+then
+    echo "Can't make $RESULTS_DIR"
     exit 3
 fi
 
-rundir="$REPTOP/$NOW"
+rundir="$RESULTS_DIR/$NOW"
 mkdir -p "$rundir"
 if [ ! -d $rundir ]
 then
     echo "Can't make $rundir"
     exit 3
 fi
+
+if [ ! -f $URLS_TO_TEST ]
+then
+    echo "Can't read $URLS_TO_TEST - exiting"
+    exit 4
+fi
+
+# load from $URLS_TO_TEST into $targets
+# associative array of URLs to test with expected curl return values
+# e.g.: [https://my-own.net/ech-check.php]="0"
+declare -A targets=( )
+lineno=0
+while IFS=',' read -r url curl_e ff_e chr_e; do
+    if ((lineno!=0))
+    then
+        targets[$url]+=$curl_e
+    fi
+    lineno=$((lineno+1))
+done < "$URLS_TO_TEST"
 
 logfile=$(get_abs_filename "$rundir/$NOW.log")
 tabfile=$(get_abs_filename "$rundir/$NOW.html")
@@ -201,7 +193,7 @@ then
         else
             echo "Good/expected result for $targ" >>$logfile
             echo "Good/expected result for $targ"
-            echo "<tr><td>$index</td><td>$targ</td><td>success</td></tr>" >>$tabfile
+            echo "<tr><td>$index</td><td>$targ</td><td>expected</td></tr>" >>$tabfile
         fi
         index=$((index+1))
     done

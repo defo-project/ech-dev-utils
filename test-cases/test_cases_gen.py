@@ -745,7 +745,7 @@ performing the test. For most (but not all) URLs the test results in a JSON
 HTTP response saying whether or not ECH worked.
 '''
 
-other_urls='''url,firefox_expected,chrome_expected,curl_expected,
+other_urls='''url,curl_expected,firefox_expected,chrome_expected
 https://my-own.net/ech-check.php,0,0,0
 https://my-own.net:8443/ech-check.php,0,0,0
 https://defo.ie/ech-check.php,0,0,0
