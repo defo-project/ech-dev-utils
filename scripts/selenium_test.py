@@ -29,8 +29,6 @@ from selenium.webdriver.chrome.options import Options as chrome_Options
 from selenium.webdriver.chrome.service import Service as chrome_Service
 from selenium.webdriver.firefox.options import Options as firefox_Options
 from selenium.webdriver.firefox.service import Service as firefox_Service
-from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.chrome import ChromeDriverManager
 
 # check result from an expected echstat JSON result
 def echstat_check(result, expected):
@@ -105,6 +103,7 @@ if __name__ == "__main__":
             print("Safari has no ECH support yet - exiting")
             sys.exit(1)
         case 'firefox':
+            from webdriver_manager.firefox import GeckoDriverManager
             firefox_profile = FirefoxProfile()
             firefox_profile.set_preference("network.trr.custom_uri", "https://one.one.one.one/dns-query")
             firefox_profile.set_preference("network.trr.mode", 3)
@@ -113,9 +112,16 @@ if __name__ == "__main__":
             options.add_argument('--headless')
             driver = webdriver.Firefox(service=firefox_Service(GeckoDriverManager().install()), options=options)
         case 'chrome':
+            from webdriver_manager.chrome import ChromeDriverManager
             options = chrome_Options()
             options.add_argument('--headless=new')
             driver = webdriver.Chrome(service=chrome_Service(ChromeDriverManager().install()), options=options)
+        case 'chromium':
+            from selenium.webdriver.chrome.service import Service as ChromeService
+            options = chrome_Options()
+            options.add_argument('--headless=new')
+            service = ChromeService(executable_path="/usr/bin/chromedriver")
+            driver = webdriver.Chrome(options = options, service = service)
         case _:
             print("unknown browser - exiting")
             sys.exit(1)
@@ -138,7 +144,7 @@ if __name__ == "__main__":
             print(str(urlnum), theurl)
             # FF default
             expected=int(row[1])
-            if args.browser=='chrome':
+            if args.browser=='chrome' or args.browser=='chromium':
                 expected=int(row[2])
             try:
                 driver.get(theurl)
