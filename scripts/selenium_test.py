@@ -72,8 +72,13 @@ def gen_check(result, expected):
     return "unknown"
 
 # add a record to the results file
-def write_res(fp, num, url, res):
-    print(str(num)+","+url+","+ res, file=fp)
+def write_res(htmlout, fp, num, url, res):
+    if htmlout is False:
+        # csv output
+        print(str(num)+","+url+","+ res, file=fp)
+        return
+    tab_row="<tr><td>"+str(num)+"</td><td>"+url+"</td><td>"+res+"</td></tr>"
+    print(tab_row, file=fp)
 
 # result handling table - we check the de-reff'd url vs. the url field
 # then call the handler with the result if we get a match
@@ -138,6 +143,8 @@ if __name__ == "__main__":
                         help='place to put time-based result fils')
     parser.add_argument("-v", "--verbose", action="store_true",  help="additional output")
     parser.add_argument("-V", "--superverbose", action="store_true",  help="extra additional output")
+    parser.add_argument("-H", "--html", action="store_true", default=True, help="HTML output")
+    parser.add_argument("-C", "--csv", action="store_true", default=False, help="CSV output")
     args = parser.parse_args()
 
     runtime=datetime.now(timezone.utc)
@@ -159,7 +166,21 @@ if __name__ == "__main__":
     if not os.path.isdir(myresults):
         print("Can't make results dir - exiting")
         sys.exit(1)
-    fp=open(myresults+"/"+runstr+".html",'w')
+    # only allow one of html/csv output be chosen:
+    if args.csv:
+        args.html=False
+    if args.html:
+        fp=open(myresults+"/"+runstr+".html",'w')
+        # table header
+        print("<table border=\"1\" style=\"width:80%\">", file=fp)
+        print("<tr>", file=fp)
+        print("<th align=\"center\">Num</th>", file=fp)
+        print("<th aligh=\"center\">URL</th>", file=fp)
+        print("<th aligh=\"center\">Result</th>", file=fp)
+        print("</tr>", file=fp)
+    else:
+        fp=open(myresults+"/"+runstr+".csv",'w')
+
 
     match args.browser:
         case 'safari':
@@ -223,9 +244,9 @@ if __name__ == "__main__":
                 # we know to expect some exceptions, e.g. for noaddr cases
                 exc_str=str(exc_value).partition('\n')[0]
                 if known_exception(args.browser, theurl, exc_value):
-                    write_res(fp, urlnum-1, theurl, "expected exception: " + exc_str)
+                    write_res(args.html, fp, urlnum-1, theurl, "expected exception: " + exc_str)
                 else:
-                    write_res(fp, urlnum-1, theurl, "unexpected exception: " + exc_str)
+                    write_res(args.html, fp, urlnum-1, theurl, "unexpected exception: " + exc_str)
             result=driver.find_element(By.XPATH,"/*").text
             if args.superverbose:
                 print(result)
@@ -235,10 +256,13 @@ if __name__ == "__main__":
             # record result if we didn't get an exception earlier
             if gotexception==False:
                 if handler==None:
-                    write_res(fp, urlnum-1, theurl, "no handler")
+                    write_res(args.html, fp, urlnum-1, theurl, "no handler")
                 else:
-                    write_res(fp, urlnum-1, theurl, handler(result, expected))
+                    write_res(args.html, fp, urlnum-1, theurl, handler(result, expected))
 
             urlnum=urlnum+1
 
     driver.quit()
+    # close off table
+    if args.html:
+        print("</table>", file=fp)
