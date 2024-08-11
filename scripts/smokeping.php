@@ -25,7 +25,7 @@
 
 <p>The (server-side) script on this page displays the results from attempting
 ECH (via curl) with each of the URLs shown, for the time of the run shown.
-Currently, runs are done hourly via cron. Note that "success" means that we
+Currently, runs are done hourly via cron. Note that "expected" means that we
 got the expected result, which, for some of these URLs, means we saw the
 expected error.</p>
 
