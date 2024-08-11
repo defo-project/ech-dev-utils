@@ -749,7 +749,6 @@ other_urls='''url,curl_expected,firefox_expected,chrome_expected
 https://my-own.net/ech-check.php,0,0,0
 https://my-own.net:8443/ech-check.php,0,0,0
 https://defo.ie/ech-check.php,0,0,0
-https://cover.defo.ie/,0,0,0
 https://draft-13.esni.defo.ie:8413/stats,0,0,0
 https://draft-13.esni.defo.ie:8414/stats,0,0,0
 https://draft-13.esni.defo.ie:9413/,0,0,0
@@ -839,9 +838,15 @@ if __name__ == "__main__":
     outf=open(outdir+'/urls_to_test.csv','w')
     print(other_urls, file=outf);
     for t in targets_to_test:
-        print("https://" + t['target'] + "/" + pathname + "," + t['c_expect'], file=outf)
+        if t['tech']['id'] == 'ss' or t['tech']['id'] == 'sshrr':
+            print("https://" + t['target'] + "/" + s_pathname + "," + t['c_expect'], file=outf)
+        else:
+            print("https://" + t['target'] + "/" + pathname + "," + t['c_expect'], file=outf)
         if (t['tech']).get('altport') is not None:
-           print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname + "," + t['c_expect'], file=outf)
+            if t['tech']['id'] == 'ss' or t['tech']['id'] == 'sshrr':
+                print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + s_pathname + "," + t['c_expect'], file=outf)
+            else:
+                print("https://" + t['target'] + ":" + str(t['tech']['altport']) + "/" + pathname + "," + t['c_expect'], file=outf)
 
     # print("Web page running tests in iframe
     outf=open(outdir+'/iframe_tests.html','w')

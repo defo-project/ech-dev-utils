@@ -38,15 +38,35 @@ def echstat_check(result, expected):
         return "fail"
     jstat=jres['SSL_ECH_STATUS']
     if expected==0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCES"):
-        print(jstat, "success")
-        return "success"
+        return "expected"
+    # no distinguishing GREASE and fail here, nor retry-configs
     if expected!=0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCES"):
-        print(jstat, "fail")
         return "fail"
     return "fail"
 
 def s_server_check(result, expected):
-    return "success"
+    # if it reports success we're good
+    if 'ECH success:' in result:
+        return "expected"
+    return "fail"
+
+def check_php_check(result, expected):
+    # react to image file name for green check mark
+    if 'greentick-small.png' in result:
+        return "expected"
+    return "fail"
+
+def cf_check(result, expected):
+    # react to image file name for green check mark
+    if 'sni=encrypted' in result:
+        return "expected"
+    return "fail"
+
+def bs_check(result, expected):
+    # react to image file name for green check mark
+    if 'You are using ECH' in result:
+        return "expected"
+    return "fail"
 
 def gen_check(result, expected):
     return "unknown"
@@ -60,9 +80,31 @@ def write_res(fp, num, url, res):
 # this requires knowledge of expected results and of course would break
 # if server changes it's resopnses too much
 result_handlers = [
+    # our main test case...
     { 'url': '^https://.*/echstat.php[?]format=json$', 'handler': echstat_check },
+    # openssl s_server tests
     { 'url': "^https://ss.test.defo.ie/stats$", 'handler': s_server_check },
     { 'url': "^https://sshrr.test.defo.ie/stats$", 'handler': s_server_check },
+    { 'url': "^https://draft-13.esni.defo.ie:8413/stats$", 'handler': s_server_check },
+    { 'url': "^https://draft-13.esni.defo.ie:8414/stats$", 'handler': s_server_check },
+    # stuff using ech-check.php
+    { 'url': "^https://.*/ech-check.php$", 'handler': check_php_check },
+    { 'url': "^https://hidden.hoba.ie/$", 'handler': check_php_check },
+    # non-s_server instances of draft-13.esni.defo.ie
+    # lighttpd
+    { 'url': "^https://draft-13.esni.defo.ie:9413/$", 'handler': check_php_check },
+    # nginx
+    { 'url': "^https://draft-13.esni.defo.ie:10413/$", 'handler': check_php_check },
+    # apache
+    { 'url': "^https://draft-13.esni.defo.ie:11413/$", 'handler': check_php_check },
+    # haproxy shared-mode
+    { 'url': "^https://draft-13.esni.defo.ie:12413/$", 'handler': check_php_check },
+    # haproxy split-mode
+    { 'url': "^https://draft-13.esni.defo.ie:12414/$", 'handler': check_php_check },
+    # cloudflare's test server
+    { 'url': "^https://crypto.cloudflare.com/cdn-cgi/trace$", 'handler': cf_check },
+    # boringssl-driven test server
+    { 'url': "^https://tls-ech.dev/$", 'handler': bs_check },
 ]
 
 def get_handler(url):
