@@ -84,14 +84,14 @@ expected error.</p>
     if ($runind>0) {
     	$prevtime=basename($runlist[$runind-1]);
     	//var_dump($prevtime);
-    	$prevurl="https://test.defo.ie/smokeping.php?runtime=".$prevtime;
+    	$prevurl="https://test.defo.ie/smokeping-curl.php?runtime=".$prevtime;
     	$prevstr="<p><a href=\"".$prevurl."\">prev</a></p>";
     }
     $nextstr="<p>next</a>";
     if ($thisrun!=$last) {
     	$nexttime=basename($runlist[$runind+1]);
     	//var_dump($nexttime);
-    	$nexturl="https://test.defo.ie/smokeping.php?runtime=".$nexttime;
+    	$nexturl="https://test.defo.ie/smokeping-curl.php?runtime=".$nexttime;
     	$nextstr="<p><a href=\"".$nexturl."\">next</a></p>";
     }
     echo "<table border=\"0\" style=\"width:80%\"><tr>";
@@ -99,6 +99,10 @@ expected error.</p>
     echo "<td width=\"50%\"><h2>Run: ".$runtime."</h2></td>";
     echo "<td align=\"right\">$nextstr</td>";
     echo "</tr></table>";
+    # if there's version info for this run, then show that
+    $verinfo=file_get_contents($thisrun."/".$runtime.".curl.ver");
+    echo "Version info: ".$verinfo;
+    # show run data
     $runtable=file_get_contents($thisrun."/".$runtime.".html");
     echo $runtable;
 ?>
