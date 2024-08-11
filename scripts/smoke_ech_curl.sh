@@ -140,8 +140,10 @@ done < "$URLS_TO_TEST"
 
 logfile=$(get_abs_filename "$rundir/$NOW.log")
 tabfile=$(get_abs_filename "$rundir/$NOW.html")
+csvfile=$(get_abs_filename "$rundir/$NOW.csv")
 touch "$logfile"
 touch "$tabfile"
+touch "$csvfile"
 
 cd "$rundir"
 
@@ -157,6 +159,8 @@ echo "<th align=\"center\">Num</th>" >>$tabfile
 echo "<th aligh=\"center\">URL</th>" >>$tabfile
 echo "<th aligh=\"center\">Result</th>" >>$tabfile
 echo "</tr>" >>$tabfile
+# start of CSV
+echo "num,url,result" >>$csvfile
 
 if [[ "$allgood" == "yes" ]]
 then
@@ -170,7 +174,8 @@ then
         then
             echo "Skipping $targ as ports != 443 seem blocked"
             echo "Skipping $targ as ports != 443 seem blocked" >>$logfile
-            echo "<tr><td>$index</td><td>$targ</td><td>Skipped $targ (ports != 443 blocked)</td></tr>" >>$tabfile
+            echo "<tr><td>$index</td><td>$targ</td><td>skipped (ports != 443 blocked)</td></tr>" >>$tabfile
+            echo "$index,$targ,skipped(ports != 443 blocked)</td></tr>" >>$csvfile
             continue
         fi
         # echo "Checking $targ"
@@ -184,16 +189,19 @@ then
             echo "Timeout getting $targ" >>$logfile
             echo "Timeout getting $targ"
             echo "<tr><td>$index</td><td>$targ</td><td>Timeout</td></tr>" >>$tabfile
+            echo "$index,$targ,Timeout" >>$csvfile
         elif [[ "$cres" != "$expected" ]]
         then
             allgood="no"
             echo "Unexpected result ($cres instead of $expected)  getting $targ" >>$logfile
             echo "Unexpected result ($cres instead of $expected)  getting $targ"
             echo "<tr><td>$index</td><td>$targ</td><td>FAIL: $cres instead of $expected</td></tr>" >>$tabfile
+            echo "$index,$targ,FAIL: $cres instead of $expected" >>$csvfile
         else
             echo "Good/expected result for $targ" >>$logfile
             echo "Good/expected result for $targ"
             echo "<tr><td>$index</td><td>$targ</td><td>expected</td></tr>" >>$tabfile
+            echo "$index,$targ,expected>" >>$csvfile
         fi
         index=$((index+1))
     done
