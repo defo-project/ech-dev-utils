@@ -176,6 +176,8 @@ if __name__ == "__main__":
     csv_fp=open(myresults+"/"+runstr+".csv",'w')
     # csv header
     print("num,url,result", file=csv_fp)
+    # browser version
+    bv_fp=open(myresults+"/"+runstr+"."+args.browser+".ver",'w')
 
     match args.browser:
         case 'safari':
@@ -190,17 +192,31 @@ if __name__ == "__main__":
             options.profile = firefox_profile
             options.add_argument('--headless')
             driver = webdriver.Firefox(service=firefox_Service(GeckoDriverManager().install()), options=options)
+            # print version on line 1 and all caps after
+            print(driver.capabilities['browserVersion'], file=bv_fp)
+            print(driver.capabilities, file=bv_fp)
+            # and whack out the FF special ECH enabling options too
+            print("Custom ECH option:", "network.trr.custom_uri", "https://one.one.one.one/dns-query", file=bv_fp)
+            print("Custom ECH option:", "network.trr.mode", "3", file=bv_fp)
         case 'chrome':
             from webdriver_manager.chrome import ChromeDriverManager
             options = chrome_Options()
             options.add_argument('--headless=new')
             driver = webdriver.Chrome(service=chrome_Service(ChromeDriverManager().install()), options=options)
+            # print version on line 1 and all caps after
+            print(driver.capabilities['browserVersion'], file=bv_fp)
+            print(driver.capabilities, file=bv_fp)
+            # currently no special ECH enabling options
         case 'chromium':
             from selenium.webdriver.chrome.service import Service as ChromeService
             options = chrome_Options()
             options.add_argument('--headless=new')
             service = ChromeService(executable_path="/usr/bin/chromedriver")
             driver = webdriver.Chrome(options = options, service = service)
+            # print version on line 1 and all caps after
+            print(driver.capabilities['browserVersion'], file=bv_fp)
+            print(driver.capabilities, file=bv_fp)
+            # currently no special ECH enabling options
         case _:
             print("unknown browser - exiting")
             sys.exit(1)

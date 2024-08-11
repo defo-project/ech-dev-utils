@@ -141,15 +141,21 @@ done < "$URLS_TO_TEST"
 logfile=$(get_abs_filename "$rundir/$NOW.log")
 tabfile=$(get_abs_filename "$rundir/$NOW.html")
 csvfile=$(get_abs_filename "$rundir/$NOW.csv")
+verfile=$(get_abs_filename "$rundir/$NOW.curl.ver")
 touch "$logfile"
 touch "$tabfile"
 touch "$csvfile"
+touch "$verfile"
 
 cd "$rundir"
 
 echo "-----" >>$logfile
 echo "Running $0 at $NOW"  >>$logfile
 echo "Running $0 at $NOW"
+
+# output curl version to verfile
+$curlbin --version >>$verfile
+echo "ECH curl parameters: $curlparms" >>$verfile
 
 # start of HTML
 echo "<table border=\"1\" style=\"width:80%\">" >>$tabfile
