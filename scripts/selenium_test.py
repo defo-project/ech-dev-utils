@@ -19,7 +19,7 @@
 #
 # We'll check that's been done before we start
 
-import os, sys, time, csv, re, json
+import os, sys, time, csv, re, json, traceback
 from datetime import datetime, timezone
 from argparse import ArgumentParser
 from selenium import webdriver
@@ -113,6 +113,16 @@ def get_handler(url):
             return rh['handler']
     return None
 
+def known_exception(browser, url, exc_value):
+    # ff case for noaddr
+    if "noaddr" in url and browser=="firefox" and "dnsNotFound" in str(exc_value):
+        return True
+    if "noaddr" in url and browser=="chrome" and "ERR_NAME_NOT_RESOLVED" in str(exc_value):
+        return True
+    if "noaddr" in url and browser=="chromium" and "ERR_NAME_NOT_RESOLVED" in str(exc_value):
+        return True
+    return False
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="test ECH for a set of URLs via headless browser")
     parser.add_argument('--browser', default='firefox',
@@ -121,15 +131,21 @@ if __name__ == "__main__":
                         help="CSV with URLs to test and expected outcomes")
     parser.add_argument('--results_dir', default='/var/extra/selenium/runs',
                         help='place to put time-based result fils')
+    parser.add_argument("-v", "--verbose", action="store_true",  help="additional output")
+    parser.add_argument("-V", "--superverbose", action="store_true",  help="extra additional output")
     args = parser.parse_args()
 
     runtime=datetime.now(timezone.utc)
     runstr=runtime.strftime('%Y%m%d-%H%M%S')
 
-    print("URLs:", args.urls_to_test)
-    print("Browser:", args.browser)
+    if args.superverbose:
+        args.verbose=True
+
     myresults=args.results_dir+"/"+runstr
-    print("Run dir:",myresults)
+    if args.verbose:
+        print("URLs:", args.urls_to_test)
+        print("Browser:", args.browser)
+        print("Run dir:",myresults)
 
     if not os.path.isdir(args.results_dir):
         print("Results dir doesn't exist - exiting")
@@ -177,13 +193,15 @@ if __name__ == "__main__":
         readCSV = csv.reader(csvfile, delimiter=',')
         urlnum=0
         for row in readCSV:
+            gotexcption=False
             # skip heading row
             if urlnum==0:
                 urlnum=1
                 continue
             theurl=row[0]
-            print("***********")
-            print(str(urlnum), theurl)
+            if args.verbose:
+                print("***********")
+                print(str(urlnum), theurl)
             # FF default
             expected=int(row[1])
             if args.browser=='chrome' or args.browser=='chromium':
@@ -191,32 +209,29 @@ if __name__ == "__main__":
             try:
                 driver.get(theurl)
             except:
-                # TODO: probably want to check HTTP response codes here
-                write_res(fp, urlnum-1, theurl, "exception thrown")
-                print("Oops - crash")
+                gotexception=True
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                if args.verbose:
+                    print(exc_type)
+                    print(exc_value)
+                    print(exc_traceback)
+                # we know to expect some exceptions, e.g. for noaddr cases
+                if known_exception(args.browser, theurl, exc_value):
+                    write_res(fp, urlnum-1, theurl, "expected")
+                else:
+                    write_res(fp, urlnum-1, theurl, "unexpected exception:" + str(exc_value))
             result=driver.find_element(By.XPATH,"/*").text
-            #print(result)
+            if args.superverbose:
+                print(result)
             handler=get_handler(theurl)
-            #print(handler)
-            if handler==None:
-                write_res(fp, urlnum-1, theurl, "no handler")
-            else:
-                write_res(fp, urlnum-1, theurl, handler(result, expected))
-
-            # check results
-            #recognized = list(filter(lambda x: x['url'] == theurl
-                         #or not x['url'], visit))
-            #for handler in recognized:
-                #interest = driver.find_elements(handler['filter']['by'], handler['filter']['match'])
-                #renderer = handler['render']
-                #if interest:
-                    #break
-                #print("Handler found nothing of interest.",
-                    #"No further fallback handler available."
-                    #if handler == recognized[-1]
-                    #else "Trying (next) fallback handler.")
-            #print("Count:", len(interest))
-            #print("Found:", list(map(renderer, interest)))
+            if args.verbose:
+                print(handler)
+            # record result if we didn't get an exception earlier
+            if gotexception==False:
+                if handler==None:
+                    write_res(fp, urlnum-1, theurl, "no handler")
+                else:
+                    write_res(fp, urlnum-1, theurl, handler(result, expected))
 
             urlnum=urlnum+1
 
