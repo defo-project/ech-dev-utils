@@ -121,6 +121,11 @@ def known_exception(browser, url, exc_value):
         return True
     if "noaddr" in url and browser=="chromium" and "ERR_NAME_NOT_RESOLVED" in str(exc_value):
         return True
+    # a badly encoded ECHConfigList that causes chrome to barf
+    if "bk2-ng" in url and browser=="chrome" and "ERR_INVALID_ECH_CONFIG_LIST" in str(exc_value):
+        return True
+    if "bk2-ng" in url and browser=="chromium" and "ERR_INVALID_ECH_CONFIG_LIST" in str(exc_value):
+        return True
     return False
 
 if __name__ == "__main__":
@@ -193,7 +198,7 @@ if __name__ == "__main__":
         readCSV = csv.reader(csvfile, delimiter=',')
         urlnum=0
         for row in readCSV:
-            gotexcption=False
+            gotexception=False
             # skip heading row
             if urlnum==0:
                 urlnum=1
@@ -217,9 +222,9 @@ if __name__ == "__main__":
                     print(exc_traceback)
                 # we know to expect some exceptions, e.g. for noaddr cases
                 if known_exception(args.browser, theurl, exc_value):
-                    write_res(fp, urlnum-1, theurl, "expected")
+                    write_res(fp, urlnum-1, theurl, "expected exception: " + str(exc_value))
                 else:
-                    write_res(fp, urlnum-1, theurl, "unexpected exception:" + str(exc_value))
+                    write_res(fp, urlnum-1, theurl, "unexpected exception: " + str(exc_value))
             result=driver.find_element(By.XPATH,"/*").text
             if args.superverbose:
                 print(result)
