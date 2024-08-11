@@ -221,10 +221,11 @@ if __name__ == "__main__":
                     print(exc_value)
                     print(exc_traceback)
                 # we know to expect some exceptions, e.g. for noaddr cases
+                exc_str=str(exc_value).partition('\n')[0]
                 if known_exception(args.browser, theurl, exc_value):
-                    write_res(fp, urlnum-1, theurl, "expected exception: " + str(exc_value))
+                    write_res(fp, urlnum-1, theurl, "expected exception: " + exc_str)
                 else:
-                    write_res(fp, urlnum-1, theurl, "unexpected exception: " + str(exc_value))
+                    write_res(fp, urlnum-1, theurl, "unexpected exception: " + exc_str)
             result=driver.find_element(By.XPATH,"/*").text
             if args.superverbose:
                 print(result)
