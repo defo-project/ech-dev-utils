@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 : ${BROWSER:="firefox"}
 : ${URLSFILE="/var/extra/urls_to_test.csv"}
