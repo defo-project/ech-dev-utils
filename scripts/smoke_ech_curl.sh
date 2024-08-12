@@ -10,7 +10,7 @@
 # set -x
 
 # main inputs - can be overridden via command line of environment
-: ${RESULTS_DIR:="/var/extra/smokeping/runs"}
+: ${RESULTS_DIR:="/var/extra/smokeping/curl-runs"}
 : ${URLS_TO_TEST:="/var/extra/urls_to_test.csv"}
 
 # to pick up correct executables and .so's

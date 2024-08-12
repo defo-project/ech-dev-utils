@@ -139,8 +139,8 @@ if __name__ == "__main__":
                         help="one of chrome, firefox, or safari")
     parser.add_argument('--urls_to_test', default='/var/extra/urls_to_test.csv',
                         help="CSV with URLs to test and expected outcomes")
-    parser.add_argument('--results_dir', default='/var/extra/selenium/runs',
-                        help='place to put time-based result fils')
+    parser.add_argument('--results_dir', default='/var/extra/smokeping/browser-runs',
+                        help='place to put time-based result files')
     parser.add_argument("-v", "--verbose", action="store_true",  help="additional output")
     parser.add_argument("-V", "--superverbose", action="store_true",  help="extra additional output")
     args = parser.parse_args()
