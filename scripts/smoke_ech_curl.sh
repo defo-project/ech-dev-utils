@@ -207,7 +207,7 @@ then
             echo "Good/expected result for $targ" >>$logfile
             echo "Good/expected result for $targ"
             echo "<tr><td>$index</td><td>$targ</td><td>expected</td></tr>" >>$tabfile
-            echo "$index,$targ,expected>" >>$csvfile
+            echo "$index,$targ,expected" >>$csvfile
         fi
         index=$((index+1))
     done

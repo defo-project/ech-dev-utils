@@ -240,9 +240,9 @@ if __name__ == "__main__":
                 print("***********")
                 print(str(urlnum), theurl)
             # FF default
-            expected=int(row[1])
+            expected=int(row[3])
             if args.browser=='chrome' or args.browser=='chromium':
-                expected=int(row[2])
+                expected=int(row[3])
             try:
                 driver.get(theurl)
             except:
