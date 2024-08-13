@@ -27,15 +27,15 @@ def image_stanza(image, tiptext, alttext):
 def cell_with_expected(exp):
     fstr=""
     # recall zero is a success test outcome
-    if exp[3]==0 or exp[3]=="0":
+    if exp[2]==0 or exp[2]=="0":
         fstr=fstr+image_stanza("./chrome-logo.png","chrome expected good","chrome good")
     else:
         fstr=fstr+image_stanza("./chrome-logo-x.png","chrome expected fail","chrome fail")
-    if exp[1] == "0":
+    if exp[0]==0 or exp[0] == "0":
         fstr=fstr+image_stanza("./curl-logo.png","curl expected good","curl good")
     else:
         fstr=fstr+image_stanza("./curl-logo-x.png","curl expected fail ("+exp[1]+")","curl fail")
-    if exp[2]==0 or exp[2]=="0":
+    if exp[1]==0 or exp[1]=="0":
         fstr=fstr+image_stanza("./ff-logo.png","firefox expected good","ff good")
     else:
         fstr=fstr+image_stanza("./ff-logo-x.png","firefox expected fail","ff fail")
@@ -49,17 +49,31 @@ def cell_with_time(t):
     return str(dt)
 
 
-# format the content of a cell of our table
-def cell_with_measure(u,t,c,m):
+# format the content of a cell of our table, according to what
+# was expected
+def cell_with_measure(u,t,c,m,exp):
     if m=="expected":
         if c=="firefox":
-            return(image_stanza("./ff-logo.png","firefox as expected","ff as expected"))
+            # zero is success
+            if exp[1]==0 or exp[1]=='0':
+                return(image_stanza("./ff-logo.png","firefox as expected","ff as expected"))
+            else:
+                return(image_stanza("./ff-logo-x.png","ff fail as expected","ff fail"))
         if c=="chrome":
-            return(image_stanza("./chrome-logo.png","chrome as expected","chrome as expected"))
+            if exp[2]==0 or exp[2]=='0':
+                return(image_stanza("./chrome-logo.png","chrome as expected","chrome as expected"))
+            else:
+                return(image_stanza("./chrome-logo-x.png","chrome fail as expected","chrome fail"))
         if c=="chromium":
-            return(image_stanza("./chrome-logo.png","chromium as expected","chromium as expected"))
+            if exp[2]==0 or exp[2]=='0':
+                return(image_stanza("./chrome-logo.png","chromium as expected","chromium as expected"))
+            else:
+                return(image_stanza("./chrome-logo-x.png","chromium fail as expected","chromium fail"))
         if c=="curl":
-            return(image_stanza("./curl-logo.png","curl as expected","curl as expected"))
+            if exp[0]==0 or exp[0]=='0':
+                return(image_stanza("./curl-logo.png","curl as expected","curl as expected"))
+            else:
+                return(image_stanza("./curl-logo-x.png","curl fail as expected","curl as expected"))
     else:
         if c=="firefox":
             return(image_stanza("./ff-logo-x.png",m,"ff fail"))
@@ -68,7 +82,7 @@ def cell_with_measure(u,t,c,m):
         if c=="chromium":
             return(image_stanza("./chrome-logo-x.png",m,"chromium fail"))
         if c=="curl":
-            return(image_stanza("./curl-logo.png",m,"curl as expected"))
+            return(image_stanza("./curl-logo-x.png",m,"curl as expected"))
     return "unknown client"
 
 # format a URL for a column in our table
@@ -108,7 +122,7 @@ if __name__ == "__main__":
         print("Only displaying last", args.hours, "hours", file=sys.stderr)
 
     # read URL info
-    ue_list=[]
+    ue_list={}
     with open(args.urls_to_test) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
         urlnum=0
@@ -117,18 +131,10 @@ if __name__ == "__main__":
             if urlnum==0:
                 urlnum=1
                 continue
-            ue_list.append(row);
+            ue_list[row[0]]=(row[1],row[2],row[3]);
             urlnum=urlnum+1
     toturls=urlnum-1
-    sue_list=sorted(ue_list, key=lambda x: x[0])
-    # print(sue_list)
-    # print(toturls)
-    #sueout=open("sue.out","w")
     # for quicker elimination of old URLs
-    ulist=[]
-    for s in sue_list:
-        #print(s, file=sueout)
-        ulist.append(s[0])
 
     # build up the data
     clients=[ 'chrome', 'chromium', 'curl', 'firefox' ]
@@ -163,7 +169,7 @@ if __name__ == "__main__":
                         urlnum=1
                         continue
                     # discard no-longer needed URLs
-                    if row[1] not in ulist:
+                    if row[1] not in ue_list:
                         print ("Discarding measure for", row[1], row[2], "from", os.path.basename(csvf), file=sys.stderr)
                         continue
                     urlnum=urlnum+1
@@ -172,7 +178,7 @@ if __name__ == "__main__":
                     # tidy up for curl script error in early files
                     if m=="expected>":
                         m="expected"
-                    cellstr=cell_with_measure(u,t,c,m)
+                    cellstr=cell_with_measure(u,t,c,m,ue_list[u])
                     measures.append((u,t,cellstr))
 
     # sort measures by most recent-time first (i.e. reverse)
@@ -189,27 +195,22 @@ if __name__ == "__main__":
     curr_t=sortedmeasures[0][1]
     all_r=""
     line=0
-    sline=0
-    exp=sue_list[sline]
     for sm in sortedmeasures:
         u=sm[0]
         t=sm[1]
         r=sm[2]
         if curr_u != u or curr_t != t:
-            if curr_u != exp[0]:
-                print("Warning URL mismatch", curr_u, exp[0], sline, line, file=sys.stderr)
+            if curr_u not in ue_list:
+                print("Warning URL missing", curr_u, file=sys.stderr)
             # record merged details
-            expstr=cell_with_expected(exp)
+            expstr=cell_with_expected(ue_list[curr_u])
             mergedmeasures.append((line,curr_u,expstr,curr_t,all_r))
-            if curr_u != u and curr_t != t and sline < toturls:
-                sline=sline+1
-                exp=sue_list[sline]
             curr_u = u
             curr_t = t
             line=line+1
             all_r=""
         all_r=all_r+" "+r
-    expstr=cell_with_expected(exp)
+    expstr=cell_with_expected(ue_list[curr_u])
     mergedmeasures.append((line,curr_u,expstr,curr_t,all_r))
 
     #mmout=open("mm.out","w")
@@ -227,14 +228,14 @@ if __name__ == "__main__":
     print("<th align=\"left\">URL</th>", file=outf)
     print("<th align=\"left\">Expected</th>", file=outf)
     for st in sortedtimes:
-        print("<th>"+cell_with_time(st)+"</th>", file=outf)
+        print("<th align=\"center\">"+cell_with_time(st)+"</th>", file=outf)
     print("</th>", file=outf)
     print("</tr>", file=outf)
-    tline=0
+    tline=1
     curr_u=mergedmeasures[0][1]
     print("<td>"+str(tline)+"</td>", file=outf)
     print("<td>"+cell_with_url(curr_u)+"</td>", file=outf)
-    print("<td>"+mergedmeasures[0][2]+"</td>", file=outf)
+    print("<td align=\"center\">"+mergedmeasures[0][2]+"</td>", file=outf)
     for mm in mergedmeasures:
         if curr_u != mm[1]:
             curr_u=mm[1]
@@ -243,8 +244,8 @@ if __name__ == "__main__":
             print("<tr>", file=outf)
             print("<td>"+str(tline)+"</td>", file=outf)
             print("<td>"+cell_with_url(mm[1])+"</td>", file=outf)
-            print("<td>"+mm[2]+"</td>", file=outf)
-        print("<td>"+mm[4]+"</td>", file=outf)
+            print("<td align=\"center\">"+mm[2]+"</td>", file=outf)
+        print("<td align=\"center\">"+mm[4]+"</td>", file=outf)
     print("</tr>", file=outf)
     print("</table>", file=outf)
     print("</body>", file=outf)
