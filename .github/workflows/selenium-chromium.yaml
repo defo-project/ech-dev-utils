@@ -1,0 +1,29 @@
+name: selenium-chromium
+
+on:
+  workflow_dispatch:
+  push:
+  schedule:
+    - cron: '30 5 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends debian-archive-keyring
+          echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian testing main" | sudo tee /etc/apt/sources.list.d/sid.list
+          sudo apt update
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y --target-release=testing chromium-driver python3-selenium
+
+      - name: Run Chromium test
+        run: |
+          mkdir log
+          scripts/selenium_test.py --browser chromium --results_dir log --urls_to_test test-cases/urls_to_test.csv
+          cat log/*/*.html

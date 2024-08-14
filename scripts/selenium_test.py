@@ -136,7 +136,7 @@ def known_exception(browser, url, exc_value):
 if __name__ == "__main__":
     parser = ArgumentParser(description="test ECH for a set of URLs via headless browser")
     parser.add_argument('--browser', default='firefox',
-                        help="one of chrome, firefox, or safari")
+                        help="one of chrome, chromium, firefox, firefox-debian or safari")
     parser.add_argument('--urls_to_test', default='/var/extra/urls_to_test.csv',
                         help="CSV with URLs to test and expected outcomes")
     parser.add_argument('--results_dir', default='/var/extra/smokeping/browser-runs',
@@ -192,6 +192,22 @@ if __name__ == "__main__":
             options.profile = firefox_profile
             options.add_argument('--headless')
             driver = webdriver.Firefox(service=firefox_Service(GeckoDriverManager().install()), options=options)
+            # print version on line 1 and all caps after
+            print(driver.capabilities['browserVersion'], file=bv_fp)
+            print(driver.capabilities, file=bv_fp)
+            # and whack out the FF special ECH enabling options too
+            print("Custom ECH option:", "network.trr.custom_uri", "https://one.one.one.one/dns-query", file=bv_fp)
+            print("Custom ECH option:", "network.trr.mode", "3", file=bv_fp)
+        case 'firefox-debian':
+            from selenium.webdriver.firefox.service import Service as FirefoxService
+            firefox_profile = FirefoxProfile()
+            firefox_profile.set_preference("network.trr.custom_uri", "https://one.one.one.one/dns-query")
+            firefox_profile.set_preference("network.trr.mode", 3)
+            options = firefox_Options()
+            options.profile = firefox_profile
+            options.add_argument('--headless')
+            service = FirefoxService(executable_path="/usr/local/bin/geckodriver")
+            driver = webdriver.Chrome(options = options, service = service)
             # print version on line 1 and all caps after
             print(driver.capabilities['browserVersion'], file=bv_fp)
             print(driver.capabilities, file=bv_fp)
