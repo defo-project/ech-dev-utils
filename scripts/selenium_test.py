@@ -37,10 +37,10 @@ def echstat_check(result, expected):
     except:
         return "fail"
     jstat=jres['SSL_ECH_STATUS']
-    if expected==0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCES"):
+    if expected==0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCESS"):
         return "expected"
     # no distinguishing GREASE and fail here, nor retry-configs
-    if expected!=0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCES"):
+    if expected!=0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCESS"):
         return "fail"
     return "fail"
 
@@ -53,6 +53,10 @@ def s_server_check(result, expected):
 def check_php_check(result, expected):
     # react to image file name for green check mark
     if 'greentick-small.png' in result:
+        return "expected"
+    if 'SSL_ECH_STATUS: success' in result:
+        return "expected"
+    if 'SSL_ECH_STATUS: SSL_ECH_STATUS_SUCCESS' in result:
         return "expected"
     return "fail"
 
@@ -276,15 +280,20 @@ if __name__ == "__main__":
                     write_res(html_fp, csv_fp, urlnum-1, theurl, "unexpected exception: " + exc_str)
             result=driver.find_element(By.XPATH,"/*").text
             if args.superverbose:
+                print("Result:")
                 print(result)
+                print("End of Result:")
             handler=get_handler(theurl)
             if args.verbose:
-                print(handler)
+                print("Handler: ", handler)
             # record result if we didn't get an exception earlier
             if gotexception==False:
                 if handler==None:
                     write_res(html_fp, csv_fp, urlnum-1, theurl, "no handler")
                 else:
+                    actualresult=handler(result, expected)
+                    if args.verbose:
+                        print("Actual: ", actualresult)
                     write_res(html_fp, csv_fp, urlnum-1, theurl, handler(result, expected))
 
             urlnum=urlnum+1
