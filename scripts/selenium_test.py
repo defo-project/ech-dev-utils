@@ -29,6 +29,8 @@ from selenium.webdriver.chrome.options import Options as chrome_Options
 from selenium.webdriver.chrome.service import Service as chrome_Service
 from selenium.webdriver.firefox.options import Options as firefox_Options
 from selenium.webdriver.firefox.service import Service as firefox_Service
+#from selenium.webdriver.support.ui import WebDriverWait
+#from selenium.webdriver.support import expected_conditions as EC
 
 # check result from an expected echstat JSON result
 def echstat_check(result, expected):
@@ -195,6 +197,11 @@ if __name__ == "__main__":
             options = firefox_Options()
             options.profile = firefox_profile
             options.add_argument('--headless')
+            options.add_argument('--disable-gpu')
+            options.add_argument('--log=trace')
+            options.log_level="trace"
+            if args.verbose:
+                print(str(options))
             driver = webdriver.Firefox(service=firefox_Service(GeckoDriverManager().install()), options=options)
             # print version on line 1 and all caps after
             print(driver.capabilities['browserVersion'], file=bv_fp)
@@ -211,7 +218,7 @@ if __name__ == "__main__":
             options.profile = firefox_profile
             options.add_argument('--headless')
             service = FirefoxService(executable_path="/usr/local/bin/geckodriver")
-            driver = webdriver.Chrome(options = options, service = service)
+            driver = webdriver.Firefox(options = options, service = service)
             # print version on line 1 and all caps after
             print(driver.capabilities['browserVersion'], file=bv_fp)
             print(driver.capabilities, file=bv_fp)
@@ -222,6 +229,8 @@ if __name__ == "__main__":
             from webdriver_manager.chrome import ChromeDriverManager
             options = chrome_Options()
             options.add_argument('--headless=new')
+            options.add_argument('--disable-gpu')
+            options.add_argument('--no-sandbox')
             driver = webdriver.Chrome(service=chrome_Service(ChromeDriverManager().install()), options=options)
             # print version on line 1 and all caps after
             print(driver.capabilities['browserVersion'], file=bv_fp)
@@ -231,6 +240,8 @@ if __name__ == "__main__":
             from selenium.webdriver.chrome.service import Service as ChromeService
             options = chrome_Options()
             options.add_argument('--headless=new')
+            options.add_argument('--disable-gpu')
+            options.add_argument('--no-sandbox')
             service = ChromeService(executable_path="/usr/bin/chromedriver")
             driver = webdriver.Chrome(options = options, service = service)
             # print version on line 1 and all caps after
@@ -242,9 +253,9 @@ if __name__ == "__main__":
             sys.exit(1)
 
     # not sure if needed
-    # wait = 0.75
+    #wait = 1.75
     # print("Setting implicit wait period to", wait)
-    # driver.implicitly_wait(wait)
+    #driver.implicitly_wait(wait)
 
     with open(args.urls_to_test) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
@@ -264,7 +275,12 @@ if __name__ == "__main__":
             if args.browser=='chrome' or args.browser=='chromium':
                 expected=int(row[3])
             try:
+                # WebDriverwait made no diff
+                #wait = WebDriverWait(driver, 10)
                 driver.get(theurl)
+                #wait.until(EC.url_to_be(theurl))
+                # time.sleep made no diff
+                #time.sleep(5)
             except:
                 gotexception=True
                 exc_type, exc_value, exc_traceback = sys.exc_info()
