@@ -221,8 +221,10 @@ what browsers exhibit.)</p>
     if ($entries<100 && isset($rparr["domain2check"])) {
         // overall check of goodness
         $good2go=true;
-        $domorig=strtolower($rparr["domain2check"]);
-        $dom=stripleadingwww($domorig);
+	// Stripping www. isn't right for this test.
+        //$domorig=strtolower($rparr["domain2check"]);
+        //$dom=stripleadingwww($domorig);
+        $dom=strtolower($rparr["domain2check"]);
         if ($dom===FALSE || $dom==false) {
             echo "<h3>Error</h3><p>\"".$domorig."\" doesn't appear to be a good DNS name.</p>\n";
             $good2go=false;
