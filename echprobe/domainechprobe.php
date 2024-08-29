@@ -115,14 +115,18 @@ what browsers exhibit.)</p>
                 $rrd=$jrdata['answerRRs'][0];
                 if (isset($rrd['rdataHTTPS']))
                     $astr=$rrd['rdataHTTPS'];
+                if (isset($rrd['rdataCNAME']))
+                    return "cname";
             } else {
                 $astr="[ ";
                 for ($rrdi=0;$rrdi<$crrds;$rrdi++) {
                     $rrd=$jrdata['answerRRs'][$rrdi];
                     if (isset($rrd['rdataHTTPS']))
                         $astr.=$rrd['rdataHTTPS']." ]";
-                    if ($rrdi<$crrds-1)
+                    if (isset($rrd['rdataHTTPS']) && $rrdi<$crrds-1)
                         $astr.=" [";
+                    if (isset($rrd['rdataCNAME']))
+                        return "cname";
                 }
             }
             //var_dump($astr);
@@ -221,7 +225,7 @@ what browsers exhibit.)</p>
     if ($entries<100 && isset($rparr["domain2check"])) {
         // overall check of goodness
         $good2go=true;
-	// Stripping www. isn't right for this test.
+        // Stripping www. isn't right for this test.
         //$domorig=strtolower($rparr["domain2check"]);
         //$dom=stripleadingwww($domorig);
         $dom=strtolower($rparr["domain2check"]);
@@ -274,7 +278,9 @@ what browsers exhibit.)</p>
                     $plist[$entries][4]=$has_https;
                     $entries++;
                 }
-                if ($ech_status==1)
+		if ($has_https=="cname")
+                    echo "<h3>$domstr seems to be a CNAME, we don't chase those for display</h3>";
+		if ($ech_status==1)
                     echo "<h3>ECH success</h3><p>Added $domstr to list </p>";
                 else if ($has_ech==1)
                     echo "<h3>ECH but failed</h3><p>Added $domstr to list </p>";
