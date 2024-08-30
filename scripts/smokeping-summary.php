@@ -47,7 +47,7 @@ investigating that.</p>
     echo "<p>The time now is:".date(DATE_ATOM);
     echo " Table generated at:".date(DATE_ATOM,filemtime($summaryfile))."</p>";
 
-    $cliarr=array("chrome", "curl", "firefox");
+    $cliarr=array("chromium", "curl", "firefox");
 
     echo "<table><caption>Version Info (hover over icon for more)</caption>";
     foreach ($cliarr as $cli) {
