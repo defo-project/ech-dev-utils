@@ -36,10 +36,11 @@ is more information about failures available, you can see that if you
 hover over the client icon.</p>
 
 <p>At the time of writing, there are a lot of unexpected results reported
-below. Browsers seem to do better than indicated, as you can see if you try
-our <a href="iframe_tests.html">iframe tests</a> in your own browser, so it
-could be some issue with selenium or headless browser tests. We're
-investigating that.</p>
+below for firefox and chromium. These results are generated using selenium and
+headless browsers, though desktop browsers seem to do better than indicated, as
+you can see if you try our <a href="iframe_tests.html">iframe tests</a> in your
+own browser, so it could be some issue with selenium or headless browser tests.
+We're investigating.</p>
 
 <?php
 
