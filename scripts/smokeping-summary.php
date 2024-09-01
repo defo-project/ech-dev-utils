@@ -24,7 +24,7 @@
 <h1>DEfO ECH Smokeping-like summary</h1>
 
 <p>This page displays the results from attempting
-ECH with chrome, curl and firefox with each of the URLs shown, for the last 6
+ECH with chromium, curl and firefox with each of the URLs shown, for the last 6
 hours.  (Runs are done hourly via cron.) "Expected" means that we
 saw the expected result, which, for some of these URLs, means we saw the
 expected error. If everything goes entirely to plan, then you'll see the
@@ -35,10 +35,10 @@ with this table, but can't be sure of fully-clean test runs. Where there
 is more information about failures available, you can see that if you
 hover over the client icon.</p>
 
-<p>At the time of writing, there are a lot of fails reported below, but
-that's likely some issue with selenium (or the web drivers), as browsers
-do better than indicated as you can see if you try our
-<a href="iframe_tests.html">iframe tests</a> in your own browser. We're
+<p>At the time of writing, there are a lot of unexpected results reported
+below. Browsers seem to do better than indicated, as you can see if you try
+our <a href="iframe_tests.html">iframe tests</a> in your own browser, so it
+could be some issue with selenium or headless browser tests. We're
 investigating that.</p>
 
 <?php
