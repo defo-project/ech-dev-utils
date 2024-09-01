@@ -137,6 +137,13 @@ def known_exception(browser, url, exc_value):
         return True
     if "bk2-ng" in url and browser=="chromium" and "ERR_INVALID_ECH_CONFIG_LIST" in str(exc_value):
         return True
+    # a fake key and fuzzed retry-configs generates an exception for ff
+    if "myechtest.site" in url and browser=="firefox" and "SSL_ERROR_RX_MALFORMED" in str(exc_value):
+        return True
+    if "myechtest.site" in url and browser=="chromium" and "ERR_SSL_PROTOCOL_ERROR" in str(exc_value):
+        return True
+    if "myechtest.site" in url and browser=="chrome" and "ERR_SSL_PROTOCOL_ERROR" in str(exc_value):
+        return True
     return False
 
 if __name__ == "__main__":
