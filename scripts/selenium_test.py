@@ -29,8 +29,9 @@ from selenium.webdriver.chrome.options import Options as chrome_Options
 from selenium.webdriver.chrome.service import Service as chrome_Service
 from selenium.webdriver.firefox.options import Options as firefox_Options
 from selenium.webdriver.firefox.service import Service as firefox_Service
-#from selenium.webdriver.support.ui import WebDriverWait
-#from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 # check result from an expected echstat JSON result
 def echstat_check(result, expected):
@@ -48,34 +49,31 @@ def echstat_check(result, expected):
 
 def s_server_check(result, expected):
     # if it reports success we're good
-    if 'ECH success:' in result:
+    if expected==0 and 'ECH success:' in result:
         return "expected"
     return "fail"
 
 def check_php_check(result, expected):
     # react to image file name for green check mark
-    if 'greentick-small.png' in result:
+    if expected==0 and 'greentick-small.png' in result:
         return "expected"
-    if 'SSL_ECH_STATUS: success' in result:
+    if expected==0 and 'SSL_ECH_STATUS: success' in result:
         return "expected"
-    if 'SSL_ECH_STATUS: SSL_ECH_STATUS_SUCCESS' in result:
+    if expected==0 and 'SSL_ECH_STATUS: SSL_ECH_STATUS_SUCCESS' in result:
         return "expected"
     return "fail"
 
 def cf_check(result, expected):
     # react to image file name for green check mark
-    if 'sni=encrypted' in result:
+    if expected==0 and 'sni=encrypted' in result:
         return "expected"
     return "fail"
 
 def bs_check(result, expected):
     # react to image file name for green check mark
-    if 'You are using ECH' in result:
+    if expected==0 and 'You are using ECH' in result:
         return "expected"
     return "fail"
-
-def gen_check(result, expected):
-    return "unknown"
 
 # add a record to the results file
 def write_res(html_fp, csv_fp, num, url, res):
@@ -278,16 +276,28 @@ if __name__ == "__main__":
                 print("***********")
                 print(str(urlnum), theurl)
             # FF default
-            expected=int(row[3])
+            expected=int(row[1])
             if args.browser=='chrome' or args.browser=='chromium':
                 expected=int(row[3])
             try:
+                # There's some issue with the ss.test.defo.ie and
+                # sshrr.test.defo.ie URLS. When placed at the end
+                # of our list of urls, they fail with a 400 bad
+                # request, but they work when done earlier. Not
+                # sure why for now.
                 # WebDriverwait made no diff
-                #wait = WebDriverWait(driver, 10)
+                # wait = WebDriverWait(driver, 10)
+                if '/stats' in theurl:
+                    driver.implicitly_wait(10)
+                else:
+                    driver.implicitly_wait(0)
                 driver.get(theurl)
+                # the delay below isn't working for now
+                # element_present = EC.presence_of_element_located((By.XPATH, 'text'))
+                # WebDriverWait(driver, 10).until(element_present)
                 #wait.until(EC.url_to_be(theurl))
                 # time.sleep made no diff
-                #time.sleep(5)
+                # time.sleep(5)
             except:
                 gotexception=True
                 exc_type, exc_value, exc_traceback = sys.exc_info()
