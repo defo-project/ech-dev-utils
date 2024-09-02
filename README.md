@@ -209,4 +209,5 @@ used in some time:
   [defo.ie/ech-check.php](https://defo.ie/ech-check.php)
 - [domainechprobe.php](echprobe/domainechprobe.php) is a version of the 
   PHP code at [https://test.defo.ie/domainechprobe.php](https://test.defo.ie/domainechprobe.php)
+- [selenium_test.py](scripts/selenium_test.py) is our selenium test
 
