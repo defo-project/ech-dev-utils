@@ -19,8 +19,12 @@ echo "    URLSFILE: $URLSFILE"
 echo "    RESULTS_DIR: $RESULTS_DIR"
 
 # small wrapper to run selenium in virtual env
-cd $HOME/pt
-source venv/bin/activate 
-python $HOME/code/defo-project-org/ech-dev-utils/scripts/selenium_test.py --browser="$BROWSER" --urls_to_test="$URLSFILE" --results_dir="$RESULTS_DIR"
+if [[ "$BROWSER" != "chromium" ]]
+then
+    cd $HOME/pt
+    source venv/bin/activate 
+fi
+
+python3 $HOME/code/defo-project-org/ech-dev-utils/scripts/selenium_test.py --browser="$BROWSER" --urls_to_test="$URLSFILE" --results_dir="$RESULTS_DIR"
 
 echo "=============================="

@@ -4,7 +4,11 @@
     table {
         display: block;
         max-width: 90%;
-        overflow: scroll; <!-- Available options: visible, hidden, scroll, auto -->
+        overflow: auto; <!-- Available options: visible, hidden, scroll, auto -->
+    {
+    .center-tab {
+        margin-left: auto;
+        margin-right: auto;
     }
 </style>
 <head>
@@ -50,16 +54,18 @@ We're investigating.</p>
 
     $cliarr=array("chromium", "curl", "firefox");
 
-    echo "<table><caption>Version Info (hover over icon for more)</caption>";
+    echo '<table class="center-tab" border="0"><caption>Version Info (hover over icon for more)</caption>';
     foreach ($cliarr as $cli) {
-	$subdirs=glob("/var/extra/smokeping/".$cli."-runs/*",GLOB_ONLYDIR);
-	$newest=end($subdirs);
-	$nb=basename($newest);
-	$fullverinfo=file_get_contents($newest."/".$nb.".".$cli.".ver");
-	$vfile=$newest."/".$nb.".".$cli.".ver";
-	$verinfo=fgets(fopen($vfile,"r"));
-	//echo "<p>Version of ".$cli.":" . $verinfo."</p><p></p>";
-	echo '<tr><td><img width="20" height="20" src="'.$cli.'-logo.png" title="'.$fullverinfo.'" alt="'.$cli.'"/> '.$verinfo.'</td></tr>';
+        $subdirs=glob("/var/extra/smokeping/".$cli."-runs/*",GLOB_ONLYDIR);
+        $newest=end($subdirs);
+        $nb=basename($newest);
+        $fullverinfo=file_get_contents($newest."/".$nb.".".$cli.".ver");
+        $vfile=$newest."/".$nb.".".$cli.".ver";
+        $verinfo=fgets(fopen($vfile,"r"));
+        echo '<tr>';
+        echo '<td align="right">'.$cli.': </td>';
+        echo '<td align="left"><img width="20" height="20" src="'.$cli.'-logo.png" title="'.$fullverinfo.'" alt="'.$cli.'"/> '.$verinfo.'</td>';
+        echo '</tr>';
     }
     echo "</table><br/>";
 
