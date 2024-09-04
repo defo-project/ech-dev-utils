@@ -250,7 +250,11 @@ if __name__ == "__main__":
             # enable DoH
             local_state = {
                 "dns_over_https.mode": "secure",
-                "dns_over_https.templates": "https://chromium.dns.nextdns.io"
+                # choices of DoH provider
+                # for more, use chromium to select one via settings GUI then
+                # take value from file: '~/snap/chromium/common/chromium/Local\ State'
+                # "dns_over_https.templates": "https://chromium.dns.nextdns.io"
+                "dns_over_https.templates": "https://chrome.cloudflare-dns.com/dns-query"
             }
             options.add_experimental_option('localState', local_state)
             service = ChromeService(executable_path="/usr/bin/chromedriver")
