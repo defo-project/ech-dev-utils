@@ -247,6 +247,12 @@ if __name__ == "__main__":
             options.add_argument('--headless=new')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
+            # enable DoH
+            local_state = {
+                "dns_over_https.mode": "secure",
+                "dns_over_https.templates": "https://chromium.dns.nextdns.io"
+            }
+            options.add_experimental_option('localState', local_state)
             service = ChromeService(executable_path="/usr/bin/chromedriver")
             driver = webdriver.Chrome(options = options, service = service)
             # print version on line 1 and all caps after
