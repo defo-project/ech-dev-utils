@@ -73,6 +73,8 @@ what browsers exhibit.)</p>
     function check_domain($d) {
         if (!filter_var($d, FILTER_VALIDATE_DOMAIN, FILTER_NULL_ON_FAILURE)) 
             return FALSE;
+	/* strip trailing dots when checking, if present */
+	$d=rtrim($d,'.');
         if (!preg_match("/^([a-z\d](-*[a-z\d])*)(.([a-z\d](-*[a-z\d])*))*$/i", $d) //valid characters check
             || !preg_match("/^.{1,253}$/", $d) //overall length check
             || !preg_match("/^[^.]{1,63}(.[^.]{1,63})*$/", $d)) //length of every label
@@ -233,7 +235,7 @@ what browsers exhibit.)</p>
             echo "<h3>Error</h3><p>\"".$domorig."\" doesn't appear to be a good DNS name.</p>\n";
             $good2go=false;
         } else {
-            $fakeemail="foo@".$dom;
+            $fakeemail=rtrim("foo@".$dom,'.');
             if (!filter_var($fakeemail, FILTER_VALIDATE_EMAIL)) {
                 echo "<h3>Error</h3><p>\"".$dom."\" doesn't appear to be a DNS name.</p>\n";
                 $good2go=false;
