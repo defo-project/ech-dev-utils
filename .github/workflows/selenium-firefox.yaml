@@ -18,6 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends debian-archive-keyring
+          sudo rm /etc/apt/sources.list.d/*
           echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian unstable main" | sudo tee /etc/apt/sources.list.d/sid.list
           sudo apt update
           sudo DEBIAN_FRONTEND=noninteractive apt install -y --target-release=unstable python3-selenium firefox
