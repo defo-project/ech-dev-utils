@@ -63,7 +63,7 @@ what browsers exhibit.)</p>
                     $row++;
                 }
                 fclose($handle);
-                return $thelist;
+                return array_slice($thelist, -50);
             } else {
                 return FALSE;
             }
