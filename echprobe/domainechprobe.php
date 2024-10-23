@@ -45,11 +45,13 @@ what browsers exhibit.)</p>
 <!-- if the list gets too long we can just read in the last N lines of the flie-->
 
 <?php
-    /*
-     * General functions
-     */
+    /* number of entries in file */
+    $file_entries = 0;
 
+    /* General functions */
     function load_list() {
+	global $file_entries;
+
         $filename="/var/extra/echdomains.csv";
         if (!file_exists($filename)) {
             print("<p>Error 982, Can't open file</p>\n");
@@ -63,6 +65,7 @@ what browsers exhibit.)</p>
                     $row++;
                 }
                 fclose($handle);
+		$file_entries = count($thelist);
                 return array_slice($thelist, -50);
             } else {
                 return FALSE;
@@ -279,6 +282,7 @@ what browsers exhibit.)</p>
                     $plist[$entries][3]=$has_ech;
                     $plist[$entries][4]=$has_https;
                     $entries++;
+                    $file_entries++;
                 }
 		if ($has_https=="cname")
                     echo "<h3>$domstr seems to be a CNAME, we don't chase those for display</h3>";
@@ -311,10 +315,10 @@ what browsers exhibit.)</p>
         echo "<th>Has ECH?</th>";
         echo "<th align=left>HTTPS RR</th>";
         echo "</tr>\n";
-        for ($row=$entries-1;$row>=1;$row--) {
+        for ($row=$entries-1;$row>=0;$row--) {
             $num=count($plist[$row]);
             echo "<tr>";
-            echo "<td>".$row."</td>";
+            echo "<td>".($file_entries-$entries+$row+1)."</td>";
             echo "<td>".$plist[$row][0]."</td>";
             echo "<td>".$plist[$row][1]."</td>";
             echo "<td>".$plist[$row][2]."</td>";
@@ -325,6 +329,7 @@ what browsers exhibit.)</p>
         echo "</table>\n";
     }
 
+    echo "<p>File entries: " . $file_entries . "</p>";
 ?>
  
 <br> This fine domain brought to you by <a href="https://defo.ie/">DEfO.ie</a> 
