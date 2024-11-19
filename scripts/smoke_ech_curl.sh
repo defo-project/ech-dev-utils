@@ -20,7 +20,8 @@
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="5s"}
 : ${curlparms=" -s --ech hard --doh-url https://one.one.one.one/dns-query"}
-: ${curlbin="$CURLTOP/src/curl"}
+#: ${curlbin="$CURLTOP/src/curl"}
+: ${curlbin="/usr/bin/curl"}
 
 
 function url2port()

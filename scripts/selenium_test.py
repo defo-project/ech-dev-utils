@@ -198,6 +198,7 @@ if __name__ == "__main__":
             from webdriver_manager.firefox import GeckoDriverManager
             firefox_profile = FirefoxProfile()
             firefox_profile.set_preference("network.trr.custom_uri", "https://one.one.one.one/dns-query")
+            firefox_profile.set_preference("network.trr.uri", "https://one.one.one.one/dns-query")
             firefox_profile.set_preference("network.trr.mode", 3)
             options = firefox_Options()
             options.profile = firefox_profile
@@ -213,6 +214,7 @@ if __name__ == "__main__":
             print(driver.capabilities, file=bv_fp)
             # and whack out the FF special ECH enabling options too
             print("Custom ECH option:", "network.trr.custom_uri", "https://one.one.one.one/dns-query", file=bv_fp)
+            print("Custom ECH option:", "network.trr.uri", "https://one.one.one.one/dns-query", file=bv_fp)
             print("Custom ECH option:", "network.trr.mode", "3", file=bv_fp)
         case 'firefox-debian':
             from selenium.webdriver.firefox.service import Service as FirefoxService
