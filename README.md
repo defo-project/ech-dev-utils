@@ -48,8 +48,6 @@ run these. Note these are deliberately sedate, but that's ok.
   supported for ECHConfig values - this isn't used so much any more as 
   the ``make test`` target in the OpenSSL build now does the equivalent
   and is much quicker
-- [smoke_ech.sh](scripts/smoke_ech.sh) runs through a list of sites known to support
-  ECH and reports on status
 
 ## Scripts to play with ECHConfig values (that may get put in the DNS)
 
@@ -210,4 +208,10 @@ used in some time:
 - [domainechprobe.php](echprobe/domainechprobe.php) is a version of the 
   PHP code at [https://test.defo.ie/domainechprobe.php](https://test.defo.ie/domainechprobe.php)
 - [selenium_test.py](scripts/selenium_test.py) is our selenium test
+- [smoke_ech_curl.sh](scripts/smoke_ech_curl.sh) runs through a list of sites known
+  to support ECH and reports on status
+- [ech_url.go](scripts/ech_url.go) is a golang program to try use ECH when accessing
+   a URL
+- [smoke_ech_golang.sh](scripts/smoke_ech_golang.sh) is a script that calls
+  [ech_url.go](scripts/ech_url.go) for a set of test URLs and records results
 
