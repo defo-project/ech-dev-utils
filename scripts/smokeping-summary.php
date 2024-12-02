@@ -28,7 +28,7 @@
 <h1>DEfO ECH Smokeping-like summary</h1>
 
 <p>This page displays the results from attempting
-ECH with chromium, curl and firefox with each of the URLs shown, for the last 6
+ECH with chromium, curl, firefox and gloang with each of the URLs shown, for the last 6
 hours.  (Runs are done hourly via cron.) "Expected" means that we
 saw the expected result, which, for some of these URLs, means we saw the
 expected error. If everything goes entirely to plan, then you'll see the
@@ -52,7 +52,7 @@ We're investigating.</p>
     echo "<p>The time now is:".date(DATE_ATOM);
     echo " Table generated at:".date(DATE_ATOM,filemtime($summaryfile))."</p>";
 
-    $cliarr=array("chromium", "curl", "firefox");
+    $cliarr=array("chromium", "curl", "firefox", "golang");
 
     echo '<table class="center-tab" border="0"><caption>Version Info (hover over icon for more)</caption>';
     foreach ($cliarr as $cli) {
@@ -76,7 +76,7 @@ We're investigating.</p>
 
 <br> This fine domain brought to you by <a href="https://defo.ie/">DEfO.ie</a> 
 <br> a <a href="https://tolerantnetworks.com/">Tolerant Networks Limited</a> production.
-<br> Last modified: 2024-07-31, but who cares?</font> 
+<br> Last modified: 2024-12-02, but who cares?</font> 
 
 </body>
 </html>

@@ -6,6 +6,12 @@
 # we'll run this from a cronjob and make the output available at test.defo.ie
 # a PHP script will read/display the various flies as HTML
 # a 2nd cronjob will delete older log files so we don't fill up a disk
+#
+# to install on debian:
+#    sudo apt install golang-go
+# via snap on ububtu
+#    sudo snap install golang-go --classic
+# For this test we need golang 1.23 or newer
 
 # set -x
 
@@ -19,7 +25,7 @@
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="5s"}
 : ${golangscript="$HOME/code/defo-project-org/ech-dev-utils/scripts/ech_url.go"}
-: ${golangbin="/snap/bin/go"}
+: ${golangbin="/usr/bin/go"}
 
 
 function url2port()

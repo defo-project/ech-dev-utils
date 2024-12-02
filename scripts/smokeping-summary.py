@@ -2,8 +2,8 @@
 
 # Read from all the current CSV files with ECH smokeping data and make
 # a single web page to present current results. ECH smokeping data for
-# curl, ff, chrome (and maybe chromium) in generated hourly, but not at
-# same same instance.
+# curl, ff, chrome and golang (soon rust) is generated hourly, but not
+# at same same instant.
 # This is intended to be run from an hourly cron job. We don't need to
 # care about times within a single hour. (If we have >1 data point in 
 # the same hour, we'll take the last.)
@@ -39,6 +39,10 @@ def cell_with_expected(exp):
         fstr=fstr+image_stanza("./ff-logo.png","firefox expected good","ff good")
     else:
         fstr=fstr+image_stanza("./ff-logo-x.png","firefox expected fail","ff fail")
+    if exp[3]==0 or exp[3]=="0":
+        fstr=fstr+image_stanza("./golang-logo.png","golang expected good","golang good")
+    else:
+        fstr=fstr+image_stanza("./golang-logo-x.png","golang expected fail","golang fail")
     return fstr
 
 # display time more nicely
@@ -74,6 +78,11 @@ def cell_with_measure(u,t,c,m,exp):
                 return(image_stanza("./curl-logo.png","curl as expected","curl as expected"))
             else:
                 return(image_stanza("./curl-logo-x.png","curl fail as expected","curl as expected"))
+        if c=="golang":
+            if exp[3]==0 or exp[3]=='0':
+                return(image_stanza("./golang-logo.png","golang as expected","golang as expected"))
+            else:
+                return(image_stanza("./curl-logo-x.png","curl fail as expected","curl as expected"))
     else:
         if c=="firefox":
             return(image_stanza("./ff-logo-x.png",m,"ff fail"))
@@ -83,7 +92,9 @@ def cell_with_measure(u,t,c,m,exp):
             return(image_stanza("./chrome-logo-x.png",m,"chromium fail"))
         if c=="curl":
             return(image_stanza("./curl-logo-x.png",m,"curl as expected"))
-    return "unknown client"
+        if c=="golang":
+            return(image_stanza("./golang-logo-x.png",m,"golang as expected"))
+    return "unknown client: " + c
 
 # format a URL for a column in our table
 # you need to know something about our test URLs to get this
@@ -131,13 +142,13 @@ if __name__ == "__main__":
             if urlnum==0:
                 urlnum=1
                 continue
-            ue_list[row[0]]=(row[1],row[2],row[3]);
+            ue_list[row[0]]=(row[1],row[2],row[3],row[4]);
             urlnum=urlnum+1
     toturls=urlnum-1
     # for quicker elimination of old URLs
 
     # build up the data
-    clients=[ 'chrome', 'chromium', 'curl', 'firefox' ]
+    clients=[ 'chrome', 'chromium', 'curl', 'firefox', 'golang' ]
     # times, at 1 hour granularity
     times=[]
     # measures array is url x time x client : measure
