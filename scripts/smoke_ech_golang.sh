@@ -135,10 +135,10 @@ fi
 # e.g.: [https://my-own.net/ech-check.php]="0"
 declare -A targets=( )
 lineno=0
-while IFS=',' read -r url curl_e ff_e chr_e; do
+while IFS=',' read -r url curl_e ff_e chr_e go_e rs_; do
     if ((lineno!=0))
     then
-        targets[$url]+=$curl_e
+        targets[$url]+=$go_e
     fi
     lineno=$((lineno+1))
 done < "$URLS_TO_TEST"

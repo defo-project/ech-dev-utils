@@ -22,10 +22,12 @@ export OPENSSL_DIR
 
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="5s"}
-: ${rustlsbin="cargo run --bin new -- "}
+
+# you have to compile to produce this binary, instructions below
+: ${rustlsbin:="/home/sftcd/code/defo-project-org/ech-dev-utils/scripts/ech-rs-client/target/debug/ech-rs-client"}
 
 # after build, an example invocation would be:
-# OPENSSL_DIR=$HOME/code/openssl-local-inst/ cargo run --bin new -- \
+# OPENSSL_DIR=$HOME/code/openssl-local-inst/ cargo run --bin ech-rs-client -- \
 #    --path "echstat.php?format=json" public.test.defo.ie min-ng.test.defo.ie 
 #
 # Install steps:
@@ -36,7 +38,8 @@ export OPENSSL_DIR
 #    cd ech-rs-client
 #    cargo init
 #    cp ../ech_url.rs src/main.rs
-#    cp ../Cargl.toml .
+#    # the git version of this needs to not be on the path to root
+#    cp ../../howtos/Cargo.toml .
 # 
 # Then the 1st call to this should build it all
 
@@ -157,10 +160,10 @@ fi
 # e.g.: [https://my-own.net/ech-check.php]="0"
 declare -A targets=( )
 lineno=0
-while IFS=',' read -r url curl_e ff_e chr_e; do
+while IFS=',' read -r url curl_e ff_e chr_e go_e rs_e; do
     if ((lineno!=0))
     then
-        targets[$url]+=$curl_e
+        targets[$url]+=$rs_e
     fi
     lineno=$((lineno+1))
 done < "$URLS_TO_TEST"
@@ -181,7 +184,7 @@ echo "Running $0 at $NOW"  >>$logfile
 echo "Running $0 at $NOW"
 
 # output rustls version to verfile
-cargo pkgid rustls >>$verfile
+(cd /home/sftcd/code/defo-project-org/ech-dev-utils/scripts/ech-rs-client; cargo pkgid rustls) >>$verfile
 
 # start of HTML
 echo "<table border=\"1\" style=\"width:80%\">" >>$tabfile
@@ -219,7 +222,7 @@ then
         fi
         # echo "Checking $targ"
         echo "Checking $targ" >>$logfile
-        timeout $tout $rustlsbin --path $path --port $port $host $host > "$host.$port.out" 
+        timeout $tout $rustlsbin --path $path --port $port $host $host > "$host.$port.out"
         cres=$?
         if [[ "$cres" == "124" ]] 
         then
