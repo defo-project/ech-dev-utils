@@ -13,13 +13,32 @@
 : ${RESULTS_DIR:="/var/extra/smokeping/rustls-runs"}
 : ${URLS_TO_TEST:="/var/extra/urls_to_test.csv"}
 
+# you need a libssl-dev install or similar (not sure why)
+: ${OPENSSL_DIR:="$HOME/code/openssl-local-inst"}
+export OPENSSL_DIR
+
 # to pick up correct executables and .so's
 : ${GETOPTDIR:=/usr/bin}
 
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="5s"}
-: ${rustlsbin="/snap/bin/cargo"}
+: ${rustlsbin="cargo run --bin new -- "}
 
+# after build, an example invocation would be:
+# OPENSSL_DIR=$HOME/code/openssl-local-inst/ cargo run --bin new -- \
+#    --path "echstat.php?format=json" public.test.defo.ie min-ng.test.defo.ie 
+#
+# Install steps:
+#    sudo apt install cargo
+#
+# To build:
+#    mkdir ech-rs-client
+#    cd ech-rs-client
+#    cargo init
+#    cp ../ech_url.rs src/main.rs
+#    cp ../Cargl.toml .
+# 
+# Then the 1st call to this should build it all
 
 function url2port()
 {
@@ -38,6 +57,16 @@ function url2host()
 {
     host=$(echo $1 | cut -d'/' -f3 | cut -d':' -f1)
     echo $host
+}
+
+function url2path()
+{
+    path=$(echo $1 | cut -d'/' -f4-)
+    if [[ "$path" == "" ]]
+    then
+        path="/"
+    fi
+    echo $path
 }
 
 function whenisitagain()
@@ -152,7 +181,7 @@ echo "Running $0 at $NOW"  >>$logfile
 echo "Running $0 at $NOW"
 
 # output rustls version to verfile
-$rustlsbin version >>$verfile
+cargo pkgid rustls >>$verfile
 
 # start of HTML
 echo "<table border=\"1\" style=\"width:80%\">" >>$tabfile
@@ -179,6 +208,7 @@ then
         fi
         port=$(url2port $targ)
         host=$(url2host $targ)
+        path=$(url2path $targ)
         if [[ "$port" != "443" && "$have_portsblocked" == "yes" ]]
         then
             echo "Skipping $targ as ports != 443 seem blocked"
@@ -189,9 +219,7 @@ then
         fi
         # echo "Checking $targ"
         echo "Checking $targ" >>$logfile
-        timeout $tout $rustlsbin run --package rustls-examples --bin ech-client \
-                --path "echstat.php?format=json" -port $port -host $host \
-                $host $host > "$host.$port.out" 
+        timeout $tout $rustlsbin --path $path --port $port $host $host > "$host.$port.out" 
         cres=$?
         if [[ "$cres" == "124" ]] 
         then

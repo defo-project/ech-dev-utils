@@ -1,18 +1,12 @@
-//! Modified from rustls examples/src/bin/ech-client.rs
+//! This is a modified from the rustls package example demonstrating how to use Encrypted Client Hello (ECH) with
+//! rustls and hickory-dns.
+//!
+//! Note that `unwrap()` is used to deal with networking errors; this is not something
+//! that is sensible outside of example code.
+//!
 //! Example usage:
 //! ```
-//! cargo run --package rustls-examples --bin ech-client -- --host defo.ie defo.ie www.defo.ie
-//! ```
-//!
-//! This will perform a DNS-over-HTTPS lookup for the defo.ie ECH config, using it to determine
-//! the plaintext SNI to send to the server. The protected encrypted SNI will be "www.defo.ie".
-//! An HTTP request for Host: defo.ie will be made once the handshake completes. You should
-//! observe output that contains:
-//! ```
-//!   <p>SSL_ECH_OUTER_SNI: cover.defo.ie <br />
-//!   SSL_ECH_INNER_SNI: www.defo.ie <br />
-//!   SSL_ECH_STATUS: success <img src="greentick-small.png" alt="good" /> <br/>
-//!   </p>
+//! cargo run --bin new -- --host <host> --path <path> <outer> <inner>
 //! ```
 
 use std::fs;
@@ -49,16 +43,18 @@ async fn main() {
         true => None, // Force the use of the GREASE ext by skipping ECH config lookup
         false => match args.ech_config {
             Some(path) => Some(read_ech(&path)),
-            None => lookup_ech_configs(&resolver, &args.outer_hostname, args.port).await,
+            None => lookup_ech_configs(&resolver, &args.inner_hostname, args.port).await,
         },
     };
 
     // NOTE: we defer setting up env_logger and setting the trace default filter level until
     //       after doing the DNS-over-HTTPS lookup above - we don't want to muddy the output
     //       with the rustls debug logs from the lookup.
-    env_logger::Builder::new()
-        .parse_filters("trace")
-        .init();
+    if args.mytrace {
+        env_logger::Builder::new()
+            .parse_filters("trace")
+            .init();
+    }
 
     let ech_mode = match server_ech_config {
         Some(ech_config_list) => EchConfig::new(ech_config_list, ALL_SUPPORTED_SUITES)
@@ -124,7 +120,9 @@ async fn main() {
                 args.path,
                 args.host.as_ref().unwrap_or(&args.inner_hostname),
             );
-        dbg!(&request);
+        if args.mytrace {
+            dbg!(&request);
+        }
         tls.write_all(request.as_bytes())
             .unwrap();
         assert!(!tls.conn.is_handshaking());
@@ -194,6 +192,10 @@ struct Args {
 
     /// Inner hostname.
     inner_hostname: String,
+
+    /// turn on/off tracing
+    #[clap(long, default_value = "false")]
+    mytrace: bool,
 }
 
 // TODO(@cpu): consider upstreaming to hickory-dns
