@@ -84,14 +84,14 @@ expected error.</p>
     if ($runind>0) {
     	$prevtime=basename($runlist[$runind-1]);
     	//var_dump($prevtime);
-    	$prevurl="https://test.defo.ie/smokeping-rustls.php?runtime=".$prevtime;
+    	$prevurl="https://test.defo.ie/smokeping-rust.php?runtime=".$prevtime;
     	$prevstr="<p><a href=\"".$prevurl."\">prev</a></p>";
     }
     $nextstr="<p>next</a>";
     if ($thisrun!=$last) {
     	$nexttime=basename($runlist[$runind+1]);
     	//var_dump($nexttime);
-    	$nexturl="https://test.defo.ie/smokeping-rustls.php?runtime=".$nexttime;
+    	$nexturl="https://test.defo.ie/smokeping-rust.php?runtime=".$nexttime;
     	$nextstr="<p><a href=\"".$nexturl."\">next</a></p>";
     }
     echo "<table border=\"0\" style=\"width:80%\"><tr>";
