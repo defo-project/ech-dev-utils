@@ -1,22 +1,16 @@
 #!/bin/bash
 
 # Script to run smokeping like tests against CF, defo.ie and my-own.net
-# using golang
+# using python
 #
 # we'll run this from a cronjob and make the output available at test.defo.ie
 # a PHP script will read/display the various flies as HTML
 # a 2nd cronjob will delete older log files so we don't fill up a disk
-#
-# to install on debian:
-#    sudo apt install golang-go
-# via snap on ububtu
-#    sudo snap install golang-go --classic
-# For this test we need golang 1.23 or newer
 
 # set -x
 
 # main inputs - can be overridden via command line of environment
-: ${RESULTS_DIR:="/var/extra/smokeping/golang-runs"}
+: ${RESULTS_DIR:="/var/extra/smokeping/python-runs"}
 : ${URLS_TO_TEST:="/var/extra/urls_to_test.csv"}
 
 # to pick up correct executables and .so's
@@ -24,9 +18,20 @@
 
 # time to wait for a remote access to work, 10 seconds
 : ${tout:="5s"}
-: ${golangscript="$HOME/code/defo-project-org/ech-dev-utils/scripts/ech_url.go"}
-: ${golangbin="/usr/bin/go"}
 
+# you have to prepare a virtual env to run this, instructions below
+: ${pbin:="/home/sftcd/ptest/env/bin/python /home/sftcd/code/defo-project-org/ech-dev-utils/scripts/ech_url.py"}
+
+# to make a virtual env in $HOME/ptest:
+# first install our debian python3.13 package
+# see https://github.com/defo-project/cpython/blob/packages/README.md
+# once you've added the apt source then `apt update; apt install python3.13`
+# and then:
+#   $ mkdir $HOME/ptest
+#   $ cd $HOME/ptest
+#   $ python3.13 -m venv env
+#   $ . ./env/bin/activate
+#   (venv)$ pip install dnspython httptools
 
 function url2port()
 {
@@ -47,6 +52,16 @@ function url2host()
     echo $host
 }
 
+function url2path()
+{
+    path=$(echo $1 | cut -d'/' -f4-)
+    if [[ "$path" == "" ]]
+    then
+        path="/"
+    fi
+    echo $path
+}
+
 function whenisitagain()
 {
     /bin/date -u +%Y%m%d-%H%M%S
@@ -64,7 +79,7 @@ NOW=$(whenisitagain)
 
 function usage()
 {
-    echo "$0 [-hdu] - run ECH tests with golang"
+    echo "$0 [-hdu] - run ECH tests with python"
 	echo "  -h print this"
     echo "  -r <results_dir> - specify the directory below which date stamped results with be put"
 	echo "  -u <urls_to_test> - provide a non-default s4et of URLs and expected outcomes"
@@ -131,14 +146,14 @@ then
 fi
 
 # load from $URLS_TO_TEST into $targets
-# associative array of URLs to test with expected golang return values
+# associative array of URLs to test with expected python return values
 # e.g.: [https://my-own.net/ech-check.php]="0"
 declare -A targets=( )
 lineno=0
 while IFS=',' read -r url curl_e ff_e chr_e go_e rs_e py_e; do
     if ((lineno!=0))
     then
-        targets[$url]+=$go_e
+        targets[$url]+=$py_e
     fi
     lineno=$((lineno+1))
 done < "$URLS_TO_TEST"
@@ -146,7 +161,7 @@ done < "$URLS_TO_TEST"
 logfile=$(get_abs_filename "$rundir/$NOW.log")
 tabfile=$(get_abs_filename "$rundir/$NOW.html")
 csvfile=$(get_abs_filename "$rundir/$NOW.csv")
-verfile=$(get_abs_filename "$rundir/$NOW.golang.ver")
+verfile=$(get_abs_filename "$rundir/$NOW.python.ver")
 touch "$logfile"
 touch "$tabfile"
 touch "$csvfile"
@@ -158,9 +173,8 @@ echo "-----" >>$logfile
 echo "Running $0 at $NOW"  >>$logfile
 echo "Running $0 at $NOW"
 
-# output golang version to verfile
-$golangbin version >>$verfile
-echo "ECH golang script: $golangscript" >>$verfile
+# output python version to verfile
+/home/sftcd/ptest/env/bin/python --version >>$verfile
 
 # start of HTML
 echo "<table border=\"1\" style=\"width:80%\">" >>$tabfile
@@ -179,14 +193,14 @@ then
     for targ in "${!targets[@]}"
     do
         expected=${targets[$targ]}
-        # golang just gives us zero for ok and 1 otherwise so we can
-        # re-use the curl expected value being zero or not
+        # python just gives us zero for ok and 1 or 2 otherwise
         if [[ "$expected" != "0" ]]
         then
             expected=1
         fi
         port=$(url2port $targ)
         host=$(url2host $targ)
+        path=$(url2path $targ)
         if [[ "$port" != "443" && "$have_portsblocked" == "yes" ]]
         then
             echo "Skipping $targ as ports != 443 seem blocked"
@@ -197,8 +211,7 @@ then
         fi
         # echo "Checking $targ"
         echo "Checking $targ" >>$logfile
-        # timeout $tout $golangbin run $golangscript $targ
-        timeout $tout $golangbin run $golangscript --url $targ > "$host.$port.out" 
+        timeout $tout $pbin --url $targ > "$host.$port.out"
         cres=$?
         if [[ "$cres" == "124" ]] 
         then

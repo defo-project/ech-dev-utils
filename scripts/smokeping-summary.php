@@ -28,7 +28,7 @@
 <h1>DEfO ECH Smokeping-like summary</h1>
 
 <p>This page displays the results from attempting
-ECH with chromium, curl, firefox, golang and rustls
+ECH with chromium, curl, firefox, golang, rustls and python
 with each of the URLs shown, for the last 6
 hours.  (Runs are done hourly via cron.) "Expected" means that we
 saw the expected result, which, for some of these URLs, means we saw the
@@ -53,7 +53,7 @@ We're investigating.</p>
     echo "<p>The time now is:".date(DATE_ATOM);
     echo " Table generated at:".date(DATE_ATOM,filemtime($summaryfile))."</p>";
 
-    $cliarr=array("chromium", "curl", "firefox", "golang", "rustls");
+    $cliarr=array("chromium", "curl", "firefox", "golang", "rustls", "python");
 
     echo '<table class="center-tab" border="0"><caption>Version Info (hover over icon for more)</caption>';
     foreach ($cliarr as $cli) {

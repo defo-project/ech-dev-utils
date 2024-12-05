@@ -47,6 +47,10 @@ def cell_with_expected(exp):
         fstr=fstr+image_stanza("./rustls-logo.png","rustls expected good","rustls good")
     else:
         fstr=fstr+image_stanza("./rustls-logo-x.png","rustls expected fail","rustls fail")
+    if exp[5]==0 or exp[5]=="0":
+        fstr=fstr+image_stanza("./python-logo.png","python expected good","python good")
+    else:
+        fstr=fstr+image_stanza("./python-logo-x.png","python expected fail","python fail")
     return fstr
 
 # display time more nicely
@@ -92,6 +96,11 @@ def cell_with_measure(u,t,c,m,exp):
                 return(image_stanza("./rustls-logo.png","rustls as expected","rustls as expected"))
             else:
                 return(image_stanza("./rustls-logo-x.png","rustls fail as expected","rustls as expected"))
+        if c=="python":
+            if exp[5]==0 or exp[5]=='0':
+                return(image_stanza("./python-logo.png","python as expected","python as expected"))
+            else:
+                return(image_stanza("./python-logo-x.png","python fail as expected","python as expected"))
     else:
         if c=="firefox":
             return(image_stanza("./ff-logo-x.png",m,"ff fail"))
@@ -105,6 +114,8 @@ def cell_with_measure(u,t,c,m,exp):
             return(image_stanza("./golang-logo-x.png",m,"golang as expected"))
         if c=="rustls":
             return(image_stanza("./rustls-logo-x.png",m,"rustls as expected"))
+        if c=="python":
+            return(image_stanza("./python-logo-x.png",m,"python as expected"))
     return "unknown client: " + c
 
 # format a URL for a column in our table
@@ -153,13 +164,13 @@ if __name__ == "__main__":
             if urlnum==0:
                 urlnum=1
                 continue
-            ue_list[row[0]]=(row[1],row[2],row[3],row[4],row[5]);
+            ue_list[row[0]]=(row[1],row[2],row[3],row[4],row[5],row[6]);
             urlnum=urlnum+1
     toturls=urlnum-1
     # for quicker elimination of old URLs
 
     # build up the data
-    clients=[ 'chrome', 'chromium', 'curl', 'firefox', 'golang', 'rustls' ]
+    clients=[ 'chrome', 'chromium', 'curl', 'firefox', 'golang', 'rustls', 'python' ]
     # times, at 1 hour granularity
     times=[]
     # measures array is url x time x client : measure
