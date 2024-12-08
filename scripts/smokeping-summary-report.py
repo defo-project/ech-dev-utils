@@ -6,20 +6,44 @@
 import os, sys, time, csv, re, json, traceback
 from datetime import datetime, timezone, timedelta
 from argparse import ArgumentParser
-from collections import defaultdict
+from pprint import pprint
 
-class myMeasure:
-    def __init__(self, tuple=(0, 0)):
-        self.exp, self.fail = tuple
-
-def mult_dim_dict(dim, dict_type, params):
-    if dim == 1:
-        if params is not None:
-            return defaultdict(lambda: dict_type(params))
-        else:
-            return defaultdict(dict_type)
-    else:
-        return defaultdict(lambda: mult_dim_dict(dim - 1, dict_type, params))
+def latex_out(measures):
+    # make latex output
+    urlind = 0
+    # header
+    tabhead="""\\tiny
+\\begin{longtblr} [
+        caption = {Interop tests from %s to %s},
+        label = {tab:itests}
+    ] {
+        colspec = {| c | l | c | c | c | c | c | c |},
+        rowhead = 1
+    }
+    \\hline"""
+    tabtail="""\\hline
+\\end{longtblr}
+\\normalsize"""
+    print(tabhead % (start_date, end_date))
+    cols = ""
+    for c in clients:
+        cols += f' & {c} '
+    print(f'num & url {cols}\\\\ \\hline')
+    # one line per URL, columns are url-number, url, per-client: %expected/total
+    for u in ue_list:
+        urlind += 1
+        cols = ""
+        for c in clients:
+            if (u,c) in measures:
+                exps = measures[(u,c)][0]
+                fails = measures[(u,c)][1]
+                tot = exps + fails
+                percent = "{:.2f}".format(exps/tot)
+                cols += f' & {percent}/{tot} '
+            else:
+                cols += ' & n/a '
+        print("%d & \\url{%s} %s\\\\ \\hline" % (urlind, u, cols))
+    print(tabtail)
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Summarise ECH smokeping data in table format")
@@ -29,10 +53,6 @@ if __name__ == "__main__":
                         help='place to find time-based result files')
     parser.add_argument('--dest_dir', default='/var/extra/sp-tabs',
                         help='directory to put resulting summary file')
-    parser.add_argument('-H','--html_out', default="sp-tab.html",
-                        help='produce output as a HTML table')
-    parser.add_argument('-L','--latex_out', default="sp-tab.tex",
-                        help='produce output as a latex table')
     parser.add_argument("-v", "--verbose", action="store_true",  help="additional output")
     parser.add_argument("--hours", type=int, help="only show last N hours")
     parser.add_argument('-s','--start', dest='start', help='start-date')
@@ -67,15 +87,15 @@ if __name__ == "__main__":
             ue_list[row[0]]=(row[1],row[2],row[3],row[4],row[5],row[6]);
             urlnum=urlnum+1
     toturls=urlnum-1
-    # for quicker elimination of old URLs
+    ue_list=sorted(ue_list)
 
     # build up the data
-    clients=[ 'chrome', 'chromium', 'curl', 'firefox', 'golang', 'rustls', 'python' ]
+    clients=[ 'chromium', 'curl', 'firefox', 'golang', 'rustls', 'python' ]
     # times, at 1 hour granularity
     times=[]
     # myMeasures array is url x client : { count(expected), count(unexpected) }
     # so we want to add a result to measures[u,c]
-    measures = mult_dim_dict(2, myMeasure, None)
+    measures = {}
     for c in clients:
         rdname=args.top_dir+"/"+c+"-runs"
         if not os.path.isdir(rdname):
@@ -116,63 +136,15 @@ if __name__ == "__main__":
                     # tidy up for curl script error in early files
                     if m=="expected>":
                         m="expected"
-                    om=measures[u,c]
-                    for foo in om:
-                        if m=="expected":
-                            foo.exp += 1
-                            print(foo)
-                        else:
-                            foo.fail += 1
-                            print(foo)
-                    print(om)
-                    measures[u,c]=om
-                    #if {u,c} in measures:
-                        #oval=measures[u,c]
-                        #if m=="expected":
-                            #oval[0]+=1
-                        #else:
-                            #oval[1]+=1
-                        #measures[u,c]=oval
-                    #else:
-                        #if m=="expected":
-                            #measures.append((u,c,1,0))
-                        #else:
-                            #measures.append((u,c,0,1))
-
-    # sort measures by most recent-time first (i.e. reverse)
-    # then by URL
-    trevm=sorted(measures, key=lambda x: x[1], reverse=True)
-    sortedmeasures=sorted(trevm, key=lambda x: x[0])
-    #smout=open("sm.out","w")
-    if args.verbose:
-        for u in ue_list:
-            for c in clients:
-                sm = measures[u,c]
-                print(u, c, sm)
-                for foo in sm:
-                    print(u, c, foo.exp, foo.fail)
-
-    sys.exit(0)
-
-    mergedmeasures=[]
-    curr_u=sortedmeasures[0][0]
-    curr_t=sortedmeasures[0][1]
-    all_r=""
-    line=0
-    for sm in sortedmeasures:
-        u=sm[0]
-        t=sm[1]
-        r=sm[2]
-        if curr_u != u or curr_t != t:
-            if curr_u not in ue_list:
-                print("Warning URL missing", curr_u, file=sys.stderr)
-            # record merged details
-            expstr=cell_with_expected(ue_list[curr_u])
-            mergedmeasures.append((line,curr_u,expstr,curr_t,all_r))
-            curr_u = u
-            curr_t = t
-            line=line+1
-            all_r=""
-        all_r=all_r+" "+r
-    expstr=cell_with_expected(ue_list[curr_u])
-    mergedmeasures.append((line,curr_u,expstr,curr_t,all_r))
+                    exps=0
+                    fails=0
+                    if (u,c) in measures:
+                        om=measures[(u,c)]
+                        exps=om[0]
+                        fails=om[1]
+                    if m=="expected":
+                        exps += 1
+                    else:
+                        fails += 1
+                    measures[(u,c)]=[exps, fails]
+    latex_out(measures)
