@@ -6,7 +6,6 @@
 # Eventual plan is to be able to spit out server configs, bind
 # nsupdate scripts (if we stick with bind) and client scripts
 # for selenium and command line tools (curl/s_client)
-# We also need some way to report on tests, that's a TODO: for now
 
 import os, sys, argparse, gc
 import json
@@ -625,7 +624,7 @@ def donsupdate(tech, target, hp):
     alttarg="_" + str(tech['altport']) + "._https." + target
     altenc = hp['encoding']
     if (isinstance(altenc, str)):
-        altenc.replace(" . "," " + target + " ")
+        altenc=altenc.replace(" . "," " + target + " ")
     else:
         altenc=[sub.replace(" . "," " + target + " ") for sub in altenc]
     up_instrs(alttarg, ttl, None, None, description, altenc)

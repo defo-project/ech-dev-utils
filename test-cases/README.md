@@ -26,7 +26,7 @@ for that name are routed to our nginx installation.
 
 The other files here are:
 
-- [test_cases_gen.py](./test_cases_gen.py) is a work-in-progress script we use
+- [test_cases_gen.py](./test_cases_gen.py) is a script we use
   to generate test cases as part of the (upcoming) refresh of the defo.ie web
   site.
 - [test_cases_settings.py](./test_cases_settings.py) has general settings for
@@ -60,7 +60,4 @@ curl is opportunistically asked for ECH.
   possibly implying some browser bugginess. We saw that behaviour on
 `draft-13.esni.defo.ie` non-443 port cases so should include a similar test
 here.
-
-- We need some better text and HTML for the iframe test page so things are
-  clearer for  reader.
 
