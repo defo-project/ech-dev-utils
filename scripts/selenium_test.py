@@ -45,7 +45,10 @@ def echstat_check(result, expected):
     # no distinguishing GREASE and fail here, nor retry-configs
     if expected!=0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCESS"):
         return "fail"
-    return "fail"
+    if expected==0:
+        return "fail"
+    # we didn't expect to succeed and we didn't
+    return "expected"
 
 def s_server_check(result, expected):
     # if it reports success we're good
