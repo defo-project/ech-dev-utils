@@ -114,7 +114,7 @@ result_handlers = [
     # haproxy split-mode
     { 'url': "^https://draft-13.esni.defo.ie:12414/$", 'handler': check_php_check },
     # cloudflare's test server
-    { 'url': "^https://crypto.cloudflare.com/cdn-cgi/trace$", 'handler': cf_check },
+    { 'url': "^https://cloudflare-ech.com/cdn-cgi/trace$", 'handler': cf_check },
     # boringssl-driven test server
     { 'url': "^https://tls-ech.dev/$", 'handler': bs_check },
 ]
