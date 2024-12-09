@@ -117,9 +117,20 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose", action="store_true",  help="additional output")
     parser.add_argument("-V", "--superverbose", action="store_true",  help="extra additional output")
     args = parser.parse_args()
-    response, ech_status = get(args.url)
-    result = json.loads(response['body'])
-    print(result)
+    if args.superverbose:
+        args.verbose = True
+    try:
+        response, ech_status = get(args.url)
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+    if args.superverbose:
+        try:
+            # this'll work for our echstat.php tests, which is most
+            result = json.loads(response['body'])
+            print(result)
+        except:
+            print(response)
     if ech_status.name == 'ECH_STATUS_SUCCESS':
         sys.exit(0)
     sys.exit(2)
