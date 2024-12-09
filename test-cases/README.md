@@ -36,6 +36,14 @@ The other files here are:
 - [makeech.sh](scripts/makeech.sh) is a wrapper for "openssl ech" that works
   based on whichever of the installed openssl or a local build has ECH support.
 
+## Running `test_cases_gen.py`:
+
+- You should run this from within the git clone as it uses git log to stamp
+  a generated file with a version
+- The output directory contains ECH private keys - if existing ones can be
+  used, they will be, so if you have a current output directory then using
+  that over and over reduces the number of things that need to be reset.
+
 ## TODOs
 
 We want to add some more tests to cover these cases:
