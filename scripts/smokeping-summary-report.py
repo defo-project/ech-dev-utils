@@ -142,7 +142,7 @@ if __name__ == "__main__":
                         om=measures[(u,c)]
                         exps=om[0]
                         fails=om[1]
-                    if m=="expected":
+                    if m.startswith("expected"):
                         exps += 1
                     else:
                         fails += 1
