@@ -38,8 +38,14 @@ def latex_out(measures):
                 exps = measures[(u,c)][0]
                 fails = measures[(u,c)][1]
                 tot = exps + fails
-                percent = "{:.2f}".format(exps/tot)
-                cols += f' & {percent}/{tot} '
+                if tot == 0:
+                    cols += f' & 0/0 '
+                else:
+                    percent = "{:.2f}".format(exps/tot)
+                    if (exps/tot) < 0.9:
+                        cols += ' & \\textbf{'+ f'{percent}/{tot} ' + '} '
+                    else:
+                        cols += f' & {percent}/{tot} '
             else:
                 cols += ' & n/a '
         print("%d & \\url{%s} %s\\\\ \\hline" % (urlind, u, cols))
