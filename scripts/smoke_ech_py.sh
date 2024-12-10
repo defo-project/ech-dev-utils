@@ -193,11 +193,6 @@ then
     for targ in "${!targets[@]}"
     do
         expected=${targets[$targ]}
-        # python just gives us zero for ok and 1 or 2 otherwise
-        if [[ "$expected" != "0" ]]
-        then
-            expected=1
-        fi
         port=$(url2port $targ)
         host=$(url2host $targ)
         path=$(url2path $targ)
