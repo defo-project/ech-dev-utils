@@ -78,6 +78,14 @@ def bs_check(result, expected):
         return "expected"
     return "fail"
 
+def fuzzrt_check(result, expected):
+    # react to error message, note we don't completely handle the set
+    # of errors here, nor seemingly do browsers detect all values as
+    # bad and produce an error
+    if expected!=0 and 'SSL_ERROR_RX_MALFORMED_ESNI_KEYS' in result:
+        return "expected"
+    return "fail"
+
 # add a record to the results file
 def write_res(html_fp, csv_fp, num, url, res):
     if csv_fp is not None:
@@ -117,6 +125,8 @@ result_handlers = [
     { 'url': "^https://cloudflare-ech.com/cdn-cgi/trace$", 'handler': cf_check },
     # boringssl-driven test server
     { 'url': "^https://tls-ech.dev/$", 'handler': bs_check },
+    # myechtest.site handler
+    { 'url': "^https://myechtest.site/$", 'handler': fuzzrt_check },
 ]
 
 def get_handler(url):
@@ -140,6 +150,10 @@ def known_exception(browser, url, exc_value):
         return True
     # a fake key and fuzzed retry-configs generates an exception for ff
     if "myechtest.site" in url and browser=="firefox" and "SSL_ERROR_RX_MALFORMED" in str(exc_value):
+        return True
+    if "myechtest.site" in url and browser=="firefox" and "SSL_ERROR_RX_MALFORMED_ESNI_KEYS" in str(exc_value):
+        return True
+    if "myechtest.site" in url and browser=="firefox" and "about:neterror" in str(exc_value):
         return True
     if "myechtest.site" in url and browser=="chromium" and "ERR_SSL_PROTOCOL_ERROR" in str(exc_value):
         return True
