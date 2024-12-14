@@ -34,6 +34,7 @@ def latex_out(measures):
     # accumulate some numbers
     tot_exps = { 'chromium': 0, 'curl': 0, 'firefox': 0, 'golang': 0, 'rustls': 0, 'python': 0 }
     tot_fails = { 'chromium': 0, 'curl': 0, 'firefox': 0, 'golang': 0, 'rustls': 0, 'python': 0 }
+    tot_uthresh = { 'chromium': 0, 'curl': 0, 'firefox': 0, 'golang': 0, 'rustls': 0, 'python': 0 }
     # one line per URL, columns are url-number, url, per-client: %expected/total
     for u in ue_list:
         urlind += 1
@@ -51,6 +52,7 @@ def latex_out(measures):
                     percent = "{:.2f}".format(exps/tot)
                     if (exps/tot) < threshold:
                         cols += ' & \\textbf{'+ f'{percent}/{tot} ' + '} '
+                        tot_uthresh[c] += 1
                     else:
                         cols += f' & {percent}/{tot} '
             else:
@@ -73,6 +75,11 @@ def latex_out(measures):
         else:
             texpstr += ' & n/a '
     print(' & Totals ' + texpstr + '\\\\ \\hline')
+    utstr=''
+    for c in clients:
+        utstr += f' & {tot_uthresh[c]} '
+    print(' & Count below ' + "{:0.0f}".format(threshold*100) +
+          '\\% threshold ' + utstr + '\\\\ \\hline')
 
     percent = "{:.2f}".format(oexps/otot)
     if oexps/otot < threshold:
@@ -97,7 +104,7 @@ if __name__ == "__main__":
 
     now = datetime.now()
     oneday = timedelta(1)
-    
+
     if args.start is not None:
         start_date = datetime.strptime(args.start, '%Y-%m-%d')
     else:
