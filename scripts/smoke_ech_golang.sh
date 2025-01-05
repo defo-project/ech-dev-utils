@@ -224,6 +224,17 @@ then
     done
 fi
 
+# clean up go build files - could be there's a better way but this
+# works
+for d in /tmp/go-build*
+do
+    if [ -d "$d" ]
+    then
+        echo "Cleaning $d" >>$logfile
+        echo "Cleaning $d"
+        rm -rf "$d"
+    fi
+done
 
 END=$(whenisitagain)
 echo "Finished $0 at $END"  >>$logfile

@@ -27,4 +27,25 @@ fi
 
 python3 $HOME/code/defo-project-org/ech-dev-utils/scripts/selenium_test.py --browser="$BROWSER" --urls_to_test="$URLSFILE" --results_dir="$RESULTS_DIR"
 
+if [[ "$BROWSER" != "chromium" ]]
+then
+    # clean up /tmp files
+    for d in /tmp/tmp*
+    do
+        if [ -f "$d"/user.js ]
+        then
+            echo "Cleaning $d"
+            rm -rf "$d"
+        fi
+    done
+    for d in /tmp/rust_mozprofille* ]
+    do
+        if [ -d "$d" ]
+        then
+            echo "Cleaning $d"
+            rm -rf "$d"
+        fi
+    done
+fi
+
 echo "=============================="
