@@ -61,7 +61,8 @@ Next, you need to generate an ECH key pair:
     $ cd $HOME/lt
     $ export LD_LIBRARY_PATH=$HOME/code/openssl
     $ $HOME/code/openssl/apps/openssl ech -public_name example.com
-    Wrote ECH key pair to echconfig.pem
+    $ ls -l echconfig.pem
+    -rw-rw-r-- 1 user user 259 Jan  7 13:49 echconfig.pem
     $
 ```
 Now you have enough setup to do a basic client/server test

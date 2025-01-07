@@ -1,7 +1,7 @@
 
 # Lighttpd and ECH
 
-Notes on our lighttpd integration.
+Notes on the lighttpd ECH integration.
 
 We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
 have gotten the [localhost-tests](localhost-tests.md) working, and you should
@@ -9,9 +9,19 @@ have created an ``echkeydir`` as described
 [here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
 
 The main lighttpd maintainer (@gstrauss) provided much well-appreciated help in
-developing this integration, which was the first web server we tackled, but all
-blame for flaws goes to @sftcd and there's no implication @gstrauss is happy or
-unhappy with how this proof-of-concept is currently done.
+early versions of this integration, which was the first web server we tackled.
+Recently, (on 2025-01-04) @gstrauss merged ECH code to the ligthttpd1.4 master
+branch. That can use boringssl or the DEfO-project OpenSSL fork for ECH support.
+
+Hopefully, in the near future, the "official" OpenSSL ECH feature branch will
+be usable for ECH support, but for the moment, one needs to build against our
+DEfO-project fork to get ECH support in OpenSSL.
+
+For DEfO-project CI purposes, we still have a fork of lighttpd1.4, (our CI
+setup does a nightly merge with upstream, build and test to check if anything's
+gotten broken), but the upstream ligtttpd1.4 master is also usable as that now
+contains ECH code. This HOWTO describes use of the upstream lighttpd1.4 master
+branch.
 
 ## Build
 
@@ -19,7 +29,7 @@ Nothing remarkable here really:
 
 ```bash
     $ cd $HOME/code
-    $ git clone https://github.com/defo-project/lighttpd1.4 
+    $ git clone https://github.com/lighttpd/lighttpd1.4.git
     ...
     $ cd lighttpd1.4
     $ ./autogen.sh 
@@ -30,13 +40,9 @@ Nothing remarkable here really:
     ... stuff ...
 ```
 
-We did recently see that ``autogen.sh`` recommended running ``autoupdate`` but
-that seems to break things, so we'll let upstream fix that as they get to it.
-So: don't run ``autoupdate`` even if told you should:-)
-
 ## Configuration
 
-We added new server configuration settings, under ssl.ech-opts:
+Lighttpd adds new server configuration settings, under ssl.ech-opts:
 
 - keydir - name of directory scanned for ``*.ech`` files that will be
   parsed/used if they contain a private key and ECHConfig
@@ -48,9 +54,9 @@ Those are reflected in the
 [``lighthttpdmin.conf``](../configs/lighthttpdmin.conf) config file used in
 localhost testing.
 
-We also support a way to make a specific virtual host "ECH only" by configuring
-a (presumably different) virtual host name to use, if ECH wasn't successfully
-used in the ClientHello for that TLS session.
+Lighttpd also supports a way to make a specific virtual host "ECH only" by
+configuring a (presumably different) virtual host name to use, if ECH wasn't
+successfully used in the ClientHello for that TLS session.
 
 For this, there's a virtual host specific configuration item:
 
@@ -59,14 +65,13 @@ For this, there's a virtual host specific configuration item:
 
 The basic idea here is to explore whether or not it's useful to mark a
 VirtualHost as "ECH only", i.e. to try deny it's existence if it's asked for
-via cleartext SNI.  I'm very unsure if this is worthwhile but since it could be
-done, it may be fun to play and see if it turns out to be useful. 
+via cleartext SNI.  
 
-To that end we've added an "ssl.non-ech-host" label that can be in a lighttpd
+To that end the "ssl.non-ech-host" label can be used in a lighttpd
 configuration for a TLS listener. If that is present and if the relevant
 name is used in the cleartext SNI (with or without ECH) then the TLS
-connection will fail.  For example, in my [localhost test
-setup](../configs/lighttpdmin.conf) baz.example.com is now marked "ECH only"
+connection will fail.  For example, in our [localhost test
+setup](../configs/lighttpdmin.conf) baz.example.com is marked "ECH only"
 
 Failing this check is logged in the error log, e.g.:
 
@@ -76,13 +81,13 @@ Failing this check is logged in the error log, e.g.:
     2019-10-07 21:33:33: (mod_openssl.c.2130) SSL: 1 error:140000EA:SSL routines::callback failed 
 ```
 
-That log line includes the requesting IP address for now.
+That log line includes the requesting IP address.
 
 ## Test
 
 The script [``testlighttpd.sh``](../scripts/testlighttpd.sh) sets environment
 vars and then runs lighttpd from the build, listening (for HTTPS only) on port
-3443, then runs some client tests against that server, and finally killing
+3443, then runs some client tests against that server, and finally kills
 the server process:
 
 ```bash
@@ -103,7 +108,7 @@ To later do manual tests, one can start a server running as follows:
     $ LD_LIBRARY_PATH=$HOME/code/openssl RUNTOP=~/lt  ~/code/lighttpd1.4/src/lighttpd -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs
 ```
 
-With out test configuration, the ECH PEM files are re-loaded every 60 seconds,
+With our test configuration, the ECH PEM files are re-loaded every 60 seconds,
 so you'll see error log lines like the following accumulating:
 
 ```bash
@@ -121,7 +126,8 @@ You can then use our wrapper for ``openssl s_client`` to access a web page:
     $ 
 ```
 
-You can also use our ECH-enabled curl build to test against this server:
+You can also use our ECH-enabled curl build to test against this server (replacing
+the ECHConfig value with your own of course):
 
 ```bash
     $ export LD_LIBRARY_PATH=$HOME/code/openssl
@@ -234,9 +240,7 @@ the full output of which is shown below:
 In the above case, the client thinks it has a session with ``baz.example.com``
 but the server has returned the web page for ``example.com``. (That works in
 our test setup as the x.509 certificate for that instance has a wildcard for
-``*.example.com``.) It's unclear if that "ECH only" feature is worth including
-in other web servers (so it's not present in nginx or apache integrations) but
-it could be useful for experimentation.
+``*.example.com``.) 
 
 ## Logs
 

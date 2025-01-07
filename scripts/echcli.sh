@@ -79,7 +79,7 @@ REUSINGSESSION="no"
 TESTCUST="no"
 
 # default values
-HIDDEN="crypto.cloudflare.com"
+HIDDEN="cloudflare-ech.com"
 DEFFRAG="cdn-cgi/trace" # what CF like for giving a hint as to whether ECH worked
 PNO=""
 CAPATH="/etc/ssl/certs/"
@@ -125,6 +125,20 @@ function dnsdecode()
     done
 
     echo $name
+}
+
+function getb64ech()
+{
+    rrval=$1
+    echb64=""
+    for substr in $rrval
+    do
+        if [[ $substr == ech=* ]]
+        then
+            echb64=${substr:4}
+        fi
+    done
+    echo $echb64
 }
 
 echo "Running $0 at $NOW"
@@ -334,7 +348,7 @@ then
             ssfname=`basename $SUPPLIEDECH`
             if [ `basename "$ssfname" .pem` != "$ssfname" ]
             then
-                ECH=" $selstr -ech_config_list `tail -2 $SUPPLIEDECH | head -1`"
+                ECH=" $selstr -ech_config_list `cat $SUPPLIEDECH | sed '/BEGIN ECHCONFIG/,/END ECHCONFIG/{//!b};d' | tr -d '\n'`"
             else
                 echo "Not sure of file type of $SUPPLIEDECH - try make a PEM file to help me"
                 exit 8
@@ -368,14 +382,11 @@ then
             then
                 qname="_$PORT._https.$decoded"
             fi
-            digval="`dig +unknownformat +short $recursivestr -t TYPE65 $qname | tail -1 | cut -f 3- -d' ' | sed -e 's/ //g' `"
+            digrrval=`dig +short $recursivestr -t TYPE65 $qname`
+            digval=$(getb64ech "$digrrval")
         else
-            digval="`dig +unknownformat +short $recursivestr -t TYPE65 $qname | tail -1 | cut -f 3- -d' ' | sed -e 's/ //g' `"
-            # digval used have one more sed command as per below...
-            # digval="`dig +short -t TYPE65 $qname | tail -1 | cut -f 3- -d' ' | sed -e 's/ //g' | sed -e 'N;s/\n//'`"
-            # I think that's a hangover from some other script that had to merge lines, e.g. if the RR value is
-            # very very big - but since we're doing a tail -1 here (ignoring all but one RR value) that shouldn't
-            # be needed (and it caused a problem for someone who didn't have GNU sed)
+            digrrval=`dig +short $recursivestr -t TYPE65 $qname`
+            digval=$(getb64ech "$digrrval")
         fi
 
         if [[ "$digval" == "" ]]
