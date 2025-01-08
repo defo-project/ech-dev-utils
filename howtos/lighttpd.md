@@ -60,14 +60,14 @@ successfully used in the ClientHello for that TLS session.
 
 For this, there's a virtual host specific configuration item:
 
-- ssl.non-ech-host - name of vhost to pretend was used if ECH wasn't successful
-  (or not tried)
+- ssl.ech-public-name - name of vhost to pretend was used if ECH wasn't
+  successful (or not tried)
 
 The basic idea here is to explore whether or not it's useful to mark a
 VirtualHost as "ECH only", i.e. to try deny it's existence if it's asked for
 via cleartext SNI.  
 
-To that end the "ssl.non-ech-host" label can be used in a lighttpd
+To that end the "ssl.ech-public-name" label can be used in a lighttpd
 configuration for a TLS listener. If that is present and if the relevant
 name is used in the cleartext SNI (with or without ECH) then the TLS
 connection will fail.  For example, in our [localhost test
