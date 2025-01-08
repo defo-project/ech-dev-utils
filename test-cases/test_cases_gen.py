@@ -303,7 +303,7 @@ $HTTP["host"] == "ly.test.defo.ie" {
     server.name                 = "ly.test.defo.ie"
 }
 $HTTP["host"] == "ly-pub.test.defo.ie" {
-    ssl.non-ech-host            = "ly-pub.test.defo.ie"
+    ssl.ech-public-name         = "ly-pub.test.defo.ie"
 }
 '''
 
