@@ -10,7 +10,7 @@ have created an ``echkeydir`` as described
 
 The main lighttpd maintainer (@gstrauss) provided much well-appreciated help in
 early versions of this integration, which was the first web server we tackled.
-Recently, (on 2025-01-04) @gstrauss merged ECH code to the ligthttpd1.4 master
+Recently, (on 2025-01-04) @gstrauss merged ECH code to the lighttpd1.4 master
 branch. That can use boringssl or the DEfO-project OpenSSL fork for ECH support.
 
 Hopefully, in the near future, the "official" OpenSSL ECH feature branch will
@@ -42,13 +42,14 @@ Nothing remarkable here really:
 
 ## Configuration
 
+https://wiki.lighttpd.net/TLS_ECH
+
 Lighttpd adds new server configuration settings, under ssl.ech-opts:
 
 - keydir - name of directory scanned for ``*.ech`` files that will be
   parsed/used if they contain a private key and ECHConfig
 - refresh - frequency (in seconds) to re-check whether some PEM files need to
   be reloaded
-- trial-decrypt - whether or not ECH trial decryption is enabled 
 
 Those are reflected in the
 [``lighthttpdmin.conf``](../configs/lighthttpdmin.conf) config file used in
@@ -72,16 +73,6 @@ configuration for a TLS listener. If that is present and if the relevant
 name is used in the cleartext SNI (with or without ECH) then the TLS
 connection will fail.  For example, in our [localhost test
 setup](../configs/lighttpdmin.conf) baz.example.com is marked "ECH only"
-
-Failing this check is logged in the error log, e.g.:
-
-```bash
-    2019-10-07 21:33:33: (mod_openssl.c.531) ech_status:  not attempted cover: NULL hidden: NULL 
-    2019-10-07 21:33:33: (mod_openssl.c.644) echonly abuse for only.ech.defo.ie from 2001:DB8::bad
-    2019-10-07 21:33:33: (mod_openssl.c.2130) SSL: 1 error:140000EA:SSL routines::callback failed 
-```
-
-That log line includes the requesting IP address.
 
 ## Test
 
@@ -109,10 +100,11 @@ To later do manual tests, one can start a server running as follows:
 ```
 
 With our test configuration, the ECH PEM files are re-loaded every 60 seconds,
+and if lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
 so you'll see error log lines like the following accumulating:
 
 ```bash
-    2023-12-06 01:39:12: (mod_openssl.c.603) SSL: SSL_CTX_ech_server_enable_dir() worked for /home/user/lt/echkeydir/echconfig.pem.ech
+    2023-12-06 01:39:12: (mod_openssl.c.823) SSL: OSSL_ECHSTORE_read_pem() worked for /home/user/lt/echkeydir/echconfig.pem.ech
 ```
 
 You can then use our wrapper for ``openssl s_client`` to access a web page:
@@ -244,6 +236,7 @@ our test setup as the x.509 certificate for that instance has a wildcard for
 
 ## Logs
 
+If lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
 ECH status information is written to the lighttpd ``error.log``, that
 looks like:
 
@@ -265,7 +258,8 @@ To enable PHP edit your lighttpd config to include:
     )
 ```
 
-The PHP code can then access these CGI variables:
+If lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
+the PHP code can then access these CGI variables:
 
 - ``SSL_ECH_STATUS``: values can be: 
     - "not attempted" - if the client didn't include the TLS ClientHello extension at all
@@ -313,10 +307,10 @@ Here's a PHP snippet that will display those:
 - Some code is also protected via ``#ifdef TLSEXT_TYPE_ech`` which is defined
   if the TLS library in use defines that symbol, and could in principle be of
   use in future with other TLS libraries that support ECH (e.g. boringssl).
+  (boringssl uses TLSEXT\_TYPE\_encrypted\_client\_hello)
 
 - Some changes are additionally protected via ``#ifdef LIGHTTPD_OPENSSL_ECH_DEBUG``.
-  which is currently turned on by default. Those are mainly tracing/logging chunks
-  of code.
+  which is not enabled by default. Those are mainly tracing/logging chunks of code.
 
 - ``mod_openssl_refresh_ech_keys_ctx()`` handles periodic re-loading of ECH PEM
   files and enabling ECH for the relevant ``SSL_CTX`` contexts. That's called
@@ -327,12 +321,6 @@ Here's a PHP snippet that will display those:
 
 - A block of code within ``network_init_ssl()`` sets the ``SSL_OP_ECH_TRIALDECRYPT``
   option for the OpenSSL library if so configured.
-
-## Reloading ECH keys
-
-The ``reload`` config file setting specifies the number of
-seconds after which a reload will be attempted (on the next
-web access). The default is TBD.
 
 ## Debugging
 
