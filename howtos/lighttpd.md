@@ -23,18 +23,25 @@ gotten broken), but the upstream ligtttpd1.4 master is also usable as that now
 contains ECH code. This HOWTO describes use of the upstream lighttpd1.4 master
 branch.
 
+Commands on this howto use a few environment variables for clarity:
+```bash
+    $ export DEV=$HOME/code
+    $ export RUNTOP=$HOME/lt
+    $ export LD_LIBRARY_PATH=$DEV/openssl
+```
+
 ## Build
 
 Nothing remarkable here really:
 
 ```bash
-    $ cd $HOME/code
+    $ cd $DEV
     $ git clone https://github.com/lighttpd/lighttpd1.4.git
     ...
     $ cd lighttpd1.4
     $ ./autogen.sh 
     ... stuff ...
-    $ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$HOME/code/openssl --with-openssl-libs=$HOME/code/openssl
+    $ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$DEV/openssl --with-openssl-libs=$DEV/openssl
     ... stuff ...
     $ make
     ... stuff ...
@@ -82,7 +89,7 @@ vars and then runs lighttpd from the build, listening (for HTTPS only) on port
 the server process:
 
 ```bash
-    $ ~/code/ech-dev-utils/scripts/testlighttpd.sh 
+    $ $DEV/ech-dev-utils/scripts/testlighttpd.sh
     lighttpd: no process found
     Testing grease 3443
     Testing public 3443
@@ -96,7 +103,7 @@ the server process:
 To later do manual tests, one can start a server running as follows:
 
 ```bash
-    $ LD_LIBRARY_PATH=$HOME/code/openssl RUNTOP=~/lt  ~/code/lighttpd1.4/src/lighttpd -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs
+    $ $DEV/lighttpd1.4/src/lighttpd -f $DEV/ech-dev-utils/configs/lighttpdmin.conf -m $DEV/lighttpd1.4/src/.libs
 ```
 
 With our test configuration, the ECH PEM files are re-loaded every 60 seconds,
@@ -104,15 +111,15 @@ and if lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
 so you'll see error log lines like the following accumulating:
 
 ```bash
-    2023-12-06 01:39:12: (mod_openssl.c.823) SSL: OSSL_ECHSTORE_read_pem() worked for /home/user/lt/echkeydir/echconfig.pem.ech
+    2023-12-06 01:39:12: (mod_openssl.c.823) SSL: OSSL_ECHSTORE_read_pem() worked for $RUNTOP/echkeydir/echconfig.pem.ech
 ```
 
 You can then use our wrapper for ``openssl s_client`` to access a web page:
 
 ```bash
-    $ ~/code/ech-dev-utils/scripts/echcli.sh  -p 3443 -s localhost -H foo.example.com -P echconfig.pem -f index.html
-    Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231206-011943
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    $ $DEV/ech-dev-utils/scripts/echcli.sh -p 3443 -s localhost -H foo.example.com -P echconfig.pem -f index.html
+    Running $DEV/ech-dev-utils/scripts/echcli.sh at 20231206-011943
+    $DEV/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $ 
@@ -122,25 +129,24 @@ You can also use our ECH-enabled curl build to test against this server (replaci
 the ECHConfig value with your own of course):
 
 ```bash
-    $ export LD_LIBRARY_PATH=$HOME/code/openssl
-    $ $HOME/code/curl/src/curl --ech ecl:AD7+DQA6uAAgACAogff+HZbirYdQCfXI00iBPP+K96YyK/D/0DoeXD/0fgAEAAEAAQALZXhhbXBsZS5jb20AAA==  --connect-to foo.example.com:443:localhost:3443 https://foo.example.com/index.html --cacert cadir/oe.csr -vvv
+    $ $DEV/curl/src/curl --ech ecl:AD7+DQA6uAAgACAogff+HZbirYdQCfXI00iBPP+K96YyK/D/0DoeXD/0fgAEAAEAAQALZXhhbXBsZS5jb20AAA== --connect-to foo.example.com:443:localhost:3443 https://foo.example.com/index.html --cacert $RUNTOP/cadir/oe.csr -vvv
     ...
     * ECH: result: status is succeeded, inner is foo.example.com, outer is example.com
     ...
 ```
 
-We can now also run tests on ``baz.example.com`` which is setup as an  "ECH only"
+We can now also run tests on ``baz.example.com`` which is setup as an "ECH only"
 web site. So that works when using ECH:
 
 ```bash
-    $HOME/code/curl/src/curl --ech ecl:AD7+DQA6uAAgACAogff+HZbirYdQCfXI00iBPP+K96YyK/D/0DoeXD/0fgAEAAEAAQALZXhhbXBsZS5jb20AAA==  --connect-to baz.example.com:443:localhost:3443 https://baz.example.com/index.html --cacert cadir/oe.csr -vvv
+    $ $DEV/curl/src/curl --ech ecl:AD7+DQA6uAAgACAogff+HZbirYdQCfXI00iBPP+K96YyK/D/0DoeXD/0fgAEAAEAAQALZXhhbXBsZS5jb20AAA== --connect-to baz.example.com:443:localhost:3443 https://baz.example.com/index.html --cacert $RUNTOP/cadir/oe.csr -vvv
 ```            
 
 But if we don't use ECH at all then we get the content for ``example.com``,
 the full output of which is shown below:
 
 ```bash
-    $HOME/code/curl/src/curl --ech none  --connect-to baz.example.com:443:localhost:3443 https://baz.example.com/index.html --cacert cadir/oe.csr -vvv
+    $ $DEV/curl/src/curl --ech none --connect-to baz.example.com:443:localhost:3443 https://baz.example.com/index.html --cacert $RUNTOP/cadir/oe.csr -vvv
     * !!! WARNING !!!
     * This is a debug build of libcurl, do not use in production.
     * STATE: INIT => CONNECT handle 0x5621cc626208; line 1926
@@ -158,7 +164,7 @@ the full output of which is shown below:
     * ALPN: curl offers http/1.1
     * Didn't find Session ID in cache for host HTTPS://baz.example.com:443
     * TLSv1.3 (OUT), TLS handshake, Client hello (1):
-    *  CAfile: cadir/oe.csr
+    *  CAfile: $RUNTOP/cadir/oe.csr
     *  CApath: /etc/ssl/certs
     * TLSv1.3 (IN), TLS handshake, Server hello (2):
     * TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
@@ -327,17 +333,14 @@ Here's a PHP snippet that will display those:
 To start lighttpd in a debugger, and break when loading ECH PEM files:
 
 ```bash
-    $ cd $HOME/lt
-    $ export LD_LIBRARY_PATH=$HOME/code/openssl
-    $ export RUNTOP=`/bin/pwd`
-    $ gdb $HOME/code/lighttpd1.4/src/lighttpd
+    $ gdb --args $DEV/lighttpd1.4/src/lighttpd -f $DEV/ech-dev-utils/configs/lighttpdmin.conf -m $DEV/lighttpd1.4/src/.libs -D
     ...
     (gdb) b mod_openssl_refresh_ech_keys_ctx
     Function "mod_openssl_refresh_ech_keys_ctx" not defined.
     Make breakpoint pending on future shared library load? (y or [n]) y
     Breakpoint 1 (mod_openssl_refresh_ech_keys_ctx) pending.
-    (gdb) r -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
-    Starting program: /home/user/code/lighttpd1.4/src/lighttpd -f ~/code/ech-dev-utils/configs/lighttpdmin.conf -m ~/code/lighttpd1.4/src/.libs -D
+    (gdb) r
+    Starting program: $DEV/lighttpd1.4/src/lighttpd -f $DEV/ech-dev-utils/configs/lighttpdmin.conf -m $DEV/lighttpd1.4/src/.libs -D
     [Thread debugging using libthread_db enabled]
     Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
     
