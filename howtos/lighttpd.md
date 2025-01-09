@@ -34,15 +34,17 @@ Nothing remarkable here really:
     $ cd lighttpd1.4
     $ ./autogen.sh 
     ... stuff ...
-    $ ./configure --with-openssl=$HOME/code/openssl --with-openssl-libs=$HOME/code/openssl
+    $ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$HOME/code/openssl --with-openssl-libs=$HOME/code/openssl
     ... stuff ...
     $ make
     ... stuff ...
 ```
 
+`CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG` enables debug trace and is optional.
+
 ## Configuration
 
-https://wiki.lighttpd.net/TLS_ECH
+Reference: https://wiki.lighttpd.net/TLS_ECH
 
 Lighttpd adds new server configuration settings, under ssl.ech-opts:
 
@@ -50,6 +52,7 @@ Lighttpd adds new server configuration settings, under ssl.ech-opts:
   parsed/used if they contain a private key and ECHConfig
 - refresh - frequency (in seconds) to re-check whether some PEM files need to
   be reloaded
+- trial-decrypt - enable/disable trial decryption (default: enable)
 
 Those are reflected in the
 [``lighthttpdmin.conf``](../configs/lighthttpdmin.conf) config file used in
@@ -64,15 +67,12 @@ For this, there's a virtual host specific configuration item:
 - ssl.ech-public-name - name of vhost to pretend was used if ECH wasn't
   successful (or not tried)
 
-The basic idea here is to explore whether or not it's useful to mark a
-VirtualHost as "ECH only", i.e. to try deny it's existence if it's asked for
-via cleartext SNI.  
-
-To that end the "ssl.ech-public-name" label can be used in a lighttpd
-configuration for a TLS listener. If that is present and if the relevant
-name is used in the cleartext SNI (with or without ECH) then the TLS
-connection will fail.  For example, in our [localhost test
+For example, in our [localhost test
 setup](../configs/lighttpdmin.conf) baz.example.com is marked "ECH only"
+
+The basic idea here is to explore whether or not it is useful to mark a
+VirtualHost as "ECH only", i.e. to try to deny its existence if it is asked for
+via cleartext SNI.
 
 ## Test
 
@@ -262,13 +262,13 @@ If lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
 the PHP code can then access these CGI variables:
 
 - ``SSL_ECH_STATUS``: values can be: 
-    - "not attempted" - if the client didn't include the TLS ClientHello extension at all
-    - "success" - if it all worked (succesful ECH decrypt)
-    - "tried but failed" - something went wrong during attempted decryption
-    - "worked but bad name" - this is a client-side error, if the TLS server cert didn't match the ECH
-    - "error getting ECH status" - if the call to ``SSL_get_ech_status`` failed
-- ``SSL_ECH_HIDDEN``: will contain the actual ECH used or "NONE" 
-- ``SSL_ECH_COVER``: will contain the cleartext SNI seen or "NONE"
+    - "SSL\_ECH\_STATUS\_SUCCESS" - if it all worked (successful ECH decrypt)
+    - "SSL\_ECH\_STATUS\_FAILED" - if the call to ``SSL_ech_get1_status`` failed
+    - "SSL\_ECH\_STATUS\_FAILED\_ECH" - something went wrong during attempted decryption
+    - "SSL\_ECH\_STATUS\_FAILED\_ECH\_BAD\_NAME" - this is a client-side error, if the TLS server cert didn't match the ECH
+    - "SSL\_ECH\_STATUS\_NOT\_TRIED" - if the client didn't include the TLS ClientHello extension at all
+- ``SSL_ECH_INNER_SNI``: will contain the actual ECH used or "NONE"
+- ``SSL_ECH_OUTER_SNI``: will contain the cleartext SNI seen or "NONE"
 
 Here's a PHP snippet that will display those:
 
@@ -295,7 +295,7 @@ Here's a PHP snippet that will display those:
 
 ## Code changes
 
-- ALl code changes are within the ``src/mod_openssl.c`` file.
+- All code changes are within the ``src/mod_openssl.c`` file.
 
 - Significant new code is protected via ``#ifndef OPENSSL_NO_ECH`` as is done
   in our OpenSSL fork. The new code is compiled if the OpenSSL include files
