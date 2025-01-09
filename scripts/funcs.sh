@@ -55,7 +55,7 @@ cli_test() {
 lighty_stop() {
     local pfile="$RUNTOP/lighttpd/logs/lighttpd.pid"
 
-    if [ -f $pfile ]
+    if [ -s $pfile ]
     then
         kill `cat $pfile`
         rm -f $pfile

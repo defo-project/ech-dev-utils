@@ -167,15 +167,25 @@ The code for ECH key rotation  is in ``src/ssl_sock.c`` in
 ``cli_parse_show_ech()`` etc. The first step is to be able to view the set of
 ECH configurations.
 
-There's a remaining TODO: add ``SSL_CTX_ech_get_info(ctx,&info,&count)`` to
-make haproxy calls faster - currently we have to use ``SSL *s=SSL_new(ctx)`` to
-make an ``SSL`` object that we use to query or set the ECH configs, but it'd be
-quicker to do that directly from the ``SSL_CTX`` object. Doing that however
-requires some re-factoring of library code, hence the TODO:. We don't know if
-the extra processing there is significant or not though, so haven't yet tried
-to do that re-factoring.
-
 ### Displaying ECH configs
+
+For this, you need haproxy and lighttpd instances running. To do that:
+
+```bash
+    $ cd $HOME/lt
+    $ export CODETOP=$HOME/code/openssl
+    $ export LD_LIBRARY_PATH=$CODETOP
+    $ export RUNTOP=$HOME/lt
+    $ killall haproxy
+    $ killall lighttpd
+    $ $HOME/code/lighttpd1.4/src/lighttpd -f $HOME/code/ech-dev-utils/configs/lighttpd4haproxymin.conf \
+        -m $HOME/code/lighttpd1.4/src/.libs
+    $ $HOME/code/haproxy/haproxy -f $HOME/code/ech-dev-utils/configs/haproxymin.conf -DdV
+```
+
+That will leave haproxy and lighttpd running in the background. You may get
+some logging in the terminal where you run those commands. You can then
+play with the commands below.
 
 The syntax is: ``show ssl ech [name]``
     - if no name provided all are shown
@@ -191,32 +201,17 @@ To display all ECH configs with our test setup:
 ```bash
 $ echo "show ssl ech" | socat /tmp/haproxy.sock stdio
 ***
-backend (split-mode): 3484
-ECH details (3 configs total)
-index: 0: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
-index: 1: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,64,example.com,0020,[0001,0001],cc12c8fb828c202d11b5adad67e15d0cccce1aaa493e1df34a770e4a5cdcd103,00,00]
-index: 2: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
+backend (split-mode): 3484 
+ECH entry: 0 public_name: example.com age: 19 (has private key)
+	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 ***
-frontend: ECH-front
-ECH details (3 configs total)
-index: 0: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
-index: 1: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,64,example.com,0020,[0001,0001],cc12c8fb828c202d11b5adad67e15d0cccce1aaa493e1df34a770e4a5cdcd103,00,00]
-index: 2: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
+frontend: ECH-front 
+ECH entry: 0 public_name: example.com age: 19 (has private key)
+	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 ***
-frontend: Two-TLS
-ECH details (3 configs total)
-index: 0: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
-index: 1: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,64,example.com,0020,[0001,0001],cc12c8fb828c202d11b5adad67e15d0cccce1aaa493e1df34a770e4a5cdcd103,00,00]
-index: 2: loaded 4 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
+frontend: Two-TLS 
+ECH entry: 0 public_name: example.com age: 19 (has private key)
+	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 ```
 
 The backend name in the above is "3484", the frontend names are "ECH-front" and "Two-TLS"
@@ -249,22 +244,18 @@ Where ``<name>`` is the name of a frontend or backend as above.
 Providing the PEM file input ("pemesni") is a bit non-trivial, to add another ECH config one needs to:
 
 ```bash
-$ openssl ech -public_name htest.com -pemout htest.pem
+$ openssl ech -public_name htest.com -out htest.pem
 $ echo -e "add ssl ech ECH-front <<EOF\n$(cat htest.pem)\nEOF\n" | socat /tmp/haproxy.sock -
 added a new ECH config to ECH-front
 
 $ echo "show ssl ech ECH-front" | socat /tmp/haproxy.sock stdio
 ***
-ECH for ECH-front
-ECH details (4 configs total)
-index: 0: loaded 1680 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
-index: 1: loaded 1680 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,64,example.com,0020,[0001,0001],cc12c8fb828c202d11b5adad67e15d0cccce1aaa493e1df34a770e4a5cdcd103,00,00]
-index: 2: loaded 1680 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,bb,example.com,0020,[0001,0001],62c7607bf2c5fe1108446f132ca4339cf19df1552e5a42960fd02c697360163c,00,00]
-index: 3: loaded 33 seconds, SNI (inner:NULL;outer:NULL), ALPN (inner:NULL;outer:NULL)
-    [fe0d,ce,htest.com,0020,[0001,0001],d8e62d7e286fb6ac93a0210a8f784825f0e4cace9d302b07778d7262eaad5f4d,00,00]
+ECH for ECH-front 
+ECH entry: 0 public_name: example.com age: 631 (has private key)
+	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
+
+ECH entry: 1 public_name: htest.com age: 13 (has private key)
+	[fe0d,73,htest.com,[0020,0001,0001],ba8ca57396633ba90332fc45cdcf86f413d8aa5f8efde19202312d015bc1912d,00,00]
 
 $
 ```
@@ -286,7 +277,7 @@ sufficient for the moment.
 
 ## Split mode backend traffic security
 
-For now, we do nothing at all to protect traffice between the haproxy frontend
+For now, we do nothing at all to protect traffic between the haproxy frontend
 and backend, other than show how to enable TLS. As a network observer who could
 see that traffic could mount traffic analysis attacks, one could argue that
 there's a need to be able to support cover traffic from frontend to backend and

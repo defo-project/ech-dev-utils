@@ -4,7 +4,7 @@ set -e
 
 # Run a haproxy test
 
-# to pick up correct .so's - maybe note 
+# to pick up correct .so's etc
 : ${CODETOP:="$HOME/code/openssl"}
 # to pick up correct wrapper scripts
 : ${EDTOP:="$HOME/code/ech-dev-utils"}
@@ -51,7 +51,7 @@ then
 fi
 
 lighty_stop
-if [ -f $BE_PIDFILE ]
+if [ -s $BE_PIDFILE ]
 then
     kill `cat $BE_PIDFILE`
     rm -f $BE_PIDFILE
@@ -90,7 +90,7 @@ done
 
 
 lighty_stop
-if [ -f $BE_PIDFILE ]
+if [ -s $BE_PIDFILE ]
 then
     kill `cat $BE_PIDFILE`
     rm -f $BE_PIDFILE

@@ -133,14 +133,6 @@ various server-specific tests:
 That's a bit convoluted, sorry;-) We're also not entirely sure it's done fully
 consistently for all servers, but if not, we'll fix it.
 
-### ECH for browsers is currently unreliable for ports other than 443
-
-As of 2023-11-24, ECH works unreliably with chromium and doesn't work with
-Firefox for ports other then 443.  It doesn't work at all for Firefox, and
-only sometimes for chromium, probably based on complex in-browser DNS caching.
-``curl`` and ``echcli.sh`` do however work reliably for other ports. Bear
-that in mind if you deploy test services using these servers.
-
 ### Server details
 
 For each of the servers below, read the HOWTO then you can play with the test
