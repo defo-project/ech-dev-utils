@@ -37,9 +37,9 @@ from selenium.common.exceptions import TimeoutException
 def echstat_check(result, expected):
     try:
         jres=json.loads(result)
+        jstat=jres['SSL_ECH_STATUS']
     except:
         return "fail"
-    jstat=jres['SSL_ECH_STATUS']
     if expected==0 and (jstat=="success" or jstat=="SSL_ECH_STATUS_SUCCESS"):
         return "expected"
     # no distinguishing GREASE and fail here, nor retry-configs

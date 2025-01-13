@@ -29,6 +29,8 @@ python3 $HOME/code/defo-project-org/ech-dev-utils/scripts/selenium_test.py --bro
 
 if [[ "$BROWSER" != "chromium" ]]
 then
+    # temp fix to ditch leftover processes
+    killall firefox
     # clean up /tmp files
     for d in /tmp/tmp*
     do
@@ -46,6 +48,8 @@ then
             rm -rf "$d"
         fi
     done
+else
+    killall chromium
 fi
 
 echo "=============================="
