@@ -41,13 +41,13 @@ Nothing remarkable here really:
     $ cd lighttpd1.4
     $ ./autogen.sh 
     ... stuff ...
-    $ CPPFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$DEV/openssl --with-openssl-libs=$DEV/openssl
+    $ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$DEV/openssl --with-openssl-libs=$DEV/openssl
     ... stuff ...
     $ make
     ... stuff ...
 ```
 
-`CPPFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG` enables debug trace and is optional.
+`CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG` enables debug trace and is optional.
 
 ## Configuration
 
