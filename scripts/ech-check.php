@@ -49,9 +49,9 @@
         $headers = getRequestHeaders();
 
         foreach ($headers as $header => $value) {
-            if ($header=="SSL_ECH_STATUS" && $value=="success") {
+            if ($header=="SSL_ECH_STATUS" && ($value=="success" || $value=="SSL_ECH_STATUS_SUCCESS")) {
                 echo "$header: $value <img src=\"greentick-small.png\" alt=\"good\" /> <br/>\n";
-            } else if ($header=="SSL_ECH_STATUS" && $value!="success") {
+            } else if ($header=="SSL_ECH_STATUS" && $value!="success" && $value!="SSL_ECH_STATUS_SUCCESS") {
                 echo "$header: $value <img src=\"redx-small.png\" alt=\"bummer\" /> <br/>\n";
             } else { 
                 echo "$header: $value <br />\n";
