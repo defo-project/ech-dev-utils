@@ -78,6 +78,7 @@ to try, but hopefully fail, to break things
 - the HOWTO for
   [curl](https://github.com/sftcd/curl/blob/ECH-experimental/docs/ECH.md) is no
   longer in this repo but is now part of a curl PR branch
+- we have a [HOWTO](howtos/cpython.md) for building and testing our CPython fork
 - [wget.md](howtos/wget.md) has notes about how ECH-enabling wget is
   non-trivial
 
