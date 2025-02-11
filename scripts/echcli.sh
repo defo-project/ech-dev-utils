@@ -17,7 +17,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
-    set -e
+    set -ex
 fi
 
 # variables/settings
