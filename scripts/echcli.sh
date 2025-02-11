@@ -99,34 +99,6 @@ function whenisitagain()
 }
 NOW=$(whenisitagain)
 
-# decode an asii-hex encode wire format DNS name
-# note this is not robust! TODO: make it so (or not:-)
-function dnsdecode()
-{
-    ahstring=$1
-    name=""
-
-    nlen=${#ahstring}
-    llen=99
-    while ((llen!=0))
-    do
-        ahllen=`echo $ahstring | awk '{print substr($1,0,2)}'`
-        llen=$((0x$ahllen))
-        ahlabel=`echo $ahstring | awk '{print substr($1,3,'$((2*llen))')}'`
-        label=`echo $ahlabel | xxd -r -p`
-        if [[ "$name" == "" ]]
-        then
-            name="$label"
-        else
-            name="$name.$label"
-        fi
-        ahstring=`echo $ahstring | awk '{print substr($1,'$((2*llen+3))','$nlen')}'`
-        nlen=${#ahstring}
-    done
-
-    echo $name
-}
-
 function getb64ech()
 {
     rrval=$1
@@ -258,15 +230,15 @@ then
 fi
 rm -f $tmpf
 
-# check we have dig
-if [[ "``which dig``" == "" ]]
+# prefer kdig over dig for now... dig crashing on exit sometimes
+# DIGCMD='dig'
+DIGCMD='kdig'
+# check we have $DIGCMD
+if [[ "``which $DIGCMD``" == "" ]]
 then
-    echo "Can't find the dig command - exiting"
+    echo "Can't find the $DIGCMD command - exiting"
     exit 12
 fi
-# aside: latest dig versions now output TYPE64 (HTTPS) RR presentation
-# syntax, but we don't have that on all platforms yet so need to still
-# deal with TYPE65 as uknownformat. Bit of a pain but non-fatal.
 
 #dbgstr=" -verify_quiet"
 dbgstr=" "
@@ -369,23 +341,19 @@ then
             recursivestr=" @$DNSRECURSIVE "
         fi
         # check if we're in aliasMode or serviceMode (priority 0 is the former, other the latter)
-        priority=`dig +unknownformat +short -t TYPE65 $qname | awk '{print substr($3,0,4)}'`
-        if [[ "$priority" == "0000" ]]
+        priority=`$DIGCMD +short -t TYPE65 $qname | awk '{print $1}'`
+        if [[ "$priority" == "0" ]]
         then
             # aliasMode - we'll do one level of indirection only
-            ahstring=`dig +unknownformat +short -t TYPE65 $qname`
-            elen=${#ahstring}
-            encoded=`dig +unknownformat +short -t TYPE65 $qname | awk '{print substr($3,5,'$elen-4')}'`
-            decoded=$(dnsdecode $encoded)
-            qname=$decoded
+            qname=`$DIGCMD +short -t TYPE65 $qname | awk '{print $2}'`
             if [[ "$PORT" != "" && "$PORT" != "443" ]]
             then
-                qname="_$PORT._https.$decoded"
+                qname="_$PORT._https.$qname"
             fi
-            digrrval=`dig +short $recursivestr -t TYPE65 $qname`
+            digrrval=`$DIGCMD +short $recursivestr -t TYPE65 $qname`
             digval=$(getb64ech "$digrrval")
         else
-            digrrval=`dig +short $recursivestr -t TYPE65 $qname`
+            digrrval=`$DIGCMD +short $recursivestr -t TYPE65 $qname`
             digval=$(getb64ech "$digrrval")
         fi
 
