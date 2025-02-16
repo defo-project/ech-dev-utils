@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# set -x
-
 # to pick up correct executables and .so's
 : ${CODETOP:="$HOME/code/openssl"}
 export LD_LIBRARY_PATH=$CODETOP

@@ -99,7 +99,7 @@ fi
 if [[ "$allgood" == "yes" ]]
 then
     echo "All good."
-    rm -f $CLILOGFILE $SRVLOGFILE
+    # rm -f $CLILOGFILE $SRVLOGFILE
 else
     echo "Something failed."
     if [[ "$KEEPLOG" != "no" ]]

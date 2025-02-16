@@ -144,7 +144,81 @@ To run the test:
 
 ## Logs
 
-[testhaproxy.sh](../scripts/testhaproxy.sh) does pretty minimal logging in
+For various reasons we backported the ECH functionality onto a haproxy 2.8
+build [here](https://github.com/sftcd/haproxy-2.8) and added logging to that
+before including that in our "main" build (which is currently at haproxy 3.2).
+
+Haproxy already allows logging of some TLS artefacts, e.g. by including an
+"%sslc" directive in a log format to indicate inclusion of the TLS ciphersuite
+used. We extend this idea by defining "%sslech" as a similar format indicator
+that indicates inclusion of the ECH outcome (GREASE, success etc.) and in the
+case of succcess the innner and out SNI values seen.
+
+As an example, if one wanted to configure haproxy to log the user-agent string
+and ECH outcome for HTTP mode connections then the following stanzas could
+be used:
+
+```bash
+global
+   log 127.0.0.1:514 local0 info
+
+defaults
+   mode http
+   log global
+   option httplog
+
+frontend ECH-front
+    capture request header user-agent len 100
+    capture request header host len 100
+    log-format "${HAPROXY_HTTP_LOG_FMT} SSL:%sslc, %sslv, ECH:%sslech"
+    bind :7443 ech echkeydir ssl crt cadir/foo.example.com.pem
+    use_backend 3480 if { ssl_fc_sni foo.example.com }
+    default_backend 3485 # example.com backend for public_name
+backend 3480
+    server s1 127.0.3.4:3480
+```
+
+In order for that to work, one should enable UDP logging in `rsyslog` by e.g.
+uncommenting the relevant lines in `/etc/rsyslog.conf`. One can also create a
+file called e.g.  `/etc/rsyslog.d/10-haproxy.conf` with relevant haproxy
+logging instructions.
+
+The stanzas above are included in our [minimal haproxy
+config](configs/haproxymin.conf).
+
+That results in a log line like the following ending up in `/var/log/syslog`:
+
+```
+2025-02-15T02:02:20+00:00 localhost haproxy[18448]: 127.0.0.1:44002 [15/Feb/2025:02:02:20.204] \
+ECH-front~ 3480/s1 0/0/1/1/2 200 737 - - --NI 1/1/0/0/0 0/0 \
+{curl/8.12.0-DEV|foo.example.com} "GET /index.html HTTP/1.1" \
+SSL:TLS_AES_256_GCM_SHA384, TLSv1.3, \
+ECH:SSL_ECH_STATUS_SUCCESS/example.com/foo.example.com
+```
+
+(All of the above is one line in `syslog` - the backslashes are added to
+improve visibility.)
+
+The above indicates that ECH succeeded with the inner SNI of `foo.example.com`
+and outer SNI of `example.com` which is a configuration setup using our 
+localhost tests. The User-Agent HTTP header field above is `curl/8.12.0-DEV`
+and the HTTP host header field is alongside, as that is useful when haproxy
+sees GREASE'd ECH.
+
+Using `curl` with that configuration the relevant command line to generate
+that log line is: 
+
+```bash
+$ cd $HOME/lt
+$ export LD_LIBRARY_PATH=$HOME/code/openssl
+$ $HOME/code/curl/src/curl -v --insecure  --connect-to foo.example.com:443:localhost:7443  --ech ecl:AD7+DQA6EwAgACCJDbbP6N6GbNTQT6v9cwGtT8YUgGCpqLqiNnDnsTIAIAAEAAEAAQALZXhhbXBsZS5jb20AAA== https://foo.example.com/index.html
+```
+
+Where the relevant ECHConfig is from `$HOME/lt/ehconfig.pem` as generated in
+our localhost tests.
+
+Our haproxy test scripts (e.g.  [testhaproxy.sh](../scripts/testhaproxy.sh)) also
+do some very minimal logging of the start-up state (e.g. ECH keys loaded) in
 ``$HOME/code/openssl/esnistuff/haproxy/logs/haproxy.log``.
 
 A ``SERVERUSED`` cookie is added by haproxy in these configurations and the

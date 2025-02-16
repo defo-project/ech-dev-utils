@@ -167,7 +167,7 @@ then
 fi
 
 # options may be followed by one colon to indicate they have a required argument
-if ! options=$($GETOPTDIR/getopt -s bash -o 46a:C:c:def:gGhH:IjnNO:p:P:Rrs:S:t:Tv -l four,six,alpn,choose:,clear_sni:,debug,early,filepath:,grease,greasesuite,help,hidden:,ignore_cid,just,noech,noalpn,outer:,port:,echpub:,hrr,realcert,server:,session:,gtype:,test_cust,valgrind,wait: -- "$@")
+if ! options=$($GETOPTDIR/getopt -s bash -o 46a:C:c:def:gGhH:IjnNO:p:P:Rrs:S:t:Tvw: -l four,six,alpn,choose:,clear_sni:,debug,early,filepath:,grease,greasesuite,help,hidden:,ignore_cid,just,noech,noalpn,outer:,port:,echpub:,hrr,realcert,server:,session:,gtype:,test_cust,valgrind,wait: -- "$@")
 then
     # something went wrong, getopt will put out an error message for us
     exit 1
