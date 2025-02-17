@@ -85,7 +85,7 @@ the Boringssl implementation.
 ## Using a python client to test ECH with a Boringssl server
 
 As above, setup a Boringssl server on port 8443. Then follow our
-[cpyton howto](howtos/cpython.md) to build a python client that
+[cpyton howto](cpython.md) to build a python client that
 supports ECH.
 
 Having done that you can use a python client to attempt ECH with the
