@@ -80,6 +80,7 @@ def get_http(hostname, port, path, echconfigs) -> bytes:
     # context.load_verify_locations(cafile='/etc/ssl/cert.pem')
     context.load_verify_locations(cafile='/etc/ssl/certs/ca-certificates.crt')
     context.options |= ssl.OP_ECH_GREASE
+    context.minimum_version = ssl.TLSVersion.TLSv1_3
     for echconfig in echconfigs:
         try:
             context.set_ech_config(echconfig)
