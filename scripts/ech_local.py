@@ -11,6 +11,36 @@ import base64
 import httptools
 from argparse import ArgumentParser
 
+class HTTPResponseParser:
+    def __init__(self):
+        self.headers = {}
+        self.body = bytearray()
+        self.status_code = None
+        self.reason = None
+        self.http_version = None
+        self.parser = httptools.HttpResponseParser(self)
+
+    def on_message_begin(self):
+        pass
+
+    def on_status(self, status):
+        self.reason = status.decode('utf-8', errors='replace')
+
+    def on_header(self, name, value):
+        self.headers[name.decode('utf-8')] = value.decode('utf-8')
+
+    def on_headers_complete(self):
+        pass
+
+    def on_body(self, body):
+        self.body.extend(body)
+
+    def on_message_complete(self):
+        pass
+
+    def feed_data(self, data):
+        self.parser.feed_data(data)
+
 def parse_http_response(response_bytes):
     parser = HTTPResponseParser()
     parser.feed_data(response_bytes)
@@ -30,6 +60,7 @@ def get_http(hostname, port, path, echconfigs) -> bytes:
     if args.ca:
         context.load_verify_locations(cafile=args.ca)
     context.options |= ssl.OP_ECH_GREASE
+    context.minimum_version = ssl.TLSVersion.TLSv1_3
     for echconfig in echconfigs:
         try:
             context.set_ech_config(echconfig)

@@ -94,20 +94,12 @@ Boringssl server:
 ```bash
 $ cd $HOME/ptest
 $ . env/bin/activate
-(env) $ python $HOME/code/defo-project-org/ech-dev-utils/scripts/ech_local.py -e "`cat $HOME/lt/bssl/bs.pem`" --url https://foo.example.com/index.html -p 8443
+$ python ech_local.py -e "`cat $HOME/lt/bssl/bs.pem`" --url https://foo.example.com/index.html -p 8443 -c ~/lt/cadir/oe.csr -V
 Trying https://foo.example.com/index.html on localhost: 8443 
 	with ECH: AEL+DQA+3gAgACBfRR9nr8gwp8dns+V8BGLYvNIqOA+MVxfKN7P0Ljn0HAAIAAEAAQABAAMAC2V4YW1wbGUuY29tAAA=
-[SSL: SSLV3_ALERT_ILLEGAL_PARAMETER] ssl/tls alert illegal parameter (_ssl.c:1022)
+{'status_code': 200, 'reason': 'OK', 'headers': {'Content-Type': 'text/plain'}, 'body': b'  Version: TLSv1.3\n  Resumed session: no\n  Cipher: TLS_AES_256_GCM_SHA384\n  ECDHE group: X25519\n  Secure renegotiation: yes\n  Extended master secret: yes\n  Next protocol negotiated: \n  ALPN protocol: \n  Client sent SNI: foo.example.com\n  Early data: no\n  Encrypted ClientHello: yes\n'}
+
 ```
 
-As can be seen above, that currently fails, the reasons for which are under
-investigation. Currently the Boringssl server reports:
-
-```bash
-Handshake started.
-Handshake progress: TLS server read_client_hello
-Error while connecting: INVALID_CLIENT_HELLO_INNER
-106089589582128:error:1000013a:SSL routines:OPENSSL_internal:INVALID_CLIENT_HELLO_INNER:/home/stephen/code/boringssl/ssl/encrypted_client_hello.cc:127:
-106089589582128:error:1000008a:SSL routines:OPENSSL_internal:DECRYPTION_FAILED:/home/stephen/code/boringssl/ssl/handshake_server.cc:453:
-```
+As can be seen above, that also works.
 
