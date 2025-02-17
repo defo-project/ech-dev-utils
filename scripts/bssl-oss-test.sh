@@ -15,12 +15,12 @@
 # my ususal $HOME/code/openssl/esnistuff setup.
 
 # to pick up correct .so's - maybe note 
-: ${CODETOP:=$HOME/code/openssl}
+: ${CODETOP:="$HOME/code/defo-project-org/openssl"}
 export LD_LIBRARY_PATH=$CODETOP
 # to pick up the relevant configuration
-: ${CFGTOP:=$HOME/code/openssl/esnistuff}
+: ${CFGTOP:="$HOME/lt"}
 # to pick up the boringssl build
-: ${BTOP:=$HOME/code/boringssl}
+: ${BTOP:="$HOME/code/boringssl"}
 # to pickup a different ECH config file
 : ${ECHCONFIGFILE="$CFGTOP/echconfig.pem"}
 # to pick up correct .so's - maybe note 
@@ -101,7 +101,7 @@ then
         echo "Missing root CA public key - exiting"
         exit 4
     fi
-    # for now the ECHConfiList is too "sticky" so if switching
+    # for now the ECHConfigList is too "sticky" so if switching
     # (which is needed when swapping between openssl and boringssl
     # servers) then you need to remember to manually delete the
     # $BFILES/os.ech file. I may fix that later, but it's a rare
@@ -144,7 +144,7 @@ then
         echo "Missing root CA public key - exiting"
         exit 4
     fi
-    # for now the ECHConfiList is too "sticky" so if switching
+    # for now the ECHConfigList is too "sticky" so if switching
     # (which is needed when swapping between openssl and boringssl
     # servers) then you need to remember to manually delete the
     # $BFILES/os.ech file. I may fix that later, but it's a rare
@@ -308,27 +308,6 @@ then
         echo "*** We're set to generate HRR ($hrrstr) ***"
     fi
     $BTOOL/bssl s_server \
-        -accept 8443 \
-        -key $KEYFILE2 -cert $CERTFILE2 \
-        -ech-config $BFILES/bs.ech -ech-key $BFILES/bs.key \
-        -www -loop $hrrstr $debugstr
-    res=$?
-    if [[ "$res" != "0" ]]
-    then
-        echo "Error from bssl ($res)"
-    fi
-    exit $res
-fi
-
-if [[ "$todo" == "e" ]]
-then
-    echo "Running bssl s_server with ECH keys allowing early_data"
-    if [[ "$hrrstr" != "" ]]
-    then
-        echo "*** We're set to generate HRR ($hrrstr) ***"
-    fi
-    $BTOOL/bssl s_server \
-        -early-data \
         -accept 8443 \
         -key $KEYFILE2 -cert $CERTFILE2 \
         -ech-config $BFILES/bs.ech -ech-key $BFILES/bs.key \

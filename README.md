@@ -81,6 +81,7 @@ to try, but hopefully fail, to break things
 - we have a [HOWTO](howtos/cpython.md) for building and testing our CPython fork
 - [wget.md](howtos/wget.md) has notes about how ECH-enabling wget is
   non-trivial
+- the HOWTO for testing versus the Boringssl is [here](howtos/boring.md)
 
 ## Web server build HOWTOs, configs and test scripts
 
@@ -184,7 +185,7 @@ used in some time:
 
 - [nssdoech.sh](scripts/nssdoech.sh) tests ECH using an NSS client build (mostly helped
   with interop)
-- [bssl-oss-test.sh](scripts/bssl-oss-test.sh) tests ECH using a boringssl client build
+- [bssl-oss-test.sh](scripts/bssl-oss-test.sh) tests ECH using a boringssl build
   (mostly helped with interop)
 - [dnsname.sh](scripts/dnsname.sh) decodes a DNS wire format encoding of a DNS name
   (just a useful snippet, not so much for using in anger)
