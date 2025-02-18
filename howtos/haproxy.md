@@ -200,13 +200,13 @@ ECH:SSL_ECH_STATUS_SUCCESS/example.com/foo.example.com
 improve visibility.)
 
 The above indicates that ECH succeeded with the inner SNI of `foo.example.com`
-and outer SNI of `example.com` which is a configuration setup using our 
+and outer SNI of `example.com` which is a configuration setup using our
 localhost tests. The User-Agent HTTP header field above is `curl/8.12.0-DEV`
 and the HTTP host header field is alongside, as that is useful when haproxy
 sees GREASE'd ECH.
 
 Using `curl` with that configuration the relevant command line to generate
-that log line is: 
+that log line is:
 
 ```bash
 $ cd $HOME/lt
@@ -275,15 +275,15 @@ To display all ECH configs with our test setup:
 ```bash
 $ echo "show ssl ech" | socat /tmp/haproxy.sock stdio
 ***
-backend (split-mode): 3484 
+backend (split-mode): 3484
 ECH entry: 0 public_name: example.com age: 19 (has private key)
 	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 ***
-frontend: ECH-front 
+frontend: ECH-front
 ECH entry: 0 public_name: example.com age: 19 (has private key)
 	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 ***
-frontend: Two-TLS 
+frontend: Two-TLS
 ECH entry: 0 public_name: example.com age: 19 (has private key)
 	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 ```
@@ -324,7 +324,7 @@ added a new ECH config to ECH-front
 
 $ echo "show ssl ech ECH-front" | socat /tmp/haproxy.sock stdio
 ***
-ECH for ECH-front 
+ECH for ECH-front
 ECH entry: 0 public_name: example.com age: 631 (has private key)
 	[fe0d,a6,example.com,[0020,0001,0001],dab7f975ef17b0358940354ea9e9f8fe873907936be5bd6d13e48d42cc48180a,00,00]
 
@@ -391,4 +391,9 @@ ECH split-mode is mode involved:
 - ``src/stconn.c`` has code to handle ECH with the 2nd ClientHello if HRR is
   encountered. That's basically a 2nd call to ``attempt_split_ech()`` when
   warranted.
+
+Logging:
+
+- A new ECH logging function implemented in `src/ssl_sock.c` is called
+from `src/log.c`
 
