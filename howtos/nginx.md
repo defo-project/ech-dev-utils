@@ -181,9 +181,9 @@ e.g.:
 ```
 ## Debugging
 
-To run nginx in ``gdb`` you probably want to uncomment the ``daemon off;`` line
-in ``$HOME/lt/nginx/nginxmin.conf`` file then, e.g. if you wanted to debug into
-the ``load_echkeys()`` function:
+To run nginx in ``gdb`` you probably want to uncomment the ``daemon off;`` and
+``master_process off;`` lines in ``$HOME/lt/nginx/nginxmin.conf`` file then,
+e.g. if you wanted to debug into the ``load_echkeys()`` function:
 
 ```bash
     $ gdb ~/code/nginx/objs/nginx 
