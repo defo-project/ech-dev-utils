@@ -110,12 +110,38 @@ you generated earlier.
 
 ## Logs
 
-The log files for the test above will be in ``$HOME/lt/nginx/logs`` and after
-running the above ``error.log`` should contain a line like:
+You can log ECH status information in the normal `access.log` 
+by adding `$ech_status` to the `log_format`, e.g. the stanza
+below adds ECH status to the normal `combined` log format:
 
-```bash
-    2023/12/05 02:45:49 [notice] 513505#0: *1 ECH success outer_sni: example.com inner_sni: foo.example.com while SSL handshaking, client: 127.0.0.1, server: 0.0.0.0:5443
 ```
+    log_format withech '$remote_addr - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent" "$ech_status"';
+    access_log          /var/log/nginx/access.log withech;
+```
+
+That results in log lines like the following:
+
+```
+127.0.0.1 - - [26/Feb/2025:13:35:52 +0000] "GET / HTTP/1.1" 200 494 "-" "curl/8.12.0-DEV" "ECH: SSL_ECH_STATUS_GREASE/foo.example.com/"
+127.0.0.1 - - [26/Feb/2025:13:39:39 +0000] "GET / HTTP/1.1" 200 494 "-" "curl/8.12.0-DEV" "ECH: SSL_ECH_STATUS_NOT_TRIED/foo.example.com/"
+127.0.0.1 - - [26/Feb/2025:14:08:21 +0000] "GET / HTTP/1.1" 200 494 "-" "curl/8.12.0-DEV" "ECH: SSL_ECH_STATUS_SUCCESS/example.com/foo.example.com"
+127.0.0.1 - - [26/Feb/2025:14:09:58 +0000] "GET / HTTP/1.1" 200 494 "-" "curl/8.12.0-DEV" "ECH: SSL_ECH_STATUS_NOT_TRIED/foo.example.com/"
+127.0.0.1 - - [26/Feb/2025:14:11:47 +0000] "GET / HTTP/1.1" 400 255 "-" "curl/8.12.0-DEV" "ECH: no TLS connection"
+```
+
+When ECH has succeeded, then the outer SNI and inner SNI are included in that
+order. If a client GREASEd or didn't try ECH at all, and no outer SNI was
+provided, the HTTP host header will be shown instead. Connections that did
+not use TLS show that. The TLS version is not specifically shown, so TLSv1.2
+connections will show up as `SSL_ECH_STATUS_NOT_TRIED`.
+
+At start-up, and no configuration re-load, the `load_echkeys()` function will
+log (to `error.log` at the "notice" log level) the names of files successfully
+loaded and the total number of ECH keys loaded, for each `server` stanza in the
+configuration, i.e. each time you included an `ssl_echkeydir` directive. Some
+errors in loading keys are also logged and will result in the server not starting.
 
 ## CGI variables
 
@@ -141,10 +167,13 @@ bits of nginx config:
   but were at one point, due to building with the OpenSSL ``master`` branch,
   e.g. early on in ``src/event/ngx_event_openssl.c``.
 
-- ``ngx_ssl_info_callback()`` (in ``src/event/ngx_event_openssl.c``) makes
-  a call to ``SSL_ech_get_status()`` for logging of ECH outcomes.
-  Similar code in the same file provides for setting the
-  CGI variables mentioned above.
+- `ngx_ssl_get_ech_status()`, `ngx_ssl_get_ech_inner_sni()` and
+  `ngx_ssl_get_ech_outer_sni()` in `src/event/ngx_event_openssl.c` 
+  provide for setting the CGI variables mentioned above.
+
+- `src/http/modules/ngx_http_log_module.c` contains code to handle
+  the new `$ech_status` log format, mainly in the 
+  `ngx_http_log_ech_status()` function.
 
 - ``src/http/modules/ngx_http_ssl_module.c`` handles reading the new
   ``ssl_echkeydir`` configuration directive and defines the variables that
