@@ -143,6 +143,12 @@ loaded and the total number of ECH keys loaded, for each `server` stanza in the
 configuration, i.e. each time you included an `ssl_echkeydir` directive. Some
 errors in loading keys are also logged and will result in the server not starting.
 
+In ECH split-mode, there is (likely) overly-verbose logging to the `error.log`,
+mostly at the NOTICE log level, all containing the string `do_ech:`. Some of
+those log lines are currently confusing though, as we log ECH decryption 
+failures when those are the nominal situation in what is a confusing manner.
+(TODO: improve that.)
+
 ## CGI variables
 
 We use the following variables from PHP code:
@@ -211,8 +217,9 @@ e.g.:
 ## Debugging
 
 To run nginx in ``gdb`` you probably want to uncomment the ``daemon off;`` and
-``master_process off;`` lines in ``$HOME/lt/nginx/nginxmin.conf`` file then,
-e.g. if you wanted to debug into the ``load_echkeys()`` function:
+``master_process off;`` lines in ``$HOME/lt/nginx/nginxmin.conf`` file. You
+probably also want to build with `CFLAGS="-g -O0"` to turn off optimization,
+and then, e.g. if you wanted to debug into the ``load_echkeys()`` function:
 
 ```bash
     $ gdb ~/code/nginx/objs/nginx 
