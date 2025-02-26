@@ -455,7 +455,10 @@ then
     fi
 fi
 # httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: close\\r\\nHost: $httphost\\r\\n\\r\\n"
-httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphost\\r\\n\\r\\n"
+# 2025-02-26: the request below seems to include an extra \\r\\n causing an extra log line
+# in nginx (at least)
+# httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphost\\r\\n\\r\\n"
+httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphost\\r\\n"
 
 # tell it where CA stuff is...
 if [[ "$server" != "localhost" ]]
