@@ -84,7 +84,8 @@ fi
 if ((incount == 1))
 then
     # echo "Just one - Copying public part of input to output"
-    b64str=`cat $PEMFILES | tail -2 | head -1`
+    b64str=`cat $PEMFILES | sed '/BEGIN ECHCONFIG/,/END ECHCONFIG/{//!b};d' \
+        | tr -d '\n'`
 else
     ah_overall=""
     overall_len=0
@@ -94,7 +95,8 @@ else
         then
             continue
         fi
-        ah_ech=`cat $file | tail -2 | head -1 | base64 -d | xxd -ps -c 200 | tr -d '\n'`  
+        ah_ech=`cat $file | sed '/BEGIN ECHCONFIG/,/END ECHCONFIG/{//!b};d' \
+            | tr -d '\n' | base64 -d | xxd -ps -c 200 | tr -d '\n'`  
         ah_ech_no_len=${ah_ech:4}
         ah_overall="$ah_overall$ah_ech_no_len"
         ah_ech_len=${#ah_ech}
