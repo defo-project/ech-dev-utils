@@ -21,12 +21,14 @@ jobs:
           sudo rm /etc/apt/sources.list.d/*
           echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian unstable main" | sudo tee /etc/apt/sources.list.d/sid.list
           sudo apt update
+          # work around base-files in Debian and Ubuntu disagree on dpkg-divert names
+          sudo /var/lib/dpkg/info/base-files.postrm remove || true
           sudo DEBIAN_FRONTEND=noninteractive apt install -y --target-release=unstable python3-selenium firefox
 
       - name: Run Firefox test
         run: |
-          wget "https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-linux64.tar.gz"
-          tar xf geckodriver-v0.35.0-linux64.tar.gz -C /usr/local/bin
+          wget "https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz"
+          tar xf geckodriver-v0.36.0-linux64.tar.gz -C /usr/local/bin
           mkdir log
           scripts/selenium_test.py --browser firefox-debian --results_dir log --urls_to_test test-cases/urls_to_test.csv
           cat log/*/*.html
