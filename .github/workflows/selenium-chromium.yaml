@@ -20,6 +20,8 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends debian-archive-keyring
           echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian testing main" | sudo tee /etc/apt/sources.list.d/sid.list
           sudo apt update
+          # work around base-files in Debian and Ubuntu disagree on dpkg-divert names
+          sudo /var/lib/dpkg/info/base-files.postrm remove || true
           sudo DEBIAN_FRONTEND=noninteractive apt install -y --target-release=testing chromium-driver python3-selenium
 
       - name: Run Chromium test
