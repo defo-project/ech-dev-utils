@@ -26,9 +26,8 @@ it easier to update the underlying CPython code.
 $ cd $HOME/code
 $ git clone https://github.com/defo-project/cpython.git cpython
 ...
-$ patch -p1 <debian/patches/0029-initial-EncryptedClientHello-support-in-ssl-module.patch 
-...
 $ cd cpython
+$ patch -p1 <debian/patches/0029-initial-EncryptedClientHello-support-in-ssl-module.patch 
 $ export LD_LIBRARY_PATH=$HOME/code/openssl-local-inst/lib
 $  ./configure --with-openssl=$HOME/code/openssl-local-inst
 ...
