@@ -6,7 +6,7 @@ against the Boringssl one.
 We assume you have previously succeeded in running our
 [localhost tests](howtos/localhost-tests.md) and have the relevant
 configuration files in `$HOME/lt` and our OpenSSL implementation built in
-`$HOME/code/defo-project-org/openssl`. 
+`$HOME/code/defo-project-org/openssl`.
 
 If you choose other directory names then you will need to  modify the relevant
 scripts accordingly.  For the moment, we only describe how to run a Boringssl
@@ -72,14 +72,14 @@ $ $HOME/code/curl/src/curl  --insecure --connect-to foo.example.com:443:localhos
   ECDHE group: X25519
   Secure renegotiation: yes
   Extended master secret: yes
-  Next protocol negotiated: 
-  ALPN protocol: 
+  Next protocol negotiated:
+  ALPN protocol:
   Client sent SNI: foo.example.com
   Early data: no
   Encrypted ClientHello: yes
 ```
 
-This demonstrates (via curl) that our ECH implementation interoperates with 
+This demonstrates (via curl) that our ECH implementation interoperates with
 the Boringssl implementation.
 
 ## Using a python client to test ECH with a Boringssl server
@@ -95,7 +95,7 @@ Boringssl server:
 $ cd $HOME/ptest
 $ . env/bin/activate
 $ python ech_local.py -e "`cat $HOME/lt/bssl/bs.pem`" --url https://foo.example.com/index.html -p 8443 -c ~/lt/cadir/oe.csr -V
-Trying https://foo.example.com/index.html on localhost: 8443 
+Trying https://foo.example.com/index.html on localhost: 8443
 	with ECH: AEL+DQA+3gAgACBfRR9nr8gwp8dns+V8BGLYvNIqOA+MVxfKN7P0Ljn0HAAIAAEAAQABAAMAC2V4YW1wbGUuY29tAAA=
 {'status_code': 200, 'reason': 'OK', 'headers': {'Content-Type': 'text/plain'}, 'body': b'  Version: TLSv1.3\n  Resumed session: no\n  Cipher: TLS_AES_256_GCM_SHA384\n  ECDHE group: X25519\n  Secure renegotiation: yes\n  Extended master secret: yes\n  Next protocol negotiated: \n  ALPN protocol: \n  Client sent SNI: foo.example.com\n  Early data: no\n  Encrypted ClientHello: yes\n'}
 

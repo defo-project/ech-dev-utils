@@ -152,7 +152,7 @@ Haproxy already allows logging of some TLS artefacts, e.g. by including an
 "%sslc" directive in a log format to indicate inclusion of the TLS ciphersuite
 used. We extend this idea by defining "%sslech" as a similar format indicator
 that indicates inclusion of the ECH outcome (GREASE, success etc.) and in the
-case of succcess the innner and out SNI values seen.
+case of success the innner and out SNI values seen.
 
 As an example, if one wanted to configure haproxy to log the user-agent string
 and ECH outcome for HTTP mode connections then the following stanzas could

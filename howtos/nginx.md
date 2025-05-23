@@ -1,5 +1,5 @@
 
-# Ngnix and ECH
+# Nginx and ECH
 
 Notes on our nginx integration.
 
@@ -50,7 +50,7 @@ doesn't like inheriting environment variables. (That's I'm sure for very good
 reasons.) So, to run localhost tests, we copy over the
 [``configs/nginxmin.conf``](../configs/nginxmin.conf) file to the place from
 which we run tests, replacing environment variables in the copied file using
-the ``envsubst`` command to do the replacement of ``$RUNTOP`` from the 
+the ``envsubst`` command to do the replacement of ``$RUNTOP`` from the
 template config file.
 
 So if you run localhost tests from ``$HOME/lt`` then our test script will
@@ -65,7 +65,7 @@ To test, (configuration template is in [nginxmin.con](../configs/nginxmin.conf))
 
 ```bash
     $ cd $HOME/lt
-    $ ~/code/ech-dev-utils/scripts/testnginx.sh 
+    $ ~/code/ech-dev-utils/scripts/testnginx.sh
     Can't find /home/user/lt/nginx/logs/nginx.pid - trying killall nginx
     nginx: no process found
     Executing:  /home/user/code/nginx/objs/nginx -c nginxmin.conf
@@ -84,9 +84,9 @@ Once you've done that, there'll be DocRoot and log directories below
 
 ```bash
     $ ~/code/nginx/objs/nginx -c nginxmin.conf
-    $ ~/code/ech-dev-utils/scripts/echcli.sh -H foo.example.com -p 5443 -s localhost -P echconfig.pem 
+    $ ~/code/ech-dev-utils/scripts/echcli.sh -H foo.example.com -p 5443 -s localhost -P echconfig.pem
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231205-024549
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $ killall nginx
@@ -110,7 +110,7 @@ you generated earlier.
 
 ## Logs
 
-You can log ECH status information in the normal `access.log` 
+You can log ECH status information in the normal `access.log`
 by adding `$ech_status` to the `log_format`, e.g. the stanza
 below adds ECH status to the normal `combined` log format:
 
@@ -145,7 +145,7 @@ errors in loading keys are also logged and will result in the server not startin
 
 In ECH split-mode, there is (likely) overly-verbose logging to the `error.log`,
 mostly at the NOTICE log level, all containing the string `do_ech:`. Some of
-those log lines are currently confusing though, as we log ECH decryption 
+those log lines are currently confusing though, as we log ECH decryption
 failures when those are the nominal situation in what is a confusing manner.
 (TODO: improve that.)
 
@@ -174,11 +174,11 @@ bits of nginx config:
   e.g. early on in ``src/event/ngx_event_openssl.c``.
 
 - `ngx_ssl_get_ech_status()`, `ngx_ssl_get_ech_inner_sni()` and
-  `ngx_ssl_get_ech_outer_sni()` in `src/event/ngx_event_openssl.c` 
+  `ngx_ssl_get_ech_outer_sni()` in `src/event/ngx_event_openssl.c`
   provide for setting the CGI variables mentioned above.
 
 - `src/http/modules/ngx_http_log_module.c` contains code to handle
-  the new `$ech_status` log format, mainly in the 
+  the new `$ech_status` log format, mainly in the
   `ngx_http_log_ech_status()` function.
 
 - ``src/http/modules/ngx_http_ssl_module.c`` handles reading the new
@@ -194,7 +194,7 @@ bits of nginx config:
   mode to load ECH PEM files and attempt split-mode decryption of the 1st
   ClientHello. That also tees up handling of ECH if HRR is encountered, but
   ECH-decrypting the 2nd ClientHello in HRR cases happens in
-  ``src/stream/ngx_stream_proxy_module.c`` 
+  ``src/stream/ngx_stream_proxy_module.c``
 
 ## Reloading ECH keys
 
@@ -222,7 +222,7 @@ probably also want to build with `CFLAGS="-g -O0"` to turn off optimization,
 and then, e.g. if you wanted to debug into the ``load_echkeys()`` function:
 
 ```bash
-    $ gdb ~/code/nginx/objs/nginx 
+    $ gdb ~/code/nginx/objs/nginx
     GNU gdb (Ubuntu 13.1-2ubuntu2) 13.1
     Copyright (C) 2023 Free Software Foundation, Inc.
     License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>

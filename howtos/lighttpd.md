@@ -39,7 +39,7 @@ Nothing remarkable here really:
     $ git clone https://github.com/lighttpd/lighttpd1.4.git
     ...
     $ cd lighttpd1.4
-    $ ./autogen.sh 
+    $ ./autogen.sh
     ... stuff ...
     $ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$DEV/openssl --with-openssl-libs=$DEV/openssl
     ... stuff ...
@@ -122,7 +122,7 @@ You can then use our wrapper for ``openssl s_client`` to access a web page:
     $DEV/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
-    $ 
+    $
 ```
 
 You can also use our ECH-enabled curl build to test against this server (replacing
@@ -140,7 +140,7 @@ web site. So that works when using ECH:
 
 ```bash
     $ $DEV/curl/src/curl --ech ecl:AD7+DQA6uAAgACAogff+HZbirYdQCfXI00iBPP+K96YyK/D/0DoeXD/0fgAEAAEAAQALZXhhbXBsZS5jb20AAA== --connect-to baz.example.com:443:localhost:3443 https://baz.example.com/index.html --cacert $RUNTOP/cadir/oe.csr -vvv
-```            
+```
 
 But if we don't use ECH at all then we get the content for ``example.com``,
 the full output of which is shown below:
@@ -192,7 +192,7 @@ the full output of which is shown below:
     > Host: baz.example.com
     > User-Agent: curl/8.5.0-DEV
     > Accept: */*
-    > 
+    >
     * STATE: DO => DID handle 0x5621cc626208; line 2215
     * STATE: DID => PERFORMING handle 0x5621cc626208; line 2333
     * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
@@ -211,7 +211,7 @@ the full output of which is shown below:
     < Accept-Ranges: bytes
     < Date: Wed, 06 Dec 2023 01:27:42 GMT
     < Server: lighttpd/1.4.74-devel-lighttpd-1.4.54-2135-g75b7edca
-    < 
+    <
     
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -238,7 +238,7 @@ the full output of which is shown below:
 In the above case, the client thinks it has a session with ``baz.example.com``
 but the server has returned the web page for ``example.com``. (That works in
 our test setup as the x.509 certificate for that instance has a wildcard for
-``*.example.com``.) 
+``*.example.com``.)
 
 ## Logs
 
@@ -267,7 +267,7 @@ To enable PHP edit your lighttpd config to include:
 If lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
 the PHP code can then access these CGI variables:
 
-- ``SSL_ECH_STATUS``: values can be: 
+- ``SSL_ECH_STATUS``: values can be:
     - "SSL\_ECH\_STATUS\_SUCCESS" - if it all worked (successful ECH decrypt)
     - "SSL\_ECH\_STATUS\_FAILED" - if the call to ``SSL_ech_get1_status`` failed
     - "SSL\_ECH\_STATUS\_FAILED\_ECH" - something went wrong during attempted decryption
@@ -343,10 +343,10 @@ To start lighttpd in a debugger, and break when loading ECH PEM files:
     Starting program: $DEV/lighttpd1.4/src/lighttpd -f $DEV/ech-dev-utils/configs/lighttpdmin.conf -m $DEV/lighttpd1.4/src/.libs -D
     [Thread debugging using libthread_db enabled]
     Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
-    
+
     Breakpoint 1, mod_openssl_refresh_ech_keys_ctx (srv=srv@entry=0x5555555ac540, s=0x5555556141f8, cur_ts=cur_ts@entry=1701830361) at mod_openssl.c:554
     554	mod_openssl_refresh_ech_keys_ctx (server * const srv, plugin_ssl_ctx * const s, const time_t cur_ts)
-    (gdb) 
+    (gdb)
 ```
 
 

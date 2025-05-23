@@ -27,7 +27,7 @@ $ cd $HOME/code
 $ git clone https://github.com/defo-project/cpython.git cpython
 ...
 $ cd cpython
-$ patch -p1 <debian/patches/0029-initial-EncryptedClientHello-support-in-ssl-module.patch 
+$ patch -p1 <debian/patches/0029-initial-EncryptedClientHello-support-in-ssl-module.patch
 $ export LD_LIBRARY_PATH=$HOME/code/openssl-local-inst/lib
 $  ./configure --with-openssl=$HOME/code/openssl-local-inst
 ...
@@ -39,7 +39,7 @@ $ make -j8
 
 Create a new folder and create a virtual environment within that folder using the CPython fork.
 You can use the `ech_url.py` test script from our `ech-dev-utils` repository as a test tool.
-That requires a few additional python modules to be installed and running in a virtual 
+That requires a few additional python modules to be installed and running in a virtual
 environment as shown below:
 
 ```bash

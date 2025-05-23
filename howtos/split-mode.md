@@ -18,7 +18,7 @@ content is by reference to others.
 # Nomenclature
 
 Here's some terminology we use when talking about shared- or split-mode
-configurations.  
+configurations.
 
 We'll name and document them like this:
 
@@ -83,9 +83,9 @@ of the servers:
 Briefly, for frontends that means:
 
 - for haproxy, using the ``ech-decrypt`` directive in ``mode tcp`` frontends,
-  e.g. ``tcp-request ech-decrypt echkeydir`` where ``echkeydir`` is the 
+  e.g. ``tcp-request ech-decrypt echkeydir`` where ``echkeydir`` is the
   usual directory used for ECH PEM files
-- for nginx, adding a ``ssl_echkeydir $RUNTOP/echkeydir;`` setting to a 
+- for nginx, adding a ``ssl_echkeydir $RUNTOP/echkeydir;`` setting to a
   ``stream`` stanza
 
 # Test
@@ -108,7 +108,7 @@ In addition, since lighttpd doesn't support TLS ``early_data`` a test is
 run to check ECH split-mode with ``early_data`` both with and without
 triggering HRR. That uses an ``openssl s_server`` instance as the backend.
 (Testing ``early_data`` requires a first TLS connection to acquire the
-resumption tickets needed, then a second TLS connection to send a 
+resumption tickets needed, then a second TLS connection to send a
 request with ``early_data``.)
 
 For split-mode tests in our configurations the frontend listens on port 7446
@@ -136,7 +136,7 @@ start servers and run a client against those:
     $ # client split-mode test
     $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost  -H foo.example.com -p 7446 -P echconfig.pem -f index.html
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231206-230741
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $ killall lighttpd haproxy
@@ -159,7 +159,7 @@ These should be available as usual for the backend.
 - [haproxy](haproxy.md#cgi-variables)
 - [lighttpd](lighttpd.md#cgi-variables)
 
-# Code changes   
+# Code changes
 
 These are described for the individual servers:
 

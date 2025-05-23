@@ -3,7 +3,7 @@
 
 The goal of these continuous integration (CI) builds and tests is to identify
 any cases where upstream code has diverged from our ECH-enabled forks, such
-that a ``git merge`` would fail, or a basic test of the result of such a 
+that a ``git merge`` would fail, or a basic test of the result of such a
 merge fails.
 
 The forks concerned are:
@@ -31,7 +31,7 @@ There is a lot in common across the various ``packages.yaml`` files, they each:
 - store built packages in a "pseudo" branch called ``packages``
 - attempt a basic test using the scripts from this repo and those packages
 
-The test scripts and configurations defined in this repo are used 
+The test scripts and configurations defined in this repo are used
 in those tests. When running those as part of this CI setup, we set
 an environment variable ``PACKAGING=1`` so the scripts and configs
 can differ from the command line and CI environments, which is
@@ -74,12 +74,12 @@ $ git rebase -i upstream/trunk trunk
 - Next, follow our build/test howto for that repo, in this case
 that'd be [here](apache2.md).
 When running the test, you'll need to set the ``ATOP`` environment
-variable to reflect the use of the ``apache-httpd-rebase`` 
+variable to reflect the use of the ``apache-httpd-rebase``
 directory, so:
 
 ```bash
 $ cd $HOME/lt
-$ ATOP=$HOME/code/apache-httpd-rebase/ $HOME/code/ech-dev-utils/scripts/testapache.sh 
+$ ATOP=$HOME/code/apache-httpd-rebase/ $HOME/code/ech-dev-utils/scripts/testapache.sh
 /home/user/lt
 Executing: /home/user/code/apache-httpd-rebase//httpd -d /home/user/lt -f /home/user/code/ech-dev-utils/configs/apachemin.conf
 Testing grease 9443

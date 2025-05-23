@@ -18,7 +18,7 @@ can set a ``$CODETOP`` environment variable pointing to the top of the openssl
 build tree, and the rest of the scripts here will use that path instead, e.g.:
 
 ```bash
-    $ export CODETOP=/mnt/somwhere/openssl
+    $ export CODETOP=/mnt/somewhere/openssl
 ```
 Let's assume this repo is in ``$HOME/code/ech-dev-utils``
 
@@ -32,10 +32,10 @@ use:
 ```bash
     $ $HOME/code/ech-dev-utils/scripts/echcli.sh -H defo.ie -f ech-check.php
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231122-132950
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'cover.defo.ie', inner SNI: 'defo.ie'
-    $ 
+    $
 ```
 
 If you want all the grizzly details, just add a ``-d`` to the command line to
@@ -82,7 +82,7 @@ run the client against that:
 ```bash
     $ $HOME/code/ech-dev-utils/scripts/echcli.sh -s localhost -H foo.example.com -p 8443 -P echconfig.pem -f index.html
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231122-132007
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $
@@ -127,8 +127,8 @@ To start the server:
     Running /home/user/code/ech-dev-utils/scripts/echsvr.sh at 20231205-143428
     Not forcing HRR
     Using key pair from /home/user/lt/echconfig.pem
-    Using all key pairs found in /home/user/lt/echkeydir 
-    Running:   /home/user/code/openssl/apps/openssl s_server -msg -trace  -tlsextdebug -ign_eof -key /home/user/lt/cadir/example.com.priv -cert /home/user/lt/cadir/example.com.crt -key2 /home/user/lt/cadir/foo.example.com.priv -cert2 /home/user/lt/cadir/foo.example.com.crt  -CApath /home/user/lt/cadir/  -port 8443  -tls1_3   -ech_key /home/user/lt/echconfig.pem  -ech_dir /home/user/lt/echkeydir -servername example.com   -alpn http/1.1,h2       -early_data -no_anti_replay  
+    Using all key pairs found in /home/user/lt/echkeydir
+    Running:   /home/user/code/openssl/apps/openssl s_server -msg -trace  -tlsextdebug -ign_eof -key /home/user/lt/cadir/example.com.priv -cert /home/user/lt/cadir/example.com.crt -key2 /home/user/lt/cadir/foo.example.com.priv -cert2 /home/user/lt/cadir/foo.example.com.crt  -CApath /home/user/lt/cadir/  -port 8443  -tls1_3   -ech_key /home/user/lt/echconfig.pem  -ech_dir /home/user/lt/echkeydir -servername example.com   -alpn http/1.1,h2       -early_data -no_anti_replay
     Added ECH key pair from: /home/user/lt/echconfig.pem
     Added 2 ECH key pairs from: /home/user/lt/echkeydir
     Setting secondary ctx parameters
@@ -144,14 +144,14 @@ session:
 ```bash
     $ ~/code/ech-dev-utils/scripts/echcli.sh -H foo.example.com -p 8443 -s localhost -P echconfig.pem -S ed.sess
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231205-143657
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $ ls -l ed.sess
     -rw-rw-r-- 1 user user 1909 Dec  5 14:36 ed.sess
     $ ~/code/ech-dev-utils/scripts/echcli.sh -H foo.example.com -p 8443 -s localhost -P echconfig.pem -S ed.sess -e
     Running /home/user/code/ech-dev-utils/scripts/echcli.sh at 20231205-143708
-    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary: 
+    /home/user/code/ech-dev-utils/scripts/echcli.sh Summary:
     Looks like ECH worked ok
     ECH: success: outer SNI: 'example.com', inner SNI: 'foo.example.com'
     $ rm ed.sess
