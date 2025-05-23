@@ -46,14 +46,14 @@ time to be worth preserving the note:-)
 
 There's one new server-wide ``SSLECHKeyDir`` directive needed for ECH that
 names the directory where ECH key pair files (names ``*.ech``) are stored.
-There's an example in [apachemin.conf](../configs/apachemin.conf). 
+There's an example in [apachemin.conf](../configs/apachemin.conf).
 
 ## Test
 
 The [testapache.sh](../scripts/testapache.sh) script starts an ECH-enabled
 apache server listening on port 9443 using the config in
 [apachemin.conf](../configs/apachemin.conf). That script will also create some
-basic web content for ``example.com`` (the ECH ``public_name`) and for
+basic web content for ``example.com`` (the ECH ``public_name``) and for
 ``foo.example.com`` which can be the SNI in the inner ClientHello.
 
 You should run that from the directory we used before for
@@ -96,7 +96,7 @@ The following variables that are now visible to PHP code:
 
 I setup PHP for my apache deployment on
 [https://draft-13.esni.defo.ie:11413](https://draft-13.esni.defo.ie:11413).
-That's not part of the localhost test setup, and there were a couple of other 
+That's not part of the localhost test setup, and there were a couple of other
 things to do:
 
     - If needed, install fast-cgi: ``sudo apt install php8.1-cgi``
@@ -104,7 +104,7 @@ things to do:
     - Edit ``/etc/php/8.1/fpm/pool.d/www.conf`` to use localhost:9000, added
       ``proxy_module`` and ``proxy_fcgi_module`` to the global apache config
       and turn on PHP and added the following to the apache config for the
-      VirtualHost using ECH: 
+      VirtualHost using ECH:
 
 ```bash
     <FilesMatch "\.php$">
@@ -121,7 +121,7 @@ As PHP gets updated, the PHP version numbers in the above also change of course.
   HAVE_OPENSSL_ECH``.  That's defined in ``ssl_private.h`` if the included
 ``ssl.h`` defines ``SSL_OP_ECH_GREASE``.
 
-- There're a bunch of changes to add the new ``SSLECHKeyDir`` direcive that
+- There're a bunch of changes to add the new ``SSLECHKeyDir`` directive that
   are mosly obvious.
 
 - We load the keys from ``SSLECHKeyDir`` using the ``load_echkeys()`` function in
@@ -146,7 +146,7 @@ I ran was:
             $ cd $HOME/code/httpd
             $ perl docs/log-message-tags/update-log-msg-tags modules/ssl/ssl_engine_config.c
 
-- There is currently a CI build fall due to a bunch of info message idenfier
+- There is currently a CI build fall due to a bunch of info message identifier
   collision warnings, e.g.
 
 ```bash
@@ -186,7 +186,7 @@ To build for debug:
     $ export LDFLAGS="-L$HOME/code/openssl"
     $ ./configure --enable-ssl --with-ssl=$HOME/code/openssl --with-libxml2
     ... loads of stuff ...
-    $ make clean 
+    $ make clean
     $ make -j8
     ... lotsa lotsa stuff ...
 ```

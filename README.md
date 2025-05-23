@@ -23,7 +23,7 @@ mismatch between upstream and our ECH-enabled forks. Those CI jobs are in the
 
 These scripts and howtos have been tested in an Ubuntu 23.04 development
 environment and as a default assume that you have other code repos installed
-and built in e.g.  ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc. 
+and built in e.g.  ``$HOME/code/openssl`` or ``$HOME/code/nginx`` etc.
 
 ## ECH-style wrappers for OpenSSL command line tools (and related)
 
@@ -45,7 +45,7 @@ run these. Note these are deliberately sedate, but that's ok.
 
 - [agiletest.sh](scripts/agiletest.sh) tests ECH using ``openssl s_client`` and
   ``openssl s_server`` with the various algorithm combinations that are
-  supported for ECHConfig values - this isn't used so much any more as 
+  supported for ECHConfig values - this isn't used so much any more as
   the ``make test`` target in the OpenSSL build now does the equivalent
   and is much quicker
 
@@ -129,7 +129,7 @@ various server-specific tests:
 ```bash
     cd $HOME/lt
     mkdir echkeydir
-    cp echconfig,pem echkeydir/echconfig.pem.ech
+    cp echconfig.pem echkeydir/echconfig.pem.ech
 ```
 
 That's a bit convoluted, sorry;-) We're also not entirely sure it's done fully
@@ -193,13 +193,13 @@ used in some time:
   files differ
 - [runindented.sh](scripts/runindented.sh) is a bash function for indenting things (not
   currently used, but was, and may be again sometime)
-- [localhost-tests.sh](scripts/localhost-tests.sh) runs a couple of the localhost 
+- [localhost-tests.sh](scripts/localhost-tests.sh) runs a couple of the localhost
   tests, as used (for now) in package testing - may well be enhanced soon.
 - [test-cases](./test-cases) has scripts to generate test cases for ECH
   used by [test-cases-gen.py](scripts/test-cases-gen..py).
 - [ech-check.php](scripts/ech-check.php) is a version of the PHP code at
   [defo.ie/ech-check.php](https://defo.ie/ech-check.php)
-- [domainechprobe.php](echprobe/domainechprobe.php) is a version of the 
+- [domainechprobe.php](echprobe/domainechprobe.php) is a version of the
   PHP code at [https://test.defo.ie/domainechprobe.php](https://test.defo.ie/domainechprobe.php)
 - [selenium_test.py](scripts/selenium_test.py) is our selenium test
 - [smoke_ech_curl.sh](scripts/smoke_ech_curl.sh) runs through a list of sites known

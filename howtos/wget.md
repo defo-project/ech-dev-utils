@@ -16,7 +16,7 @@ but so far it seems to only be populated via ``getaddrinfo()`` which is a bit
 of a gotcha for our purposes. Checking... So far it's not looking like there's
 an easy path forward to retrieve HTTPS RRs so the situation with wget is
 probably similar to that with curl when DoH is not in use (albeit with perhaps
-better caching and TLS session re-use). 
+better caching and TLS session re-use).
 
 So, for now, we don't have good news for ECH integration with wget.  If anyone
 has good ideas for getting ECH working in wget2, we'd be happy to explore
