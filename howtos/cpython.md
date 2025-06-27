@@ -58,6 +58,29 @@ $ . env/bin/activate
 
 The 'success' in the output JSON there is the thing to want.
 
+## Code coverage
+
+In order to use [`coverage`](https://coverage.readthedocs.io/)
+we need to include support for sqlite3 in 
+the CPython build, modify the above instructions as follows:
+
+```
+$ sudo apt install libsqlite3-dev
+$ ./configure --with-openssl=$HOME/code/openssl-local-inst --with-sqlite3
+$ make
+```
+
+The build above seems to generate a number of warnings, not sure if any
+are significant.
+
+And then in the virtual environment:
+
+```
+(env) $ pip install coverage
+(env) $ coverage run ./wkech-zf.py -h
+```
+
+
 ## Code changes
 
 TBD
