@@ -80,6 +80,30 @@ And then in the virtual environment:
 (env) $ coverage run ./wkech-zf.py -h
 ```
 
+That'll create a `.coverage` SQLlite DB file. You can generate reports,
+either text or, more usefully, html:
+
+```
+(env) $ coverage report
+Name                                                         Stmts   Miss  Cover
+--------------------------------------------------------------------------------
+/home/sftcd/code/defo-project-org/zone-factory/ECHLib.py       346    133    62%
+/home/sftcd/code/defo-project-org/zone-factory/wkech-zf.py     103     23    78%
+--------------------------------------------------------------------------------
+TOTAL                                                          449    156    65%
+```
+
+For html:
+
+```
+(env) $ coverage html
+Wrote HTML report to htmlcov/index.html
+```
+
+You can then copy the `htmlcov` directory to somewhere viewable using a browser
+to see which lines of code were executed and which still need a test case.
+
+
 
 ## Code changes
 
