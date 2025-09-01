@@ -135,7 +135,7 @@ what browsers exhibit.)</p>
                 }
             }
             //var_dump($astr);
-            return $astr;
+            return escapeshellcmd($astr);
         }
         return "none";
     }
