@@ -22,6 +22,12 @@ function getb64ech()
 # origin is a DNS name or a host:port string if not using port 443
 origin="$1"
 
+server="localhost"
+if [[ "$2" != "" ]]
+then
+    server="$2"
+fi
+
 wkf=$(mktemp)
 df=$(mktemp)
 
@@ -54,7 +60,7 @@ then
     fi
 fi
 
-lines=$(dig +short https "$qname")
+lines=$(dig @$server +dnssec +short https "$qname")
 if [[ "$lines" == "" ]]
 then
     echo "No HTTPS RR for $qname seen"
