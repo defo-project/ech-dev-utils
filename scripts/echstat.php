@@ -27,6 +27,15 @@
         $hmac = hash_hmac('sha256', $plain, $key, $as_binary=false);
         return $hmac;
     }
+    function client_ip() {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } else if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } else {
+            return $_SERVER['REMOTE_ADDR'];
+        }
+    }
     /* we don't expect to be v. busy but just in case */
     function addone($logline) {
         $filename="/var/extra/echstat.csv";
@@ -51,17 +60,24 @@
         }
         return $gotlock;
     }
+    function ua_string() {
+        if (!empty($_SERVER["HTTP_USER_AGENT"])) {
+            return $_SERVER["HTTP_USER_AGENT"];
+	} else {
+            return "no-user-agent";
+	}
+    }
     $logstring = "";
     $logstring = $logstring . "|" . date(DATE_RFC3339);
-    $logstring = $logstring . "|" . do_hmac($_SERVER['REMOTE_ADDR']);
+    $logstring = $logstring . "|" . do_hmac(client_ip());
     $logstring = $logstring . "|" . "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $logstring = $logstring . "|" . $_SERVER["SSL_ECH_STATUS"];
     $logstring = $logstring . "|" . $_SERVER["SSL_ECH_INNER_SNI"];
     $logstring = $logstring . "|" . $_SERVER["SSL_ECH_OUTER_SNI"];
-    $logstring = $logstring . "|" . $_SERVER["HTTP_USER_AGENT"];
+    $logstring = $logstring . "|" . ua_string();
     addone($logstring);
 
-    if ($_GET['format'] == "json") {
+    if (!empty($_GET['format']) && $_GET['format'] == "json") {
         header('Content-Type: application/json; charset=utf-8');
         echo "{";
         foreach ($headers as $header => $value) {
@@ -90,6 +106,13 @@
         }
         echo "date: " . date(DATE_ATOM) . "\n";
         echo "config: ". $_SERVER['SERVER_NAME'] . "\n";
+
+	//$arr = get_defined_vars();
+	//print($arr);
+	//var_dump($_SERVER);
+	///foreach (getallheaders() as $name => $value) {
+	//echo "$name => $value \n";
+	//}
 
     }
 
