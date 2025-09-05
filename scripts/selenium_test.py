@@ -217,6 +217,7 @@ if __name__ == "__main__":
             firefox_profile.set_preference("network.trr.custom_uri", "https://one.one.one.one/dns-query")
             firefox_profile.set_preference("network.trr.uri", "https://one.one.one.one/dns-query")
             firefox_profile.set_preference("network.trr.mode", 3)
+            firefox_profile.set_preference("devtools.jsonview.enabled", False)
             options = firefox_Options()
             options.profile = firefox_profile
             options.add_argument('--headless')
@@ -340,7 +341,7 @@ if __name__ == "__main__":
                     write_res(html_fp, csv_fp, urlnum-1, theurl, "expected exception: " + exc_str)
                 else:
                     write_res(html_fp, csv_fp, urlnum-1, theurl, "unexpected exception: " + exc_str)
-            result=driver.find_element(By.XPATH,"/*").text
+            result = driver.find_element(By.XPATH,"/*").text
             if args.superverbose:
                 print("Result:")
                 print(result)
