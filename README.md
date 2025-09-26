@@ -208,4 +208,6 @@ used in some time:
    a URL
 - [smoke_ech_golang.sh](scripts/smoke_ech_golang.sh) is a script that calls
   [ech_url.go](scripts/ech_url.go) for a set of test URLs and records results
+- [bssl2pem.sh](scripts/bssl2pem.sh) generates an ECH PEM file when using the
+  boringssl command line tool
 
