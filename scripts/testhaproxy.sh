@@ -5,13 +5,13 @@ set -e
 # Run a haproxy test
 
 # to pick up correct .so's etc
-: ${CODETOP:="$HOME/code/openssl"}
+: ${CODETOP:="$HOME/code/openssl-upstream-master"}
 # to pick up correct wrapper scripts
 : ${EDTOP:="$HOME/code/ech-dev-utils"}
 # to set where our cadir and ECH keys are
 : ${RUNTOP:="$HOME/lt"}
 # where backend web server can be found
-: ${LIGHTY:="$HOME/code/lighttpd1.4"}
+: ${LIGHTY:="$HOME/code/lighttpd1.4-upstream-clean"}
 # where frontend haproxy can be found
 : ${HAPPY:="$HOME/code/haproxy"}
 
@@ -53,7 +53,7 @@ fi
 lighty_stop
 if [ -s $BE_PIDFILE ]
 then
-    kill `cat $BE_PIDFILE`
+    # kill `cat $BE_PIDFILE`
     rm -f $BE_PIDFILE
 fi
 
@@ -63,8 +63,8 @@ lighty_start $EDTOP/configs/lighttpd4haproxymin.conf
 # run haproxy in background
 cd $RUNTOP
 HAPDEBUGSTR=" -DdV " 
-echo "Executing: $HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
-$HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1 || true
+echo "Executing: $HAPPYBIN -f $RUNTOP/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
+$HAPPYBIN -f $RUNTOP/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1 || true
 if [[ "$VERBOSE" == "yes" ]]
 then
     cat $SRVLOGFILE

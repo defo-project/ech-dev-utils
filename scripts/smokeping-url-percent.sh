@@ -37,12 +37,12 @@ do
     then
         paste -d ',' "$resultcols" "$tmpf" >"$tmpf1"
         rm -f "$tmpf"
-        total=$((total+1))
     else
         mv "$tmpf" "$tmpf1"
         # grab first columns once, they're the same
         awk -F, '{print $1","$2}' "$csvf" >"$cols12"
     fi
+    total=$((total+1))
     mv "$tmpf1" "$resultcols"
 done
 

@@ -7,22 +7,25 @@
 # should help if you wanna use gdb for apache
 
 # where our builds are...
-CODETOP=$HOME/code/openssl
-AP_TOP=$HOME/code/httpd
+CODETOP=$HOME/code/openssl-upstream-master
+ATOP=$HOME/code/httpd
 RUNTOP=$HOME/lt
+
+export ATOP
+export RUNTOP
 
 # name of apache config we're using - used to decide what processes to
 # kill off before starting gdb, and when starting gdb as well
-AP_CFGNAME=$HOME/ech-dev-utils/configs/apachemin.conf
+AP_CFGNAME=$HOME/code/ech-dev-utils/configs/apachemin.conf
 
 OSSL_LP=$CODETOP
-HTTPD_LP=$AP_TOP/.libs
-APR_LP=$AP_TOP/srclib/apr/.libs
-MO_LP=$AP_TOP/modules/ssl/.libs
-AAA_LP=$AP_TOP/modules/aaa/.libs
-ENV_LP=$AP_TOP/modules/metadata/.libs/
-CFG_LP=$AP_TOP/modules/loggers/.libs/
-UNIX_LP=$AP_TOP/modules/arch/unix/.libs/
+HTTPD_LP=$ATOP/.libs
+APR_LP=$ATOP/srclib/apr/.libs
+MO_LP=$ATOP/modules/ssl/.libs
+AAA_LP=$ATOP/modules/aaa/.libs
+ENV_LP=$ATOP/modules/metadata/.libs/
+CFG_LP=$ATOP/modules/loggers/.libs/
+UNIX_LP=$ATOP/modules/arch/unix/.libs/
 
 export LD_LIBRARY_PATH="$OSSL_LP:$HTTPD_LP:$APR_LP:$MO_LP:$ENV_LP:$CFG_LP:$UNIX_LP"
 
@@ -41,9 +44,10 @@ cd $RUNTOP
 if [[ "$1" != "" ]]
 then
     echo "Setting breakpoint to $1"
-    gdb -ex "set breakpoint pending on" -ex "b \"$1\"" -exec $AP_TOP/.libs/httpd -ex "run -X -d . -f $AP_CFGNAME -DFOREGROUND" 
+    gdb -ex "set breakpoint pending on" -ex "b \"$1\"" -exec $ATOP/.libs/httpd -ex "run -X -d . -f $AP_CFGNAME -DFOREGROUND" 
 else
-    gdb -exec $AP_TOP/.libs/httpd -ex "run -X -d . -f $AP_CFGNAME -DFOREGROUND" 
+   # gdb -exec $ATOP/.libs/httpd -ex "run -X -d . -f $AP_CFGNAME -DFOREGROUND" 
+    valgrind --leak-check=full -s $ATOP/.libs/httpd -X -d . -f $AP_CFGNAME -DFOREGROUND 
 fi
 
 

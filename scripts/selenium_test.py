@@ -20,6 +20,7 @@
 # We'll check that's been done before we start
 
 import os, sys, time, csv, re, json, traceback
+import subprocess
 from datetime import datetime, timezone
 from argparse import ArgumentParser
 from selenium import webdriver
@@ -175,6 +176,7 @@ if __name__ == "__main__":
 
     runtime=datetime.now(timezone.utc)
     runstr=runtime.strftime('%Y%m%d-%H%M%S')
+    start=time.perf_counter_ns()
 
     if args.superverbose:
         args.verbose=True
@@ -267,6 +269,12 @@ if __name__ == "__main__":
             options.add_argument('--headless=new')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
+            options.add_argument('--log-level=100')
+            options.add_argument('--log-net-log=cnet.log')
+            options.add_argument('--enable-logging=stderr')
+            options.add_argument('--v=1')
+            # options.add_argument('--timeout=10000')
+
             # enable DoH
             local_state = {
                 "dns_over_https.mode": "secure",
@@ -277,20 +285,25 @@ if __name__ == "__main__":
                 "dns_over_https.templates": "https://chrome.cloudflare-dns.com/dns-query"
             }
             options.add_experimental_option('localState', local_state)
-            service = ChromeService(executable_path="/usr/bin/chromedriver")
+            if args.verbose:
+                service = ChromeService(executable_path="/usr/bin/chromedriver",
+                                        service_args=['--log-level=DEBUG'],
+                                        log_output=subprocess.STDOUT)
+            else:
+                service = ChromeService(executable_path="/usr/bin/chromedriver")
             driver = webdriver.Chrome(options = options, service = service)
             # print version on line 1 and all caps after
             print(driver.capabilities['browserVersion'], file=bv_fp)
             print(driver.capabilities, file=bv_fp)
             # currently no special ECH enabling options
+            # try make an HTTPS query just to prime the browser
+            # driver.get("https://tcd.ie/")
+            # driver.get("https://min-ng.test.defo.ie/echstat.php?format=json")
+            # driver.implicitly_wait(3)
+
         case _:
             print("unknown browser - exiting")
             sys.exit(1)
-
-    # not sure if needed
-    #wait = 1.75
-    # print("Setting implicit wait period to", wait)
-    #driver.implicitly_wait(wait)
 
     with open(args.urls_to_test) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
@@ -320,8 +333,14 @@ if __name__ == "__main__":
                 if '/stats' in theurl:
                     driver.implicitly_wait(10)
                 else:
-                    driver.implicitly_wait(0)
+                    driver.implicitly_wait(3)
+                before=time.perf_counter_ns()
+                # driver.get(theurl)
                 driver.get(theurl)
+                after=time.perf_counter_ns()
+                if args.verbose:
+                    print("Get duration: ", after-before)
+                    print("Since start: ", after-start)
                 # the delay below isn't working for now
                 # element_present = EC.presence_of_element_located((By.XPATH, 'text'))
                 # WebDriverWait(driver, 10).until(element_present)
@@ -357,6 +376,7 @@ if __name__ == "__main__":
                     actualresult=handler(result, expected)
                     if args.verbose:
                         print("Actual: ", actualresult)
+                        print("duration/result: ", after-before, actualresult)
                     write_res(html_fp, csv_fp, urlnum-1, theurl, handler(result, expected))
 
             urlnum=urlnum+1

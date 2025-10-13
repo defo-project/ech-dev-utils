@@ -5,7 +5,8 @@ set -e
 
 # to pick up correct executables and .so's
 : ${CODETOP:=$HOME/code/openssl}
-export LD_LIBRARY_PATH=$CODETOP
+: ${LDTOP:=$HOME/code/openssl}
+export LD_LIBRARY_PATH=$LDTOP
 : ${EDTOP:=$HOME/code/ech-dev-utils}
 : ${NTOP:=$HOME/code/nginx}
 # where we have/want test files
@@ -123,14 +124,17 @@ cd -
 
 for type in grease public real hrr
 do
-    port=5443
-    echo "Testing $type $port"
-    cli_test $port $type
-    if [[ "$VERBOSE" == "yes" ]]
-    then
-        cat $CLILOGFILE
-        rm -f $CLILOGFILE
-    fi
+    ports="5443 5444"
+    for port in $ports
+    do
+        echo "Testing $type $port"
+        cli_test $port $type
+        if [[ "$VERBOSE" == "yes" ]]
+        then
+            cat $CLILOGFILE
+            rm -f $CLILOGFILE
+        fi
+    done
 done
 
 if [[ "$allgood" == "yes" ]]
