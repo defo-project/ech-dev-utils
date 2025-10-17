@@ -232,7 +232,7 @@ then
     fi
     # temporarily force IPv4
     defoip=`dig +short $defohost`
-    ah_ech=${ECH:14}
+    ah_ech=${ECH:74:260}
     echo $ah_ech | xxd -p -r >$BFILES/defo.ech
     echo "Running bssl s_client against $defohost:$defoport"
     ( echo -e $defohttpreq ; sleep 2) | $BTOOL/bssl s_client \
