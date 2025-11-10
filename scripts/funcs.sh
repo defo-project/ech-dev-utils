@@ -76,7 +76,6 @@ lighty_start() {
         echo "Can't read $cfgfile - exiting"
         exit 45
     fi
-    export LIGHTYTOP=$RUNTOP
     if [[ "$PACKAGING" == "" ]]
     then
         $LIGHTY/src/lighttpd -f $cfgfile -m $LIGHTY/src/.libs >>$SRVLOGFILE 2>&1
@@ -102,16 +101,18 @@ s_server_start() {
         # ditch or keep server tracing
         if [[ "$hrr" == "hrr" ]]
         then
-            $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 3484 -R >$SRVLOGFILE 2>&1 &
+            # $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 3484 -R >>$SRVLOGFILE 2>&1 &
+            $EDTOP/scripts/echsvr.sh -e -n -p 3484 -R >>$SRVLOGFILE 2>&1 &
         else
-            $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 3484 >$SRVLOGFILE 2>&1 &
+            # $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 3484 >>$SRVLOGFILE 2>&1 &
+            $EDTOP/scripts/echsvr.sh -e -n -p 3484 >>$SRVLOGFILE 2>&1 &
         fi
         # recheck in a sec
         sleep 2
         srunning=`ps -ef | grep s_server | grep -v grep | grep -v tail | awk '{print $2}'`
         if [[ "$srunning" == "" ]]
         then
-            echo "Can't start s_server exiting"
+            echo "Failed to start s_server - exiting"
             exit 87
         fi
     fi

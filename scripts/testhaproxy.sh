@@ -5,7 +5,7 @@ set -e
 # Run a haproxy test
 
 # to pick up correct .so's etc
-: ${CODETOP:="$HOME/code/openssl-upstream-master"}
+: ${CODETOP:="$HOME/code/openssl-ech-feature"}
 # to pick up correct wrapper scripts
 : ${EDTOP:="$HOME/code/ech-dev-utils"}
 # to set where our cadir and ECH keys are
@@ -13,7 +13,7 @@ set -e
 # where backend web server can be found
 : ${LIGHTY:="$HOME/code/lighttpd1.4-upstream-clean"}
 # where frontend haproxy can be found
-: ${HAPPY:="$HOME/code/haproxy"}
+: ${HAPPY:="$HOME/code/haproxy-both"}
 
 
 if [[ "$PACKAGING" == "" ]]
@@ -29,6 +29,7 @@ else
 fi
 export RUNTOP=$RUNTOP
 export LD_LIBRARY_PATH=$CODETOP
+export EDTOP=$EDTOP
 
 HLOGDIR="$RUNTOP/haproxy/logs"
 SRVLOGFILE="$HLOGDIR/haproxy.log"

@@ -4,7 +4,7 @@
 # Equivalent tests should migrate to being run as part of ``make test``
 
 # to pick up correct .so's - maybe note
-: ${CODETOP:=$HOME/code/openssl}
+: ${CODETOP:=$HOME/code/openssl-ech-feature}
 export LD_LIBRARY_PATH=$CODETOP
 : ${RUNTOP:="."}
 : ${GETOPTDIR:=/usr/bin}
@@ -42,7 +42,7 @@ GTYPE=$GTYPE_DEF
 # you might see binary cruft if that's selected
 DEFALPNOUTER="outer,public,h2"
 DEFALPNINNER="inner,secret,http/1.1"
-DEFALPNVAL=" -ech_alpn_outer $DEFALPNOUTER -alpn $DEFALPNINNER"
+DEFALPNVAL=" -ech_outer_alpn $DEFALPNOUTER -alpn $DEFALPNINNER"
 DOALPN="yes"
 SUPPALPN=""
 
@@ -278,7 +278,7 @@ fi
 snioutercmd=" "
 if [[ "$SUPPLIEDPNO" != "" && "$NOECH" != "yes" ]]
 then
-    snioutercmd="-sni_outer $SUPPLIEDPNO"
+    snioutercmd="-ech_outer_sni $SUPPLIEDPNO"
 fi
 
 # Set address of target
@@ -430,7 +430,7 @@ if [[ "$SUPPLIEDOUTER" != "" ]]
 then
     # add that parameter to echstr - not all cases will make
     # sense but that's ok
-    echstr="$echstr -sni_outer $SUPPLIEDOUTER"
+    echstr="$echstr -ech_outer_sni $SUPPLIEDOUTER"
 fi
 
 if [[ "$NOECH" == "no" && "$SUPPLIEDHIDDEN" == "" && "$HTTPPATH" == "" ]]

@@ -1,18 +1,20 @@
 #!/bin/bash
 
+# set -x
+
 # to pick up correct executables and .so's
-: ${CODETOP:="$HOME/code/openssl"}
-export LD_LIBRARY_PATH=$CODETOP
+: ${CODETOP:="$HOME/code/defo-project-org/openssl"}
 : ${EDTOP:="$HOME/code/ech-dev-utils"}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
 # where back-end web server can be found
-: ${LIGHTY:="$HOME/code/lighttpd1.4"}
+: ${LIGHTY:="$HOME/code/lighttpd1.4-upstream-clean"}
 # where front-end haproxy can be found
-: ${HAPPY:="$HOME/code/haproxy"}
+: ${HAPPY:="$HOME/code/haproxy-both"}
 # where front-end nginx can be found
 : ${NTOP:="$HOME/code/nginx"}
+export LD_LIBRARY_PATH=$CODETOP:$LIGHTY/src/.libs
 
 allgood="yes"
 
@@ -26,13 +28,12 @@ HLOGDIR="$RUNTOP/haproxy/logs"
 HLOGFILE="$HLOGDIR/haproxy.log"
 CLILOGFILE=`mktemp`
 SRVLOGFILE=`mktemp`
-KEEPLOG="no"
 
 TECH=$1
 
 # some preliminaries - ensure directories exist, kill old servers
 prep_server_dirs $TECH
-# if we want to reload config then that's "graceful restart"
+
 FE_PIDFILE=$RUNTOP/$TECH/logs/$TECH.pid
 # Kill off old processes from the last test
 if [ -f $FE_PIDFILE ]
@@ -40,9 +41,6 @@ then
     echo "Killing old $TECH in process `cat $FE_PIDFILE`"
     kill `cat $FE_PIDFILE`
     rm -f $FE_PIDFILE
-else
-    echo "Can't find $FE_PIDFILE - trying killall $TECH"
-    killall $TECH
 fi
 
 if [[ "$TECH" == "nginx" ]]
@@ -82,6 +80,10 @@ fi
 PIDFILE=$RUNTOP/lighttpd/logs/lighttpd.pid
 lighty_start $EDTOP/configs/lighttpdsplit.conf
 
+SKIPEM="no"
+if [[ "$SKIPEM" != "yes" ]]
+then
+
 # all these should appear the same to the client
 # server log checks will tell us if stuff worked or not
 echo "Doing split-mode tests..."
@@ -93,6 +95,8 @@ do
         cli_test $port $type
     done
 done
+
+fi # end of SKIPEM
 
 # need special stuff for early_data as lighty doesn't support that
 echo "Doing early data tests"
@@ -106,16 +110,19 @@ do
     port=7446
     echo "Testing $type $port"
     s_server_start $type
+    sleep 3
     # connect twice, 2nd time using resumption and sending early data
     session_ticket_file=`mktemp`
     rm -f $session_ticket_file
-    $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem -f index.html -S $session_ticket_file >>$CLILOGFILE 2>&1
+    $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P $RUNTOP/echconfig.pem -f index.html -S $session_ticket_file >>$CLILOGFILE 2>&1
     if [ ! -f $session_ticket_file ]
     then
+        # s_server_stop
         echo "No session, so can't try early data - skipping $type $port"
-        continue
+        allgood="no"
+        break
     fi
-    $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P echconfig.pem -f index.html -S $session_ticket_file -e >>$CLILOGFILE 2>&1
+    $EDTOP/scripts/echcli.sh -H foo.example.com -s localhost -p $port -P $RUNTOP/echconfig.pem -f index.html -S $session_ticket_file -e >>$CLILOGFILE 2>&1
     rm -f $session_ticket_file
     res=$?
     if [[ "$res" != "0" ]]
@@ -126,19 +133,15 @@ do
     s_server_stop
 done
 
+
 if [[ "$allgood" == "yes" ]]
 then
     echo "All good."
     rm -f $CLILOGFILE $SRVLOGFILE
 else
     echo "Something failed."
-    if [[ "$KEEPLOG" != "no" ]]
-    then
-        echo "Client logs in $CLILOGFILE"
-        echo "Server logs in $SRVLOGFILE"
-    else
-        rm -f $CLILOGFILE $SRVLOGFILE
-    fi
+    mv $CLILOGFILE $RUNTOP/$TECH/logs/cli.log
+    mv $SRVLOGFILE $RUNTOP/$TECH/logs/srv.log
 fi
 
 # Kill off processes from this test
