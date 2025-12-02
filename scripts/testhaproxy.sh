@@ -25,7 +25,7 @@ else
     HAPPYBIN=`which haproxy`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
-    # VERBOSE=yes
+    VERBOSE=yes
 fi
 export RUNTOP=$RUNTOP
 export LD_LIBRARY_PATH=$CODETOP
