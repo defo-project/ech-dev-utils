@@ -11,7 +11,7 @@ export RUNTOP=$RUNTOP
 # where back-end web server can be found
 : ${LIGHTY:="$HOME/code/lighttpd1.4-upstream-clean"}
 # where front-end haproxy can be found
-: ${HAPPY:="$HOME/code/haproxy-both"}
+: ${HAPPY:="$HOME/code/defo-project-org/haproxy"}
 # where front-end nginx can be found
 : ${NTOP:="$HOME/code/nginx"}
 export LD_LIBRARY_PATH=$CODETOP:$LIGHTY/src/.libs
