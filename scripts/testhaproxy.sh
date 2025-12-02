@@ -75,7 +75,7 @@ cd -
 # all things should appear the same to the client
 # server log checks will tells us if stuff worked or not
 echo "Doing shared-mode client calls..."
-for type in grease public real hrr
+for type in grease real public hrr
 do
     for port in 7443 7444 7445
     do

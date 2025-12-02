@@ -1,12 +1,10 @@
 #!/bin/bash
 
-set -x
-
 # Script to run basic tests using the openssl command line tool.
 # Equivalent tests should migrate to being run as part of ``make test``
 
 # to pick up correct .so's - maybe note
-: ${CODETOP:=$HOME/code/openssl-ech-feature}
+: ${CODETOP:=$HOME/code/defo-project-org/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 : ${RUNTOP:="."}
 : ${GETOPTDIR:=/usr/bin}
@@ -19,7 +17,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
-    # set -ex
+    set -e
 fi
 
 # variables/settings
