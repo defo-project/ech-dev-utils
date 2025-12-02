@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Script to run basic tests using the openssl command line tool.
 # Equivalent tests should migrate to being run as part of ``make test``
 
@@ -17,7 +19,7 @@ then
     CMDPATH=$CODETOP/apps/openssl
 else
     CMDPATH=`which openssl`
-    set -ex
+    # set -ex
 fi
 
 # variables/settings
