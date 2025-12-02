@@ -25,7 +25,7 @@ else
     HAPPYBIN=`which haproxy`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
-    VERBOSE=yes
+    # VERBOSE=yes
 fi
 export RUNTOP=$RUNTOP
 export LD_LIBRARY_PATH=$CODETOP
@@ -64,8 +64,8 @@ lighty_start $EDTOP/configs/lighttpd4haproxymin.conf
 # run haproxy in background
 cd $RUNTOP
 HAPDEBUGSTR=" -DdV " 
-echo "Executing: $HAPPYBIN -f $RUNTOP/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
-$HAPPYBIN -f $RUNTOP/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1 || true
+echo "Executing: $HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1"
+$HAPPYBIN -f $EDTOP/configs/haproxymin.conf $HAPDEBUGSTR >$SRVLOGFILE 2>&1 || true
 if [[ "$VERBOSE" == "yes" ]]
 then
     cat $SRVLOGFILE
