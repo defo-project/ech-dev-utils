@@ -4,10 +4,10 @@
 set -e
 
 # to pick up correct executables and .so's
-: ${CODETOP:=$HOME/code/openssl}
-: ${LDTOP:=$HOME/code/openssl}
+: ${CODETOP:=$HOME/code/defo-project-org/openssl}
+: ${LDTOP:=$HOME/code/defo-project-org/openssl}
 export LD_LIBRARY_PATH=$LDTOP
-: ${EDTOP:=$HOME/code/ech-dev-utils}
+: ${EDTOP:=$HOME/code/defo-project-org/ech-dev-utils}
 : ${NTOP:=$HOME/code/nginx}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}

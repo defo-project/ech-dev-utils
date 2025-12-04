@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 # Run a haproxy test
 
@@ -20,12 +20,13 @@ if [[ "$PACKAGING" == "" ]]
 then
     HAPPYBIN=$HAPPY/haproxy
     CMDPATH=$CODETOP/apps/openssl
+    # VERBOSE=yes
 else
     CMDPATH=`which openssl`
     HAPPYBIN=`which haproxy`
     EDTOP="$(dirname "$(realpath "$0")")/.."
     RUNTOP=`mktemp -d`
-    VERBOSE=yes
+    # VERBOSE=yes
 fi
 export RUNTOP=$RUNTOP
 export LD_LIBRARY_PATH=$CODETOP
@@ -75,7 +76,7 @@ cd -
 # all things should appear the same to the client
 # server log checks will tells us if stuff worked or not
 echo "Doing shared-mode client calls..."
-for type in grease real public hrr
+for type in grease public real hrr
 do
     for port in 7443 7444 7445
     do

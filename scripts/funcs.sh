@@ -46,7 +46,7 @@ cli_test() {
     lres=$?
     if [[ "$lres" != "0" ]]
     then
-        echo "test failed: $EDTOP/scripts/echcli.sh $clilog $gorp-p $port -H $target -s localhost -f index.html"
+        echo "test failed: $EDTOP/scripts/echcli.sh $clilog $gorp -p $port -H $target -s localhost -f index.html"
         allgood="no"
     fi
 }
