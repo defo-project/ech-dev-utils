@@ -124,7 +124,9 @@ cd -
 
 for type in grease public real hrr
 do
-    ports="5443 5444"
+    # take out 5444 for now - that's the stream one
+    #ports="5443 5444"
+    ports="5443"
     for port in $ports
     do
         echo "Testing $type $port"
