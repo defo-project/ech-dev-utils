@@ -7,12 +7,12 @@
 set -e
 
 # to pick up correct executables and .so's
-: ${CODETOP:=$HOME/code/openssl}
+: ${CODETOP:=$HOME/code/defo-project-org/openssl}
 export LD_LIBRARY_PATH=$CODETOP
-: ${EDTOP:=$HOME/code/ech-dev-utils}
+: ${EDTOP:=$HOME/code/defo-project-org/ech-dev-utils}
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
-: ${LIGHTY:=$HOME/code/lighttpd1.4}
+: ${LIGHTY:=$HOME/code/defo-project-org/lighttpd1.4}
 
 if [[ "$PACKAGING" == "" ]]
 then

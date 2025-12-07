@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# set -x
+set -x
 
 # to pick up correct executables and .so's
 : ${CODETOP:="$HOME/code/defo-project-org/openssl"}
-: ${EDTOP:="$HOME/code/ech-dev-utils"}
+: ${EDTOP:="$HOME/code/defo-project-org/ech-dev-utils"}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 export RUNTOP=$RUNTOP
 # where back-end web server can be found
-: ${LIGHTY:="$HOME/code/lighttpd1.4-upstream-clean"}
+: ${LIGHTY:="$HOME/code/defo-project-org/lighttpd1.4"}
 # where front-end haproxy can be found
 : ${HAPPY:="$HOME/code/defo-project-org/haproxy"}
 # where front-end nginx can be found
-: ${NTOP:="$HOME/code/nginx"}
+: ${NTOP:="$HOME/code/defo-project-org/nginx"}
 export LD_LIBRARY_PATH=$CODETOP:$LIGHTY/src/.libs
 
 allgood="yes"
