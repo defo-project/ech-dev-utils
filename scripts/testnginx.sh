@@ -8,7 +8,7 @@ set -e
 : ${LDTOP:=$HOME/code/defo-project-org/openssl}
 export LD_LIBRARY_PATH=$LDTOP
 : ${EDTOP:=$HOME/code/defo-project-org/ech-dev-utils}
-: ${NTOP:=$HOME/code/nginx}
+: ${NTOP:=$HOME/code/defo-project-org/nginx}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 : ${VERBOSE:="no"}
