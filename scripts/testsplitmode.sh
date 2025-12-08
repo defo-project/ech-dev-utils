@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 # to pick up correct executables and .so's
 : ${CODETOP:="$HOME/code/defo-project-org/openssl"}
@@ -33,6 +33,7 @@ TECH=$1
 
 # some preliminaries - ensure directories exist, kill old servers
 prep_server_dirs $TECH
+s_server_stop
 
 FE_PIDFILE=$RUNTOP/$TECH/logs/$TECH.pid
 # Kill off old processes from the last test
@@ -45,7 +46,7 @@ fi
 
 if [[ "$TECH" == "nginx" ]]
 then
-    # nginx specific: if we don't have a local config belor RUNTOP, replace
+    # nginx specific: if we don't have a local config below RUNTOP, replace
     # pathnames in repo version and copy to where it's needed
     if [ ! -f $RUNTOP/nginx/nginxsplit.conf ]
     then
@@ -147,4 +148,4 @@ fi
 # Kill off processes from this test
 killall $TECH
 rm -f $FE_PIDFILE $PIDFILE
-
+s_server_stop
