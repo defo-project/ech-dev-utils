@@ -3,7 +3,7 @@
 # set -x
 
 # to pick up correct .so's - maybe note 
-: ${CODETOP:=$HOME/code/openssl}
+: ${CODETOP:=$HOME/code/defo-project-org/openssl}
 export LD_LIBRARY_PATH=$CODETOP
 # to pick up the relevant configuration
 : ${CFGTOP:=`/bin/pwd`}

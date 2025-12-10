@@ -120,7 +120,10 @@ s_server_start() {
 
 s_server_stop() {
     local srunning=`ps -ef | grep s_server | grep -v grep | grep -v tail | awk '{print $2}'`
-    kill $srunning
+    if [[ "$srunning" != "" ]]
+    then
+        kill $srunning
+    fi
 }
 
 # hackyery hack - prepare a nginx conf to use in localhost tests
