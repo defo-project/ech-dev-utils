@@ -88,9 +88,9 @@ then
 # all these should appear the same to the client
 # server log checks will tell us if stuff worked or not
 echo "Doing split-mode tests..."
-for type in grease public real hrr
+for type in real grease public real hrr
 do
-    for port in 7443 7444 7445 7446 
+    for port in 7443 7444 7445 7446
     do
         echo "Testing $type $port"
         cli_test $port $type
@@ -105,12 +105,15 @@ echo "Doing early data tests"
 # s_server
 lighty_stop
 
+# the backend port that can do split-mode (via lighttpd)
+be_port=3484
+
 # we wanna try with and without hitting hrr
 for type in nohrr hrr
 do
     port=7446
     echo "Testing $type $port"
-    s_server_start $type
+    s_server_start $type $be_port
     sleep 3
     # connect twice, 2nd time using resumption and sending early data
     session_ticket_file=`mktemp`

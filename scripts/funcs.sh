@@ -93,6 +93,7 @@ lighty_start() {
 s_server_start() {
     local srunning=`ps -ef | grep s_server | grep -v grep | grep -v tail | awk '{print $2}'`
     local hrr=$1
+    local be_port=$2
 
     envcheck $EDTOP
     envcheck $SRVLOGFILE
@@ -101,11 +102,11 @@ s_server_start() {
         # ditch or keep server tracing
         if [[ "$hrr" == "hrr" ]]
         then
-            # $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 3484 -R >>$SRVLOGFILE 2>&1 &
-            $EDTOP/scripts/echsvr.sh -e -n -p 3484 -R >>$SRVLOGFILE 2>&1 &
+            # $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p $be_port -R >>$SRVLOGFILE 2>&1 &
+            $EDTOP/scripts/echsvr.sh -e -n -p $be_port -R >>$SRVLOGFILE 2>&1 &
         else
-            # $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p 3484 >>$SRVLOGFILE 2>&1 &
-            $EDTOP/scripts/echsvr.sh -e -n -p 3484 >>$SRVLOGFILE 2>&1 &
+            # $EDTOP/scripts/echsvr.sh -e -k echconfig.pem -p $be_port >>$SRVLOGFILE 2>&1 &
+            $EDTOP/scripts/echsvr.sh -e -n -p $be_port >>$SRVLOGFILE 2>&1 &
         fi
         # recheck in a sec
         sleep 2
