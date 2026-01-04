@@ -3,13 +3,13 @@
 set -e
 
 # to pick up correct executables and .so's
-: ${CODETOP:=$HOME/code/openssl}
+: ${CODETOP:=$HOME/code/defo-project-org/openssl}
 export LD_LIBRARY_PATH=$CODETOP
-: ${EDTOP:=$HOME/code/ech-dev-utils}
+: ${EDTOP:=$HOME/code/defo-project-org/ech-dev-utils}
 # Note that the value for this has to match that for ATOP
 # in apachemin.conf, so if you change this on the
 # command line, you'll need to edit the conf file
-: ${ATOP:=$HOME/code/httpd}
+: ${ATOP:=$HOME/code/defo-project-org/apache-httpd}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 
@@ -26,7 +26,7 @@ fi
 
 . $EDTOP/scripts/funcs.sh
 
-export RUNTOP PACKAGING
+export RUNTOP PACKAGING ATOP
 
 CLILOGFILE=`mktemp`
 SRVLOGFILE=`mktemp`
