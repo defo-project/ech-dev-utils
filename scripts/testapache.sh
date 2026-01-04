@@ -63,10 +63,12 @@ do
     cli_test $port $type
 done
 
+ret=1
 if [[ "$allgood" == "yes" ]]
 then
     echo "All good."
     rm -f $CLILOGFILE $SRVLOGFILE
+    ret=0
 else
     echo "Something failed."
     if [[ "$KEEPLOG" != "no" ]]
@@ -80,4 +82,4 @@ fi
 
 kill `cat $PIDFILE`
 rm -f $PIDFILE
-
+exit $ret
