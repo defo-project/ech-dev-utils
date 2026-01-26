@@ -17,6 +17,8 @@ $ cd $HOME/code/defo-project-org/haproxy
 $ git pull
 # make sure you're on the master or main branch
 $ git checkout master
+# fetch latest upstram commits
+$ git fetch upstream
 # rebase with the upstream master (assumes that remote was added)
 # if you have to fix merge issues, do that here, we assume it works
 # for now
