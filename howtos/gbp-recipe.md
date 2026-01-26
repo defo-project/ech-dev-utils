@@ -43,6 +43,7 @@ $ git status
 $ git add .
 # commit those
 $ git commit -am 'debian patches updated'
+# you should build and test that things work
 # finally push back to github
 $ git push -f
 ```
