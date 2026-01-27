@@ -131,11 +131,11 @@ using the same directory you setup before, (with the fake x.50 CA `cadir`
 etc.), you should do the following (or similar) before trying to run the
 various server-specific tests:
 
-``bash
+```bash
     cd $HOME/lt
     mkdir echkeydir
     cp echconfig.pem echkeydir/echconfig.pem.ech
-``
+```
 
 ### Server details
 
@@ -208,7 +208,7 @@ used in some time:
 
 # Plan
 
-1. review markdown files in this repo
+1. review all files in this repo
 1. for each server, check howto/config/test on ubuntu
 1. update debian code/tests/configs on test.defo.ie
 1. check zone-factory including pdns branch
