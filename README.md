@@ -9,6 +9,7 @@ this repo to reflect the fact that we've upstreamed ECH code to various
 upstream packages, with code and configuration stanza changes that were
 agree with upstream maintainers. These updates will take a little while
 as we'll need to re-test and check that the text here is accurate.
+There's a [plan](./#Plan) at the end.
 
 The OpenSSL [ECH feature branch](https://github.com/openssl/openssl/tree/feature/ech) now includes all
 ECH shared-mode client, server, command line and test code.  Hopefully, that'll
@@ -205,7 +206,7 @@ used in some time:
 - [bssl2pem.sh](scripts/bssl2pem.sh) generates an ECH PEM file when using the
   boringssl command line tool
 
-# D18 plan
+# Plan
 
 1. review markdown files in this repo
 1. for each server, check howto/config/test on ubuntu
