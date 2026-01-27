@@ -205,3 +205,10 @@ used in some time:
 - [bssl2pem.sh](scripts/bssl2pem.sh) generates an ECH PEM file when using the
   boringssl command line tool
 
+# D18 plan
+
+1. review markdown files in this repo
+1. for each server, check howto/config/test on ubuntu
+1. update debian code/tests/configs on test.defo.ie
+1. check zone-factory including pdns branch
+1. update test-cases to add new tests incl something pdns
