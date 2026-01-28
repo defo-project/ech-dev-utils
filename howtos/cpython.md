@@ -119,7 +119,7 @@ values, and then pass that on to the SSL module.
 The `configure.ac` script now checks for the `openssl/ech.h` header file in the
 OpenSSL installation and if that is present and contains some ECH symbols, then
 `OPENSSL_ECH` is `#define`'d.  `#ifdef OPENSSL_ECH` is then used to protect ECH
-code.  If that check fails then 'OPENSSL_NO_ECH' is defined instead.  If ECH is
+code.  If that check fails then `OPENSSL_NO_ECH` is defined instead.  If ECH is
 enabled then the SSL module has a boolean called `HAS_ECH` set to 1, othewise
 that is zero.
 
