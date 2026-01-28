@@ -1,7 +1,8 @@
 
 # CPython and ECH
 
-Notes on the cpython ECH integration.
+Notes on the cpython ECH integration, which currently only
+supports ECH on the TLS client.
 
 ## Build
 
@@ -145,9 +146,13 @@ We add new SSL options that can be enabled:
 - `SSL_OP_ECH_IGNORE_CID`
 - `SSL_OP_ECH_GREASE_RETRY_CONFIG`
 
-We add to the `SSLSocket` and `SSLContext`
-classes in `Lib/ssl.py` and `Modules/_ssl.c` as
-described below.
+Note that some of the status values (e.g. `SSL_ECH_STATUS_BACKEND`) and options
+(e.g. `SSL_OP_ECH_TRIALDECRYPT`) are only relevant for TLS servers doing ECH,
+and so won't be seen by a client. We've added them in any case though for
+completeness and as they would be needed later.
+
+We add to the `SSLSocket` and `SSLContext` classes in `Lib/ssl.py` and
+`Modules/_ssl.c` as described below.
 
 SSLSocket methods:
 
