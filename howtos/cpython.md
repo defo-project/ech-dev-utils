@@ -117,7 +117,7 @@ we use the dnspython module to access ECH information from HTTPS RR
 values, and then pass that on to the SSL module.
 
 The `configure.ac` script now checks for the `openssl/ech.h` header file in the
-OpenSSL installation and if that is present and contains some ECH symbols, the
+OpenSSL installation and if that is present and contains some ECH symbols, then
 `OPENSSL_ECH` is `#define`'d.  `#ifdef OPENSSL_ECH` is then used to protect ECH
 code.  If that check fails then 'OPENSSL_NO_ECH' is defined instead.  If ECH is
 enabled then the SSL module has a boolean called `HAS_ECH` set to 1, othewise
@@ -126,24 +126,24 @@ that is zero.
 ECHStatus is a new class defined in `Lib/ssl.py` with an integer value that can
 have the following values, returned from OpenSSL's `SSL_get1_ech_status()`:
 
-    - `SSL_ECH_STATUS_BACKEND`
-    - `SSL_ECH_STATUS_GREASE_ECH`
-    - `SSL_ECH_STATUS_GREASE`
-    - `SSL_ECH_STATUS_SUCCESS`
-    - `SSL_ECH_STATUS_FAILED`
-    - `SSL_ECH_STATUS_BAD_CALL`
-    - `SSL_ECH_STATUS_NOT_TRIED`
-    - `SSL_ECH_STATUS_BAD_NAME`
-    - `SSL_ECH_STATUS_NOT_CONFIGURED`
-    - `SSL_ECH_STATUS_FAILED_ECH`
-    - `SSL_ECH_STATUS_FAILED_ECH_BAD_NAME`
+- `SSL_ECH_STATUS_BACKEND`
+- `SSL_ECH_STATUS_GREASE_ECH`
+- `SSL_ECH_STATUS_GREASE`
+- `SSL_ECH_STATUS_SUCCESS`
+- `SSL_ECH_STATUS_FAILED`
+- `SSL_ECH_STATUS_BAD_CALL`
+- `SSL_ECH_STATUS_NOT_TRIED`
+- `SSL_ECH_STATUS_BAD_NAME`
+- `SSL_ECH_STATUS_NOT_CONFIGURED`
+- `SSL_ECH_STATUS_FAILED_ECH`
+- `SSL_ECH_STATUS_FAILED_ECH_BAD_NAME`
 
 We add new SSL options that can be enabled:
 
-    - `SSL_OP_ECH_GREASE`
-    - `SSL_OP_ECH_TRIALDECRYPT`
-    - `SSL_OP_ECH_IGNORE_CID`
-    - `SSL_OP_ECH_GREASE_RETRY_CONFIG`
+- `SSL_OP_ECH_GREASE`
+- `SSL_OP_ECH_TRIALDECRYPT`
+- `SSL_OP_ECH_IGNORE_CID`
+- `SSL_OP_ECH_GREASE_RETRY_CONFIG`
 
 We add to the `SSLSocket` and `SSLContext`
 classes in `Lib/ssl.py` and `Modules/_ssl.c` as
@@ -151,16 +151,16 @@ described below.
 
 SSLSocket methods:
 
-    - `get_ech_status()` - to retrive the ECH status for a socket
-    - `get_ech_retry_config()` to get the retry configs, if the status was `ECH_STATUS_GREASE_ECH`
+- `get_ech_status()` - to retrive the ECH status for a socket
+- `get_ech_retry_config()` to get the retry configs, if the status was `ECH_STATUS_GREASE_ECH`
 
 SSLSocket attribute:
 
-    - `outer_server_hostname` for the name used in the outer CH (usually the ECH `public_name`)
+- `outer_server_hostname` for the name used in the outer CH (usually the ECH `public_name`)
 
 SSLContext methods:
 
-    - `set_ech_config()` which takes as input a binary encoded ECHConfigList
-    - `set_outer_alpn_protocols()` to set ALPNs for the outer CH
-    - `set_outer_server_hostname()` to set the SNI for the outer CH (allows override of ECH `public_name`)
+- `set_ech_config()` which takes as input a binary encoded ECHConfigList
+- `set_outer_alpn_protocols()` to set ALPNs for the outer CH
+- `set_outer_server_hostname()` to set the SNI for the outer CH (allows override of ECH `public_name`)
 
