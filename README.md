@@ -46,7 +46,6 @@ You can see the resulting status-badges [here](https://github.com/defo-project).
 Those CI jobs are in the
 `.github/workflows/packages.yaml` file of each repo, and are further described
 [here](howtos/CI-builds.md).
-
 There's also a [recipe](https://github.com/defo-project/ech-dev-utils/blob/main/howtos/gbp-recipe.md)
 for handling mismatches between the latest debian patches and what we're
 using when building for our debian test environment.

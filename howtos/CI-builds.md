@@ -28,7 +28,7 @@ In each case, the relevant CI build file is in
 There is a lot in common across the various `packages.yaml` files, they each:
 
 - define a `builder` workflow to be run on `push` and daily at an early
-  morning UTC (staggered times)
+  morning UTC time slot (staggered times)
 - exit on any error
 - re-use debian testing build tools (from @jspricke)
 - attempt a `git merge` with the upstream for the relevant project
@@ -106,6 +106,6 @@ $ rm -rf apache-httpd-rebase
 
 Various names in the above will change for other repos of course.
 
-Sometimes, the CI failes because the debian patches needed have gotten out
+Sometimes, the CI fails because the debian patches have gotten out
 of whack with the upstream repo. There's a [recipe](gbp-recipe.md) for
 handling that.

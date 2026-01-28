@@ -26,7 +26,7 @@ export LD_LIBRARY_PATH=$CODETOP
 # to pick up correct .so's - maybe note 
 : ${VERBOSE:="no"}
 
-BTOOL="$BTOP/build/tool"
+BTOOL="$BTOP/build/"
 BFILES="$CFGTOP/bssl"
 httphost=foo.example.com
 httpreq="GET /stats HTTP/1.1\\r\\nConnection: close\\r\\nHost: $httphost\\r\\n\\r\\n"
