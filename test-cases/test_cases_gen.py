@@ -816,9 +816,13 @@ if __name__ == "__main__":
         pemname=s0dir + "/" + t['id'] + "-pub.pem.ech"
         # don't replace if not needed, avoiding unneeded DNS updates
         if not os.path.exists(pemname):
-            subprocess.run(["bash", "-c", runpath + "/makeech.sh -public_name "
-                            + t['id'] + "-pub." + base_domain + \
-                            " -out " + pemname + " >/dev/null 2>&1"])
+            completion = subprocess.run([
+                # "bash", "-c", ' '.join([
+                f"{runpath}/makeech.sh", # invocation path
+                "-public_name", f"{t['id']}-pub.{base_domain}", # opt, val
+                "-out", pemname                                 # opt, val
+                # >/dev/null 2>&1"])
+            ] , capture_output=True)
         if not os.path.exists(pemname):
             print("Can't read " + pemname + " - exiting")
             sys.exit(1)
