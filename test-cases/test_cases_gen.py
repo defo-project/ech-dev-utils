@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 
 # A script to emit test-case names and test artefacts corresponding to
 # those, very much still a work-in-progress...
