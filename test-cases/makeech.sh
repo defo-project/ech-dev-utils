@@ -33,12 +33,12 @@ then
         fi
     fi
 fi
-if [[ $* == *pemout* ]]
+if [[ $* == *out* ]]
 then
     $OSSL ech $*
 else
     tmpf=$(mktemp)
-    $OSSL ech $* -pemout $tmpf
+    $OSSL ech $* -out $tmpf
     cat $tmpf
     rm -f $tmpf
 fi
