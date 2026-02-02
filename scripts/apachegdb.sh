@@ -7,7 +7,6 @@
 # should help if you wanna use gdb for apache
 
 # where our builds are...
-CODETOP=$HOME/code/openssl-upstream-master
 ATOP=$HOME/code/httpd
 RUNTOP=$HOME/lt
 
@@ -18,7 +17,7 @@ export RUNTOP
 # kill off before starting gdb, and when starting gdb as well
 AP_CFGNAME=$HOME/code/ech-dev-utils/configs/apachemin.conf
 
-OSSL_LP=$CODETOP
+OSSL_LP="$HOME/code/openssl-local-inst/lib"
 HTTPD_LP=$ATOP/.libs
 APR_LP=$ATOP/srclib/apr/.libs
 MO_LP=$ATOP/modules/ssl/.libs

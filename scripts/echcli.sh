@@ -458,7 +458,8 @@ fi
 # 2025-02-26: the request below seems to include an extra \\r\\n causing an extra log line
 # in nginx (at least)
 # httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphost\\r\\n\\r\\n"
-httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphost\\r\\n"
+# 2026-02-02 getting errors from apache, as a result of taking out that extra CRLF, add it back ;-(
+httpreq="GET /$HTTPPATH HTTP/1.1\\r\\nConnection: keep-alive\\r\\nHost: $httphost\\r\\n\\r\\n"
 
 # tell it where CA stuff is...
 if [[ "$server" != "localhost" ]]
