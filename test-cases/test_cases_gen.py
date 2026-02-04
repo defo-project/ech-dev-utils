@@ -7,16 +7,15 @@
 # nsupdate scripts (if we stick with bind) and client scripts
 # for selenium and command line tools (curl/s_client)
 
-import os, sys, argparse, gc
-import json
-import subprocess
-from datetime import datetime, timezone
+import os                       # not used outside of __main__: move
+import sys                      # used in makereadme(). but in context
+                                # valid only im __main__: resolve
 
-# command line arg handling
-parser=argparse.ArgumentParser(description='prepare DEfO test artefacts')
-parser.add_argument('-o','--output_dir', dest='outdir',
-                    help='directory in which to put artefacts')
-args=parser.parse_args()
+import argparse                 # not used outside of __main__: move
+# import gc                       # not referenced
+import json                     # not used outside of __main__: move
+import subprocess               # used in makereadme()
+from datetime import datetime, timezone # used only in makereadme() ??
 
 from test_cases_settings import *
 
@@ -144,6 +143,7 @@ targets_to_make=[
       'noaddr': 1,
     },
 ]
+
 # there are many, many ways to extend this, e.g. bad lengths, though note
 # that not all of those will be accepted by an authoritative DNS server
 # (or recursive, or stub, maybe)
@@ -159,6 +159,7 @@ client_tech=[
     { 'id': 'sc', 'description': 'OpenSSL s_client' },
     { 'id': 'pf', 'description': 'postfix' },
 ]
+
 # Arguably, the boring ssl test client (bssl) and the NSS eqivalent
 # (tstclnt), should be here too, maybe rusttls and woflssl as well
 
@@ -777,6 +778,18 @@ def make_curl_script():
     print(sout, file=outf)
 
 if __name__ == "__main__":
+
+    # command line arg handling
+    parser=argparse.ArgumentParser(description='prepare DEfO test artefacts')
+    parser.add_argument(
+        '-o','--output_dir', dest='outdir',
+        help='directory in which to put artefacts')
+    parser.add_argument(
+        '-e', '--export_settings', action='store_true',
+        help='export settings instead of generating artefacts')
+
+    args=parser.parse_args()
+
     if args.outdir != None:
         outdir=args.outdir
     if not os.path.exists(outdir):
@@ -786,10 +799,51 @@ if __name__ == "__main__":
     # if that exists, it should define an array called
     # more_targets_to_make that has the same structure as
     # targets_to_make
+    #
+    # IDEA: why not just wrap import in try: block ?
+    #
     more_targets_to_make = []
     if os.path.exists("more_targets_to_make.py"):
         from more_targets_to_make import more_targets_to_make
         targets_to_make = targets_to_make + more_targets_to_make
+
+    if args.export_settings:
+        import test_cases_settings as pref
+        import json
+        import yaml
+
+        config = dict()             # empty dict object for configuration
+        config['preferences'] = dict()
+        for x in filter(lambda x: x[0] != '_', dir(pref)):
+            config['preferences'][x] = getattr(pref,x)
+        config['server_tech'] = server_tech
+        config['targets'] = targets_to_make
+        config['client_tech'] = client_tech
+        config['pemfiles'] = pemfiles_to_use
+        config['server_config'] = {
+            'haproxy': {'preamble': haproxy_cfg_preamble,},
+            'nginx': {'template': nginx_template,},
+            'apache': {'config': apache_config,},
+            'lighttpd': {'config': lighttpd_config,},
+            'openssl': {'bash_script': s_server_bash, },
+        }
+        config['documentation'] = [
+            {'label': 'preamble',
+             'content': documentation_preamble,},
+            {'label': 'part_2',
+             'content': documentation_part2,},
+            {'label': 'part_3',
+             'content': documentation_part3,},
+            ]
+
+        # TODO: implement --config-format option, allowing JSON or YAML
+
+        # Save configuration as YAML
+        with open(outdir + '/test-cases.config', 'w') as outf:
+            print(yaml.dump(config), file=outf)
+
+        # With --export-settings option, that's all folks!
+        sys.exit(0)
 
     # where are we running from? (needed to find makeech.sh)
     runpath = os.path.dirname(__file__)
@@ -797,6 +851,9 @@ if __name__ == "__main__":
     # print("Reset DNS commands:")
     outf=open(outdir+'/resetdns.commands','w')
     resetdnscommands()
+
+    # TODO: equivalent pdnsutil-based resetdns script
+    #       see test-setup220415 under test.defo.ie:~sftcd ...
 
     # print("ECH PEM files:")
     if not os.path.exists(outdir+"/echkeydir"):
