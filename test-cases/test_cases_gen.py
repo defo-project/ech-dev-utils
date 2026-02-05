@@ -17,7 +17,11 @@ import json                     # not used outside of __main__: move
 import subprocess               # used in makereadme()
 from datetime import datetime, timezone # used only in makereadme() ??
 
+from dns.resolver import zone_for_name
+
 from test_cases_settings import *
+
+staging = {}         # space for named buffers for accumulating output
 
 # Lists of "dimensions" of test names
 # After each list we have some notes about other potential entries
@@ -537,10 +541,13 @@ def makereadme():
 # shell commands invoking pdnsutil to throw away everything and
 # get set for adding new tests - but we need to make sure
 # that there's A/AAAA/CAA RRs
-def resetdns_pdnscommands(zone):
+def resetdns_pdnscommands(zone=None):
 
     debug = '# '     # set to '' to generate additional shell commands
     dodgy = 'dodgy.test.defo.ie'
+
+    if zone == None:
+        zone = str(zone_for_name(base_domain))
 
     # compose and return the file content
     return f"""\
@@ -609,7 +616,40 @@ def resetdnscommands():
     # may as well have ECH work for the base domain
     print("update add " + base_domain + " " + str(ttl) + " HTTPS", "1 . ech=", good_kp['b64ecl'], file=outf)
 
+def pdns_up_instrs(name, ttl=3600, ipv4=None, ipv6=None, desc=None, https_rr=None, zone=None):
+
+    if zone == None:
+        zone = str(zone_for_name(name))
+    queue = []
+
+    queue.append(f"pdnsutil rrset delete {zone} {name} ANY")
+    if ipv4 != None:
+        # queue.append(f"pdnsutil rrset delete {zone} {name} A")
+        queue.append(f"pdnsutil rrset add {zone} {name} A {ttl} {ipv4}")
+    if ipv6 != None:
+        #queue.append(f"pdnsutil rrset delete {zone} {name} AAAA")
+        queue.append(f"pdnsutil rrset add {zone} {name} AAAA {ttl} {ipv6}")
+    if desc != None:
+        # queue.append(f"pdnsutil rrset delete {zone} {name} TXT")
+        queue.append(f"pdnsutil rrset add {zone} {name} TXT {ttl} '{desc}'")
+    if https_rr != None:
+        # queue.append(f"pdnsutil rrset delete {zone} {name} HTTPS")
+        if isinstance(https_rr, str):
+            queue.append(f"pdnsutil rrset add {zone} {name} HTTPS {ttl} '{https_rr}'")
+        else:
+            hold = f"pdnsutil rrset add {zone} {name} HTTPS"
+            for enc in https_rr:
+                queue.append(f"{hold} \\")
+                hold = f"    '{enc}'"
+            queue.append(hold)
+    return queue
+
 def up_instrs(name, ttl, a, aaaa, desc, https_rr):
+    # accumulate commands for pdnsutil as we go ...
+    staging['pdnsutil'].extend(
+        pdns_up_instrs(
+            name, ttl=ttl, ipv4=a, ipv6=aaaa, desc=desc, https_rr=https_rr,
+            zone=str(zone_for_name(name))))
     # print commands to delete then, if needed, add the various records
     didsomething = 0
     print("update delete " + name + " A", file=outf)
@@ -904,11 +944,10 @@ if __name__ == "__main__":
     resetdnscommands()
 
     # TODO: equivalent pdnsutil-based resetdns script
-    #       see test-setup220415 under test.defo.ie:~sftcd ...
+    #       see test.defo.ie:~sftcd/testsetup-22040715
 
     with open(outdir + '/pdnsutil-resetdns.sh', 'w') as outf:
-        print(resetdns_pdnscommands('defo.ie'), # TODO: parameterize hard-coded zone
-              file=outf)
+        print(resetdns_pdnscommands(), file=outf)
 
     # print("ECH PEM files:")
     if not os.path.exists(outdir+"/echkeydir"):
@@ -943,12 +982,24 @@ if __name__ == "__main__":
 
     # print("DNS commands:")
     # do all the oddball tests with 1st named server_tech
+
+    # Initialize queue of pdnsutil commands
+    staging['pdnsutil'] = []
+
     outf=open(outdir+'/addRRs.commands','w')
     donsupdates(server_tech[0])
     # only do nominal cases for other techs
     for tech in server_tech:
         target=tech['id'] + "." + base_domain
         dobasensupdate(tech)
+    with open(f"{outdir}/pdnsutil-addrrsets.sh", 'w') as outf:
+        print(f"""\
+# source this command stream from your shell of choice
+# using `source` or `.` command
+#
+""", file=outf)
+        print('\n'.join(staging['pdnsutil']), file=outf)
+    staging['pdnsutil'] = []    # Flush queue after printing
 
     # print("URLs to test:")
     outf=open(outdir+'/urls_to_test.csv','w')
