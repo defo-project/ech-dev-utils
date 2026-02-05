@@ -9,7 +9,7 @@ outdir="dt"
 base_domain='test.defo.ie'
 
 # CAA record value to put (back) after deletion
-caa_value="128 issue letsencrypt.org"
+caa_value='128 issue "letsencrypt.org"' # use format shown in RFC8659
 
 # TTL to use for all test RRs
 ttl=10

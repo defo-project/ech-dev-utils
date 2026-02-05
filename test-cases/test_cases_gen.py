@@ -542,12 +542,6 @@ def resetdns_pdnscommands(outf, zone):
     debug = '# '     # set to '' to generate additional shell commands
     dodgy = 'dodgy.test.defo.ie'
 
-    # pdns-ify RDATA because of finicky quoting rules ...
-    caa_split = caa_value.rsplit(maxsplit=1)
-    pdnsformat = {
-        'caa_value': f'{caa_split[0]} "{caa_split[1]}"',
-    }
-
     # compose the file content
     file_content = f"""\
 # source this command stream from your shell of choice
@@ -558,7 +552,7 @@ pdnsutil rrset delete {zone} {base_domain} ANY
 {debug}dig @::1 +norec +vc {base_domain} ANY
 pdnsutil rrset add {zone} {base_domain} A {ttl} {good_ipv4}
 pdnsutil rrset add {zone} {base_domain} AAAA {ttl} {good_ipv6}
-pdnsutil rrset add {zone} {base_domain} CAA {ttl} '{pdnsformat["caa_value"]}'
+pdnsutil rrset add {zone} {base_domain} CAA {ttl} '{caa_value}'
 pdnsutil rrset add {zone} {base_domain} HTTPS {ttl} '1 . ech={good_kp["b64ecl"]}'
 {debug}dig @::1 +norec +vc {base_domain} ANY
 #
