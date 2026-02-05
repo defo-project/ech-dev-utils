@@ -533,6 +533,63 @@ def makereadme():
     for line in gitlines.decode("utf-8").split('\n'):
         print("\t" + line, file=outf)
 
+
+# shell commands invoking pdnsutil to throw away everything and
+# get set for adding new tests - but we need to make sure
+# that there's A/AAAA/CAA RRs
+def resetdns_pdnscommands(outf, zone):
+
+    debug = '# '     # set to '' to generate additional shell commands
+    dodgy = 'dodgy.test.defo.ie'
+
+    # pdns-ify RDATA because of finicky quoting rules ...
+    caa_split = caa_value.rsplit(maxsplit=1)
+    pdnsformat = {
+        'caa_value': f'{caa_split[0]} "{caa_split[1]}"',
+    }
+
+    # compose the file content
+    file_content = f"""\
+# source this command stream from your shell of choice
+# using `source` or `.` command
+#
+# base name, with addresses, CAA, and ECH
+pdnsutil rrset delete {zone} {base_domain} ANY
+{debug}dig @::1 +norec +vc {base_domain} ANY
+pdnsutil rrset add {zone} {base_domain} A {ttl} {good_ipv4}
+pdnsutil rrset add {zone} {base_domain} AAAA {ttl} {good_ipv6}
+pdnsutil rrset add {zone} {base_domain} CAA {ttl} '{pdnsformat["caa_value"]}'
+pdnsutil rrset add {zone} {base_domain} HTTPS {ttl} '1 . ech={good_kp["b64ecl"]}'
+{debug}dig @::1 +norec +vc {base_domain} ANY
+#
+# address RRs for the public names
+pdnsutil rrset delete {zone} {good_kp['public_name']} ANY
+pdnsutil rrset add {zone} {good_kp['public_name']} A {ttl} {good_ipv4}
+pdnsutil rrset add {zone} {good_kp['public_name']} AAAA {ttl} {good_ipv6}
+pdnsutil rrset delete {zone} {good_kp2['public_name']} ANY
+pdnsutil rrset add {zone} {good_kp2['public_name']} A {ttl} {good_ipv4}
+pdnsutil rrset add {zone} {good_kp2['public_name']} AAAA {ttl} {good_ipv6}
+#
+# add dodgy.test.defo.ie just for use as an example
+pdnsutil rrset add {zone} {dodgy} ANY
+pdnsutil rrset add {zone} {dodgy} A {ttl} {good_ipv4}
+pdnsutil rrset add {zone} {dodgy} AAAA {ttl} {good_ipv6}
+pdnsutil rrset add {zone} {dodgy} HTTPS {ttl} \\
+    '1 . ech=eHl6dwo=' \\
+    '1 . ech=Cg==' \\
+    '1 . ech=YWJjCg==' \\
+    '10000 . ech=dG90YWwtY3JhcAo='
+# pdnsutil rrset add {zone} {dodgy} HTTPS {ttl} '1 . ech=Cg=='
+# pdnsutil rrset add {zone} {dodgy} HTTPS {ttl} '1 . ech=YWJjCg=='
+# pdnsutil rrset add {zone} {dodgy} HTTPS {ttl} '10000 . ech=dG90YWwtY3JhcAo='
+#
+# Keep this one apart, as pdnsutil will otherwise reject entire command
+pdnsutil rrset add {zone} {dodgy} HTTPS {ttl} '1 . ech'
+#
+pdnsutil zone increase-serial {zone}
+"""
+    print(file_content, file=outf)
+
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
 # that there's A/AAAA/CAA RRs
@@ -547,7 +604,7 @@ def resetdnscommands():
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " A " + good_ipv4, file=outf)
     print("update add " + good_kp2['public_name'] + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
     # add dodgy.test.defo.ie just for use as an example
-    dodgy='dogdy.test.def.ie'
+    dodgy='dodgy.test.defo.ie'
     print("update add " + dodgy + " " + str(ttl) + " A " + good_ipv4, file=outf)
     print("update add " + dodgy + " " + str(ttl) + " AAAA " + good_ipv6, file=outf)
     print("update add " + dodgy + " " + str(ttl) + " HTTPS", '1 . ech=eHl6dwo=' , file=outf)
@@ -854,6 +911,9 @@ if __name__ == "__main__":
 
     # TODO: equivalent pdnsutil-based resetdns script
     #       see test-setup220415 under test.defo.ie:~sftcd ...
+
+    with open(outdir + '/pdnsutil-resetdns.sh', 'w') as outf:
+        resetdns_pdnscommands(outf, 'defo.ie') # TODO: parameterize hard-coded zone
 
     # print("ECH PEM files:")
     if not os.path.exists(outdir+"/echkeydir"):
