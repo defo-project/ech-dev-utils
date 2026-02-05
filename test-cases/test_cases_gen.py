@@ -537,13 +537,13 @@ def makereadme():
 # shell commands invoking pdnsutil to throw away everything and
 # get set for adding new tests - but we need to make sure
 # that there's A/AAAA/CAA RRs
-def resetdns_pdnscommands(outf, zone):
+def resetdns_pdnscommands(zone):
 
     debug = '# '     # set to '' to generate additional shell commands
     dodgy = 'dodgy.test.defo.ie'
 
-    # compose the file content
-    file_content = f"""\
+    # compose and return the file content
+    return f"""\
 # source this command stream from your shell of choice
 # using `source` or `.` command
 #
@@ -582,7 +582,7 @@ pdnsutil rrset add {zone} {dodgy} HTTPS {ttl} '1 . ech'
 #
 pdnsutil zone increase-serial {zone}
 """
-    print(file_content, file=outf)
+    # End
 
 # a set of nsupdate commands to throw away everything and
 # get set for adding new tests - but we need to make sure
@@ -907,7 +907,8 @@ if __name__ == "__main__":
     #       see test-setup220415 under test.defo.ie:~sftcd ...
 
     with open(outdir + '/pdnsutil-resetdns.sh', 'w') as outf:
-        resetdns_pdnscommands(outf, 'defo.ie') # TODO: parameterize hard-coded zone
+        print(resetdns_pdnscommands('defo.ie'), # TODO: parameterize hard-coded zone
+              file=outf)
 
     # print("ECH PEM files:")
     if not os.path.exists(outdir+"/echkeydir"):
