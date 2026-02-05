@@ -977,7 +977,9 @@ if __name__ == "__main__":
         if not os.path.exists(pemname):
             print("Can't read " + pemname + " - exiting")
             sys.exit(1)
-        t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read()
+        # Read relevant line from file and strip undesireable trailing '\n'
+        # TODO: refactor as native Python instead of spawning shell command
+        t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read().rstrip()
         #print(t)
 
     # print("DNS commands:")
