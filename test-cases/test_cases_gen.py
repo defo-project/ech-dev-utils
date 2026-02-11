@@ -943,9 +943,6 @@ if __name__ == "__main__":
     outf=open(outdir+'/resetdns.commands','w')
     resetdnscommands()
 
-    # TODO: equivalent pdnsutil-based resetdns script
-    #       see test.defo.ie:~sftcd/testsetup-22040715
-
     with open(outdir + '/pdnsutil-resetdns.sh', 'w') as outf:
         print(resetdns_pdnscommands(), file=outf)
 
@@ -958,7 +955,7 @@ if __name__ == "__main__":
         os.makedirs(s0dir)
     for p in pemfiles_to_use:
         outf=open(s0dir + "/" + p['id'],'w')
-        print(p['content'], file=outf)
+        print(p['content'], end='', file=outf) # Suppress final empty line
     # make keys per client-facing server too
     for t in server_tech:
         s0dir= outdir+"/echkeydir/" + t['id']
@@ -978,9 +975,19 @@ if __name__ == "__main__":
             print("Can't read " + pemname + " - exiting")
             sys.exit(1)
         # Read relevant line from file and strip undesireable trailing '\n'
-        # TODO: refactor as native Python instead of spawning shell command
-        t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read().rstrip()
-        #print(t)
+        # Now refactored as native Python instead of spawning shell command
+        # t['epub']=os.popen("tail -2 " + pemname + " | head -1 ").read().rstrip()
+        with open(pemname) as f:
+            lines = list(f)
+            marker = '-----END ECHCONFIG-----\n'
+            # Notes:
+            # - locate END marker, guaranteeing that the file is long enough,
+            #   and protecting against possible extra lines at end
+            # - Set value from content of line previous to matched one,
+            #   without trailing whitespace (which includes '\n')
+            # - ValueError exception will be raised if marker is not found
+            t['epub'] = lines[lines.index(marker) - 1].rstrip()
+        # print(t)
 
     # print("DNS commands:")
     # do all the oddball tests with 1st named server_tech
