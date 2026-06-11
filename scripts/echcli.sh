@@ -27,8 +27,10 @@ VG="no"
 DEBUG="no"
 # run without doing ECH at all
 NOECH="no"
-# whether or not to grease (only makes sense with NOECH==yes)
+# whether or not to grease ECH (only makes sense with NOECH==yes)
 GREASE="no"
+# whether or not to add grease TLS exts
+TGREASE="no"
 # the specific HPKE suite to use for grease, if so instructed
 GSUITE="0x20,1,1"
 GSUITESET="no"
@@ -117,7 +119,7 @@ echo "Running $0 at $NOW"
 
 function usage()
 {
-    echo "$0 [-cdfgGhHPpsRrnlvL] [-- [literal s_client opts]]- try out encrypted client hello (ECH) via openssl s_client"
+    echo "$0 [-cdeEfgGhHPpsRrnlvL] [-- [literal s_client opts]]- try out encrypted client hello (ECH) via openssl s_client"
     echo "  -4 use IPv4"
     echo "  -6 use IPv6"
     echo "  -a [alpn-str] specifies a comma-sep list of alpn values"
@@ -125,6 +127,7 @@ function usage()
     echo "  -C [number] selects the n-th ECHConfig from input RR/PEM file (0 based)"
     echo "  -d means run s_client in verbose mode"
     echo "  -e means send HTTP request (in ./ed_file) as early_data"
+    echo "  -E means add TLS GREASE exts"
     echo "  -f [pathname] specifies the file/pathname to request (default: '/')"
     echo "  -g means GREASE (only applied with -n)"
     echo "  -G means set GREASE suite to default rather than randomly pick"
@@ -167,7 +170,7 @@ then
 fi
 
 # options may be followed by one colon to indicate they have a required argument
-if ! options=$($GETOPTDIR/getopt -s bash -o 46a:C:c:def:gGhH:IjnNO:p:P:Rrs:S:t:Tvw: -l four,six,alpn,choose:,clear_sni:,debug,early,filepath:,grease,greasesuite,help,hidden:,ignore_cid,just,noech,noalpn,outer:,port:,echpub:,hrr,realcert,server:,session:,gtype:,test_cust,valgrind,wait: -- "$@")
+if ! options=$($GETOPTDIR/getopt -s bash -o 46a:C:c:deEf:gGhH:IjnNO:p:P:Rrs:S:t:Tvw: -l four,six,alpn,choose:,clear_sni:,debug,early,tgrease,filepath:,grease,greasesuite,help,hidden:,ignore_cid,just,noech,noalpn,outer:,port:,echpub:,hrr,realcert,server:,session:,gtype:,test_cust,valgrind,wait: -- "$@")
 then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -184,6 +187,7 @@ do
         -C|--choose) SELECTED=$2; shift;;
         -d|--debug) DEBUG="yes" ;;
         -e|--early) EARLY_DATA="yes" ;;
+        -E|--tgrease) TGREASE="yes" ;;
         -f|--filepath) HTTPPATH=$2; shift;;
         -g|--grease) GREASE="yes";;
         -G|--greasesuite) GSUITESET="yes";;
@@ -389,40 +393,46 @@ then
     ignore_str=" -ech_ignore_cid "
 fi
 
+tgrease_str=" "
+if [[ "$TGREASE" == "yes" ]]
+then
+    tgrease_str=" -grease "
+fi
+
 # normally the inner SNI is what we want to hide
-echstr="-servername $hidden $ECH $ignore_str "
+echstr="-servername $hidden $ECH $ignore_str $tgrease_str "
 if [[ "$NOECH" == "yes" ]]
 then
     echo "Not trying ECH"
     if [[ "$SUPPLIEDPNO" != "" ]]
     then
-        echstr="-servername $SUPPLIEDPNO $ignore_str "
+        echstr="-servername $SUPPLIEDPNO $ignore_str $tgrease_str "
     elif [[ "$SUPPLIEDPNO" == "" && "$hidden" != "" ]]
     then
-        echstr="-servername $hidden $ignore_str "
+        echstr="-servername $hidden $ignore_str $tgrease_str "
     elif [[ "$hidden" == "" || "$SUPPLIEDPNO" == "NONE" ]]
     then
-        echstr=" -noservername $ignore_str"
+        echstr=" -noservername $ignore_str $tgrease_str"
     fi
     if [[ "$GREASE" == "yes" ]]
     then
         echo "Trying to GREASE though"
-        echstr=" $echstr $grease_str $ignore_str "
+        echstr=" $echstr $grease_str $ignore_str $tgrease_str "
     fi
 else
     if [[ "$GREASE" == "yes" && "$hidden" == "NONE" ]]
     then
         echo "Trying to GREASE"
-        echstr=" -noservername $grease_str $ignore_str "
+        echstr=" -noservername $grease_str $ignore_str $tgrease_str "
     elif [[ "$GREASE" == "yes" && "$hidden" != "NONE" ]]
     then
-        echstr=" -servername $hidden $grease_str $ignore_str "
+        echstr=" -servername $hidden $grease_str $ignore_str $tgrease_str "
     elif [[ "$GREASE" == "no" && "$hidden" != "NONE" ]]
     then
-        echstr=" -servername $hidden $ECH $ignore_str "
+        echstr=" -servername $hidden $ECH $ignore_str $tgrease_str "
     elif [[ "$GREASE" == "no" && "$hidden" == "NONE" ]]
     then
-        echstr=" -noservername $ECH $ignore_str "
+        echstr=" -noservername $ECH $ignore_str $tgrease_str "
     fi
 fi
 
