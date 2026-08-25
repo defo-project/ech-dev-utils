@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Script to run basic tests using the openssl command line tool.
-# Equivalent tests should migrate to being run as part of ``make test``
+# Script to run basic ECH test using the openssl command line tool.
+
+set -x
 
 # to pick up correct .so's - maybe note
 : ${CODETOP:=$HOME/code/defo-project-org/openssl}
