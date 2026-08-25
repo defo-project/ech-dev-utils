@@ -1,0 +1,126 @@
+# This config file fixes an haproxy` mis-routing issue that was present
+# in the config for test.defo.ie - TBD is to integrate it into our test
+# case generation scripts (sftcd)
+global
+        log /dev/log local0
+        log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+        log global
+        mode tcp
+        option tcplog
+        option dontlognull
+        timeout connect 5s
+        timeout client 50s
+        timeout client-fin 50s
+        timeout server 50s
+        timeout tunnel 1h
+        default-server inter 15s fastinter 2s downinter 5s rise 3 fall 3
+
+frontend defotests
+        bind :::443 v4v6
+        mode tcp
+        option tcplog
+        tcp-request inspect-delay 5s
+        tcp-request content accept if { req_ssl_hello_type 1 }
+
+        ## SNI-based routing - SSL passes through to backend servers
+
+    # hoba is not part of these tests, just co-located for a different test
+    use_backend b_ng if { req.ssl_sni -i hoba.ie }
+    use_backend b_ng if { req.ssl_sni -i hidden.hoba.ie }
+    use_backend b_ng if { req.ssl_sni -i test.defo.ie  }
+    use_backend b_ng if { req.ssl_sni -i dodgy.test.defo.ie  }
+    use_backend b_ng if { req.ssl_sni -i public.test.defo.ie  }
+    use_backend b_ng if { req.ssl_sni -i otherpublic.test.defo.ie  }
+    use_backend b_ng if { req.ssl_sni -i ng-pub.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i ng.test.defo.ie }
+    use_backend b_ap if { req.ssl_sni -i ap-pub.test.defo.ie }
+    use_backend b_ap if { req.ssl_sni -i ap.test.defo.ie }
+    use_backend b_ly if { req.ssl_sni -i ly-pub.test.defo.ie }
+    use_backend b_ly if { req.ssl_sni -i ly.test.defo.ie }
+    use_backend b_ss if { req.ssl_sni -i ss-pub.test.defo.ie }
+    use_backend b_ss if { req.ssl_sni -i ss.test.defo.ie }
+    use_backend b_sshrr if { req.ssl_sni -i sshrr-pub.test.defo.ie }
+    use_backend b_sshrr if { req.ssl_sni -i sshrr.test.defo.ie }
+    use_backend b_hp if { req.ssl_sni -i hp-pub.test.defo.ie }
+    use_backend b_hp if { req.ssl_sni -i hp.test.defo.ie }
+    use_backend b_nb if { req.ssl_sni -i nb-pub.test.defo.ie }
+    use_backend b_nb if { req.ssl_sni -i nb.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i min-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i v1-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i v2-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i v3-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i v4-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i bk1-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i bk2-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i bv-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i badalpn-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i noaddr-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i many-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i mixedmode-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i p256-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i curves1-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i curves2-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i curves3-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i h2alpn-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i h1alpn-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i mixedalpn-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i longalpn-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i pthen2-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i 2thenp-ng.test.defo.ie }
+    use_backend b_ng if { req.ssl_sni -i withext-ng.test.defo.ie }
+    use_backend b_ap if { dst -i 2a00:c6c0:0:134:2::cd1 }
+    use_backend b_ng if { dst -i 2a00:c6c0:0:134:2::cd2 }
+
+        # set default backend
+        default_backend b_ng
+
+backend b_ly
+        mode tcp
+        option ssl-hello-chk
+    server ly 127.0.0.1:15445 check
+
+backend b_ap
+        mode tcp
+        option ssl-hello-chk
+    server ap 127.0.0.1:15444 check
+
+backend b_ss
+        mode tcp
+        option ssl-hello-chk
+    server ss 127.0.0.1:15447 check
+
+backend b_sshrr
+        mode tcp
+        option ssl-hello-chk
+    server sshrr 127.0.0.1:15448 check
+
+backend b_hp
+        mode tcp
+        option ssl-hello-chk
+    server hp 127.0.0.1:15446 check
+
+backend b_nb
+        mode tcp
+        option ssl-hello-chk
+    server nb 127.0.0.1:15450 check
+
+backend b_ng
+        mode tcp
+        option ssl-hello-chk
+    server ng 127.0.0.1:15443 check
+    server default 127.0.0.1:15443
+
+
+#backend site1_https_passthrough
+        #mode tcp
+        #option ssl-hello-chk
+        #server server1 192.168.1.101:443 weight 100 check
+

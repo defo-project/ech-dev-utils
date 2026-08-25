@@ -1,50 +1,42 @@
 
 # Lighttpd and ECH
 
-Notes on the lighttpd ECH integration.
-
-We assume you've already built our OpenSSL fork in ``$HOME/code/openssl`` and
-have gotten the [localhost-tests](localhost-tests.md) working, and you should
-have created an ``echkeydir`` as described
-[here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
-
-The main lighttpd maintainer (@gstrauss) provided much well-appreciated help in
-early versions of this integration, which was the first web server we tackled.
-Recently, (on 2025-01-04) @gstrauss merged ECH code to the lighttpd1.4 master
-branch. That can use boringssl or the DEfO-project OpenSSL fork for ECH support.
-
-Hopefully, in the near future, the "official" OpenSSL ECH feature branch will
-be usable for ECH support, but for the moment, one needs to build against our
-DEfO-project fork to get ECH support in OpenSSL.
-
-For DEfO-project CI purposes, we still have a fork of lighttpd1.4, (our CI
-setup does a nightly merge with upstream, build and test to check if anything's
-gotten broken), but the upstream ligtttpd1.4 master is also usable as that now
-contains ECH code. This HOWTO describes use of the upstream lighttpd1.4 master
-branch.
-
-Commands on this howto use a few environment variables for clarity:
-```bash
-    $ export DEV=$HOME/code
-    $ export RUNTOP=$HOME/lt
-    $ export LD_LIBRARY_PATH=$DEV/openssl
-```
+ECH code is present in the lighttpd1.4 and OpenSSL master branches. Lighty can
+use gnuTLS, boringssl or OpenSSL for ECH.  This HOWTO describes use of the
+lighttpd1.4 with the OpenSSL master branch.
 
 ## Build
 
-Nothing remarkable here really:
+We assume you've already gotten the [localhost-tests](localhost-tests.md)
+working, and you should have created an `echkeydir` as described
+[here](../README.md#server-configs-preface---key-rotation-and-slightly-different-file-names).
+
+Build the ECH feature branch:
 
 ```bash
-    $ cd $DEV
-    $ git clone https://github.com/lighttpd/lighttpd1.4.git
-    ...
-    $ cd lighttpd1.4
-    $ ./autogen.sh
-    ... stuff ...
-    $ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$DEV/openssl --with-openssl-libs=$DEV/openssl
-    ... stuff ...
-    $ make
-    ... stuff ...
+$ export TOP=$HOME/code/upstream
+$ cd $TOP
+$ git clone https://github.com/openssl/openssl.git openssl
+...
+$ cd openssl
+$ ./config --libdir=lib --prefix=$TOP/openssl-local-inst
+...
+$ make -j8 && make install_sw
+...
+
+Now build lighttpd:
+
+```bash
+$ cd $TOP
+$ git clone https://github.com/lighttpd/lighttpd1.4.git
+...
+$ cd lighttpd1.4
+$ ./autogen.sh
+... stuff ...
+$ CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG ./configure --with-openssl=$TOP/openssl-local-inst --with-openssl-libs=$TOP/openssl-local-inst/lib
+... stuff ...
+$ make
+... stuff ...
 ```
 
 `CFLAGS=-DLIGHTTPD_OPENSSL_ECH_DEBUG` enables debug trace and is optional.
@@ -55,14 +47,14 @@ Reference: https://wiki.lighttpd.net/TLS_ECH
 
 Lighttpd adds new server configuration settings, under ssl.ech-opts:
 
-- keydir - name of directory scanned for ``*.ech`` files that will be
+- keydir - name of directory scanned for `*.ech` files that will be
   parsed/used if they contain a private key and ECHConfig
 - refresh - frequency (in seconds) to re-check whether some PEM files need to
   be reloaded
 - trial-decrypt - enable/disable trial decryption (default: enable)
 
 Those are reflected in the
-[``lighthttpdmin.conf``](../configs/lighthttpdmin.conf) config file used in
+[`lighthttpdmin.conf`](../configs/lighthttpdmin.conf) config file used in
 localhost testing.
 
 Lighttpd also supports a way to make a specific virtual host "ECH only" by
@@ -83,7 +75,7 @@ via cleartext SNI.
 
 ## Test
 
-The script [``testlighttpd.sh``](../scripts/testlighttpd.sh) sets environment
+The script [`testlighttpd.sh`](../scripts/testlighttpd.sh) sets environment
 vars and then runs lighttpd from the build, listening (for HTTPS only) on port
 3443, then runs some client tests against that server, and finally kills
 the server process:
@@ -114,7 +106,7 @@ so you'll see error log lines like the following accumulating:
     2023-12-06 01:39:12: (mod_openssl.c.823) SSL: OSSL_ECHSTORE_read_pem() worked for $RUNTOP/echkeydir/echconfig.pem.ech
 ```
 
-You can then use our wrapper for ``openssl s_client`` to access a web page:
+You can then use our wrapper for `openssl s_client` to access a web page:
 
 ```bash
     $ $DEV/ech-dev-utils/scripts/echcli.sh -p 3443 -s localhost -H foo.example.com -P echconfig.pem -f index.html
@@ -135,14 +127,14 @@ the ECHConfig value with your own of course):
     ...
 ```
 
-We can now also run tests on ``baz.example.com`` which is setup as an "ECH only"
+We can now also run tests on `baz.example.com` which is setup as an "ECH only"
 web site. So that works when using ECH:
 
 ```bash
     $ $DEV/curl/src/curl --ech ecl:AD7+DQA6uAAgACAogff+HZbirYdQCfXI00iBPP+K96YyK/D/0DoeXD/0fgAEAAEAAQALZXhhbXBsZS5jb20AAA== --connect-to baz.example.com:443:localhost:3443 https://baz.example.com/index.html --cacert $RUNTOP/cadir/oe.csr -vvv
 ```
 
-But if we don't use ECH at all then we get the content for ``example.com``,
+But if we don't use ECH at all then we get the content for `example.com`,
 the full output of which is shown below:
 
 ```bash
@@ -235,15 +227,15 @@ the full output of which is shown below:
     $
 ```
 
-In the above case, the client thinks it has a session with ``baz.example.com``
-but the server has returned the web page for ``example.com``. (That works in
+In the above case, the client thinks it has a session with `baz.example.com`
+but the server has returned the web page for `example.com`. (That works in
 our test setup as the x.509 certificate for that instance has a wildcard for
-``*.example.com``.)
+`*.example.com`.)
 
 ## Logs
 
 If lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
-ECH status information is written to the lighttpd ``error.log``, that
+ECH status information is written to the lighttpd `error.log`, that
 looks like:
 
 ```bash
@@ -267,14 +259,14 @@ To enable PHP edit your lighttpd config to include:
 If lighttpd was built with LIGHTTPD\_OPENSSL\_ECH\_DEBUG defined,
 the PHP code can then access these CGI variables:
 
-- ``SSL_ECH_STATUS``: values can be:
+- `SSL_ECH_STATUS`: values can be:
     - "SSL\_ECH\_STATUS\_SUCCESS" - if it all worked (successful ECH decrypt)
-    - "SSL\_ECH\_STATUS\_FAILED" - if the call to ``SSL_ech_get1_status`` failed
+    - "SSL\_ECH\_STATUS\_FAILED" - if the call to `SSL_ech_get1_status` failed
     - "SSL\_ECH\_STATUS\_FAILED\_ECH" - something went wrong during attempted decryption
     - "SSL\_ECH\_STATUS\_FAILED\_ECH\_BAD\_NAME" - this is a client-side error, if the TLS server cert didn't match the ECH
     - "SSL\_ECH\_STATUS\_NOT\_TRIED" - if the client didn't include the TLS ClientHello extension at all
-- ``SSL_ECH_INNER_SNI``: will contain the actual ECH used or "NONE"
-- ``SSL_ECH_OUTER_SNI``: will contain the cleartext SNI seen or "NONE"
+- `SSL_ECH_INNER_SNI`: will contain the actual ECH used or "NONE"
+- `SSL_ECH_OUTER_SNI`: will contain the cleartext SNI seen or "NONE"
 
 Here's a PHP snippet that will display those:
 
@@ -301,31 +293,31 @@ Here's a PHP snippet that will display those:
 
 ## Code changes
 
-- All code changes are within the ``src/mod_openssl.c`` file.
+- All code changes are within the `src/mod_openssl.c` file.
 
-- Significant new code is protected via ``#ifndef OPENSSL_NO_ECH`` as is done
+- Significant new code is protected via `#ifndef OPENSSL_NO_ECH` as is done
   in our OpenSSL fork. The new code is compiled if the OpenSSL include files
-  used define the ``SSL_OP_ECH_GREASE`` symbol. On upstream maintainer advice,
-  structures that contain new ECH related fields are not protected via ``#ifndef
-  OPENSSL_NO_ECH`` and some config file handling (that would in any case work
+  used define the `SSL_OP_ECH_GREASE` symbol. On upstream maintainer advice,
+  structures that contain new ECH related fields are not protected via `#ifndef
+  OPENSSL_NO_ECH` and some config file handling (that would in any case work
   with the released OpenSSL library) is similarly unprotected.
 
-- Some code is also protected via ``#ifdef TLSEXT_TYPE_ech`` which is defined
+- Some code is also protected via `#ifdef TLSEXT_TYPE_ech` which is defined
   if the TLS library in use defines that symbol, and could in principle be of
   use in future with other TLS libraries that support ECH (e.g. boringssl).
   (boringssl uses TLSEXT\_TYPE\_encrypted\_client\_hello)
 
-- Some changes are additionally protected via ``#ifdef LIGHTTPD_OPENSSL_ECH_DEBUG``.
+- Some changes are additionally protected via `#ifdef LIGHTTPD_OPENSSL_ECH_DEBUG`.
   which is not enabled by default. Those are mainly tracing/logging chunks of code.
 
-- ``mod_openssl_refresh_ech_keys_ctx()`` handles periodic re-loading of ECH PEM
-  files and enabling ECH for the relevant ``SSL_CTX`` contexts. That's called
-  for each ``SSL_CTX`` loaded into the server via
-  ``mod_openssl_refresh_ech_keys()``.
+- `mod_openssl_refresh_ech_keys_ctx()` handles periodic re-loading of ECH PEM
+  files and enabling ECH for the relevant `SSL_CTX` contexts. That's called
+  for each `SSL_CTX` loaded into the server via
+  `mod_openssl_refresh_ech_keys()`.
 
-- ``mod_openssl_ech_only_policy_check()`` implements the "ECH only" logic.
+- `mod_openssl_ech_only_policy_check()` implements the "ECH only" logic.
 
-- A block of code within ``network_init_ssl()`` sets the ``SSL_OP_ECH_TRIALDECRYPT``
+- A block of code within `network_init_ssl()` sets the `SSL_OP_ECH_TRIALDECRYPT`
   option for the OpenSSL library if so configured.
 
 ## Debugging

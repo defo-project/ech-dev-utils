@@ -26,12 +26,13 @@ export LD_LIBRARY_PATH=$CODETOP
 # to pick up correct .so's - maybe note 
 : ${VERBOSE:="no"}
 
-BTOOL="$BTOP/build/tool"
+: ${BTOOL="$BTOP/build/"}
+
 BFILES="$CFGTOP/bssl"
 httphost=foo.example.com
 httpreq="GET /stats HTTP/1.1\\r\\nConnection: close\\r\\nHost: $httphost\\r\\n\\r\\n"
-cfhost="crypto.cloudflare.com"
-cfhttpreq="GET / HTTP/1.1\\r\\nConnection: close\\r\\nHost: $cfhost\\r\\n\\r\\n"
+cfhost="cloudflare-ech.com"
+cfhttpreq="GET /cdn-cgi/trace HTTP/1.1\\r\\nConnection: close\\r\\nHost: $cfhost\\r\\n\\r\\n"
 
 defohost="draft-13.esni.defo.ie"
 defoport="8413"
@@ -262,7 +263,7 @@ then
         echo "Can't read ECHConfigList for $cfhost"
         exit 2
     fi
-    ah_ech=${ECH:52:144}
+    ah_ech=${ECH:58:143}
     echo $ah_ech | xxd -p -r >$BFILES/cf.ech
     echo "Running bssl s_client against cloudflare"
     ( echo -e $cfhttpreq ; sleep 2) | $BTOOL/bssl s_client \

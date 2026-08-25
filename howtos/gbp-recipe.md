@@ -27,6 +27,9 @@ $ git rebase upstream/master
 # need to increase the 50
 # when done, this lands us in another branch, called patch-queue/master
 $ gbp pq import --time-machine=50
+# if the above fails if a local patch-queue/master already exists (e.g. if
+# you did this just before) then do a 
+$ git branch -D patch-queue/master
 # rebase patch-queue/master with master
 $ git rebase master 
 # we may need to fix something to get the rebase to work, in 

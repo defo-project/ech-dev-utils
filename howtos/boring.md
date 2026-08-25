@@ -61,11 +61,11 @@ that.
 
 Assuming you have built curl following our
 [howto](https://github.com/sftcd/curl/blob/ECH-experimental/docs/ECH.md_) and
-built curl in `$HOME/code/curl` you can then run:
+built curl in `$HOME/code/defo-project-org/curl` you can then run:
 
 ```bash
 $ cd $HOME/lt
-$ $HOME/code/curl/src/curl  --insecure --connect-to foo.example.com:443:localhost:8443 --ech ecl:`cat bssl/bs.pem` https://foo.example.com/index.html
+$ $HOME/code/defo-project-org/curl/src/curl  --insecure --connect-to foo.example.com:443:localhost:8443 --ech ecl:`cat bssl/bs.pem` https://foo.example.com/index.html
   Version: TLSv1.3
   Resumed session: no
   Cipher: TLS_AES_256_GCM_SHA384

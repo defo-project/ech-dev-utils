@@ -3,20 +3,20 @@
 set -e
 
 # to pick up correct executables and .so's
-: ${CODETOP:=$HOME/code/defo-project-org/openssl}
-export LD_LIBRARY_PATH=$CODETOP
+: ${CODETOP:=$HOME/code/openssl-local-inst}
+export LD_LIBRARY_PATH=$CODETOP/lib
 : ${EDTOP:=$HOME/code/defo-project-org/ech-dev-utils}
 # Note that the value for this has to match that for ATOP
 # in apachemin.conf, so if you change this on the
 # command line, you'll need to edit the conf file
-: ${ATOP:=$HOME/code/defo-project-org/apache-httpd}
+: ${ATOP:=$HOME/code/httpd}
 # where we have/want test files
 : ${RUNTOP:=`/bin/pwd`}
 
 if [[ "$PACKAGING" == "" ]]
 then
     ABIN=$ATOP/httpd
-    CMDPATH=$CODETOP/apps/openssl
+    CMDPATH=$CODETOP/bin/openssl
 else
     CMDPATH=`which openssl`
     ABIN=`which apache2`
