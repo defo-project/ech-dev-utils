@@ -30,6 +30,7 @@ $ git clone https://github.com/defo-project/cpython.git cpython
 $ cd cpython
 $ patch -p1 <debian/patches/2026-08-ECH-in-ssl-module.patch
 $ export LD_LIBRARY_PATH=$HOME/code/openssl-local-inst/lib
+$ autoconf -f
 $  ./configure --with-openssl=$HOME/code/openssl-local-inst
 ...
 $ make -j8
