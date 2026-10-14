@@ -2,7 +2,7 @@
 
 # Script to run basic ECH test using the openssl command line tool.
 
-set -x
+# set -x
 
 # to pick up correct .so's - maybe note
 : ${CODETOP:=$HOME/code/defo-project-org/openssl}
