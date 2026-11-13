@@ -10,7 +10,7 @@ function splitlist()
     # result is a space sep list of single-entry base64 encoded ECHConfigLists
     # this assumes encoding is valid and does no error checking
     olist=""
-    ah_echlist=`echo $list | base64 -d | xxd -ps -c 200 | tr -d '\n'`
+    ah_echlist=$(echo "$list" | base64 -d | xxd -ps -c 200 | tr -d '\n')
     ah_olen=${ah_echlist:0:4}
     olen=$((16#$ah_olen))
     remaining=$olen
@@ -21,9 +21,9 @@ function splitlist()
         nlen=$((16#$ah_nlen))
         nlen=$((nlen+4))
         ah_nlen=$((nlen*2))
-        ah_thislen="`printf  "%04x" $((nlen))`"
+        ah_thislen="$(printf  "%04x" $((nlen)))"
         thisone=${top:0:ah_nlen}
-        b64thisone=`echo $ah_thislen$thisone | xxd -p -r | base64 -w 0` 
+        b64thisone=$(echo "$ah_thislen$thisone" | xxd -p -r | base64 -w 0)
         olist="$olist $b64thisone"
         remaining=$((remaining-nlen))
         top=${top:ah_nlen}
@@ -37,16 +37,18 @@ list="AXn+DQA6xQAgACBm54KSIPXu+pQq2oY183wt3ybx7CKbBYX0ogPq5u6FegAEAAEAAQALZXhhbX
 
 if [[ "$1" != "" ]]
 then
-    # assume param is a PEM file
-    if [ -f $1 ]
+    # param is a PEM file, or a b64 string
+    if [ -f "$1" ]
     then
-        list=`cat $1 | sed -n '/BEGIN ECHCONFIG/,/END ECHCONFIG/p' | head -n -1 | tail -n -1`
+        list=$(cat "$1" | sed -n '/BEGIN ECHCONFIG/,/END ECHCONFIG/p' | head -n -1 | tail -n -1)
+    else
+        list="$1"
     fi
 fi
 
-splitlists=`splitlist` 
+splitlists=$(splitlist)
 
 for list in $splitlists
 do
-    echo $list
+    echo "$list"
 done
